@@ -1,0 +1,7 @@
+cmake-*
+*.o
+*.gb
+*.asm
+*.swp
+.idea/
+mem.dat

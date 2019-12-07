@@ -1,0 +1,11 @@
+[package]
+name = "spindle"
+version = "0.1.0"
+authors = ["Shish <shish@shishnet.org>"]
+edition = "2018"
+
+[dependencies]
+sdl2 = "0.32"
+bitfield = "0.13.1"
+num_enum = "0.4.2"
+structopt = "*"

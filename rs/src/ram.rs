@@ -1,0 +1,303 @@
+use crate::cart;
+use crate::consts;
+use std::io::Read;
+
+/**
+ * A minimal boot ROM which just sets values the same as
+ * the canonical ROM and then gets out of the way - no
+ * logo scrolling or DRM.
+ */
+const BOOT: [u8; 0x100] = [
+    // prod memory
+    0x31, 0xFE, 0xFF, // LD SP,$FFFE
+    // set flags
+    0x3E, 0x01, // LD A,$00
+    0xCB, 0x7F, // BIT 7,A (sets Z,n,H)
+    0x37, // SCF (sets C)
+    // set registers
+    0x3E, 0x01, // LD A,$01
+    0x06, 0x00, // LD B,$01
+    0x0E, 0x13, // LD C,$13
+    0x16, 0x00, // LD D,$00
+    0x1E, 0xD8, // LD E,$D8
+    0x26, 0x01, // LD H,$01
+    0x2E, 0x4D, // LD L,$4D
+    0xC3, 0x00, 0xFD, // JP $00FD
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00,
+    // this instruction must be at the end of ROM --
+    // after these finish executing, PC needs to be 0x100
+    0xE0, 0x50, // LDH 50,A (disable boot rom)
+];
+
+pub struct RAM {
+    cart: cart::Cart,
+    ram_enable: bool,
+    ram_bank_mode: bool,
+    rom_bank_low: u8,
+    rom_bank_high: u8,
+    rom_bank: u8,
+    ram_bank: u8,
+    boot: [u8; 0x100],
+    pub data: [u8; 0xFFFF + 1],
+    debug: bool,
+}
+
+impl RAM {
+    pub fn init(cart: cart::Cart, debug: bool) -> RAM {
+        let boot = match ::std::fs::File::open("boot.gb") {
+            Ok(mut fp) => {
+                // println!("Loading boot code from boot.gb");
+                let mut buf: [u8; 0x100] = [0; 0x100];
+                fp.read_exact(&mut buf).unwrap();
+                buf[0xE9] = 0x00;
+                buf[0xEA] = 0x00;
+                buf[0xFA] = 0x00;
+                buf[0xFB] = 0x00;
+                buf
+            }
+            Err(_) => BOOT,
+        };
+
+        RAM {
+            cart,
+            ram_enable: true, // false,
+            ram_bank_mode: false,
+            rom_bank_low: 1,
+            rom_bank_high: 0,
+            rom_bank: 1,
+            ram_bank: 0,
+            boot,
+            data: [0; 0xFFFF + 1],
+            debug,
+        }
+    }
+
+    #[inline(always)]
+    pub fn set<T: consts::Address>(&mut self, addr: T, val: u8) {
+        let addr = addr.to_u16();
+        match addr {
+            0x0000...0x1FFF => {
+                self.ram_enable = val != 0;
+            }
+            0x2000...0x3FFF => {
+                self.rom_bank_low = val;
+                self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low;
+                if self.debug {
+                    println!(
+                        "rom_bank set to {}/{}",
+                        self.rom_bank,
+                        self.cart.rom_size / 0x2000
+                    );
+                }
+                if self.rom_bank as u32 * 0x2000 > self.cart.rom_size {
+                    panic!("Set rom_bank beyond the size of RAM");
+                }
+            }
+            0x4000...0x5FFF => {
+                if self.ram_bank_mode {
+                    self.ram_bank = val;
+                    if self.debug {
+                        println!(
+                            "ram_bank set to {}/{}",
+                            self.ram_bank,
+                            self.cart.ram_size / 0x2000
+                        );
+                    }
+                    if self.ram_bank as u32 * 0x2000 > self.cart.ram_size {
+                        panic!("Set ram_bank beyond the size of RAM");
+                    }
+                } else {
+                    self.rom_bank_high = val;
+                    self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low;
+                    if self.debug {
+                        println!(
+                            "rom_bank set to {}/{}",
+                            self.rom_bank,
+                            self.cart.rom_size / 0x2000
+                        );
+                    }
+                    if self.rom_bank as u32 * 0x2000 > self.cart.rom_size {
+                        panic!("Set rom_bank beyond the size of RAM");
+                    }
+                }
+            }
+            0x6000...0x7FFF => {
+                self.ram_bank_mode = val != 0;
+                if self.debug {
+                    println!("ram_bank_mode set to {}", self.ram_bank_mode);
+                }
+            }
+            0x8000...0x9FFF => {
+                // VRAM
+                // TODO: if writing to tile RAM, update tiles in IO class?
+            }
+            0xA000...0xBFFF => {
+                // external RAM, bankable
+                if !self.ram_enable {
+                    panic!(
+                        "Writing to external ram while disabled: {:04x}={:02x}",
+                        addr, val
+                    );
+                }
+                let addr_within_ram: u32 = (self.ram_bank as u32 * 0x2000) + (addr as u32 - 0xA000);
+                if self.debug {
+                    println!(
+                        "Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",
+                        addr_within_ram,
+                        val,
+                        self.ram_bank,
+                        (addr - 0xA000)
+                    );
+                }
+                if addr_within_ram >= self.cart.ram_size {
+                    //panic!("Writing beyond RAM limit");
+                    return;
+                }
+                self.cart.ram[addr_within_ram as usize] = val;
+            }
+            0xC000...0xCFFF => {
+                // work RAM, bank 0
+            }
+            0xD000...0xDFFF => {
+                // work RAM, bankable in CGB
+            }
+            0xE000...0xFDFF => {
+                // ram[E000-FE00] mirrors ram[C000-DE00]
+                self.data[addr as usize - 0x2000] = val;
+            }
+            0xFE00...0xFEA0 => {
+                // Sprite attribute table
+            }
+            0xFEA0...0xFEFF => {
+                // Unusable
+                if self.debug {
+                    println!("Writing to invalid ram: {:04x} = {:02x}", addr, val);
+                }
+            }
+            0xFF00...0xFF7F => {
+                // IO Registers
+                //if addr == consts::IO::SCX as u16 {
+                //    println!("LY = {}, SCX = {}", self.get(consts::IO::LY), val);
+                //}
+            }
+            0xFF80...0xFFFE => {
+                // High RAM
+            }
+            0xFFFF => {
+                // IE Register
+            }
+        }
+
+        self.data[addr as usize] = val;
+    }
+
+    #[inline(always)]
+    pub fn get<T: consts::Address>(&self, addr: T) -> u8 {
+        let addr = addr.to_u16();
+        match addr {
+            0x0000...0x3FFF => {
+                // ROM bank 0
+                if self.data[consts::IO::BOOT as usize] == 0 && addr < 0x0100 {
+                    return self.boot[addr as usize];
+                }
+                return self.cart.data[addr as usize];
+            }
+            0x4000...0x7FFF => {
+                // Switchable ROM bank
+                // TODO: array bounds check
+                let bank = 0x4000 * self.rom_bank as usize;
+                let offset = addr as usize - 0x4000;
+                if self.debug {
+                    println!(
+                        "fetching {:04x} from bank {:04x} (total = {:04x})",
+                        offset,
+                        bank,
+                        offset + bank
+                    );
+                }
+                return self.cart.data[offset + bank];
+            }
+            0x8000...0x9FFF => {
+                // VRAM
+            }
+            0xA000...0xBFFF => {
+                // 8KB Switchable RAM bank
+                if !self.ram_enable {
+                    panic!("Reading from external ram while disabled: {:04X}", addr);
+                }
+                let addr_within_ram = (self.ram_bank as usize * 0x2000) + (addr as usize - 0xA000);
+                if addr_within_ram > self.cart.ram_size as usize {
+                    // this should never happen because we die on ram_bank being
+                    // set to a too-large value
+                    panic!(
+                        "Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})",
+                        addr_within_ram,
+                        self.ram_bank,
+                        (addr - 0xA000)
+                    );
+                }
+                return self.cart.ram[addr_within_ram];
+            }
+            0xC000...0xCFFF => {
+                // work RAM, bank 0
+            }
+            0xD000...0xDFFF => {
+                // work RAM, bankable in CGB
+            }
+            0xE000...0xFDFF => {
+                // ram[E000-FE00] mirrors ram[C000-DE00]
+                return self.data[addr as usize - 0x2000];
+            }
+            0xFE00...0xFE9F => {
+                // Sprite attribute table
+            }
+            0xFEA0...0xFEFF => {
+                // Unusable
+                return 0xFF;
+            }
+            0xFF00...0xFF7F => {
+                // IO Registers
+            }
+            0xFF80...0xFFFE => {
+                // High RAM
+            }
+            0xFFFF => {
+                // IE Register
+            }
+        };
+
+        return self.data[addr as usize];
+    }
+
+    #[inline(always)]
+    pub fn _and<T: consts::Address>(&mut self, addr: T, val: u8) {
+        let addr = addr.to_u16();
+        self.set(addr, self.get(addr) & val);
+    }
+
+    #[inline(always)]
+    pub fn _or<T: consts::Address>(&mut self, addr: T, val: u8) {
+        let addr = addr.to_u16();
+        self.set(addr, self.get(addr) | val);
+    }
+
+    #[inline(always)]
+    pub fn _inc<T: consts::Address>(&mut self, addr: T) {
+        let addr = addr.to_u16();
+        self.set(addr, self.get(addr).overflowing_add(1).0);
+    }
+}

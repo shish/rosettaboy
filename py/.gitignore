@@ -1,0 +1,13 @@
+.idea
+.venv
+__pycache__
+
+Makefile
+*.gb
+*.asm
+*.o
+*/
+
+*.swp
+*.txt
+*.sav
