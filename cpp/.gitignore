@@ -5,3 +5,7 @@ cmake-*
 *.swp
 .idea/
 mem.dat
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+spigot
