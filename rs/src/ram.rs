@@ -90,10 +90,10 @@ impl RAM {
     pub fn set<T: consts::Address>(&mut self, addr: T, val: u8) {
         let addr = addr.to_u16();
         match addr {
-            0x0000...0x1FFF => {
+            0x0000..=0x1FFF => {
                 self.ram_enable = val != 0;
             }
-            0x2000...0x3FFF => {
+            0x2000..=0x3FFF => {
                 self.rom_bank_low = val;
                 self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low;
                 if self.debug {
@@ -107,7 +107,7 @@ impl RAM {
                     panic!("Set rom_bank beyond the size of RAM");
                 }
             }
-            0x4000...0x5FFF => {
+            0x4000..=0x5FFF => {
                 if self.ram_bank_mode {
                     self.ram_bank = val;
                     if self.debug {
@@ -135,17 +135,17 @@ impl RAM {
                     }
                 }
             }
-            0x6000...0x7FFF => {
+            0x6000..=0x7FFF => {
                 self.ram_bank_mode = val != 0;
                 if self.debug {
                     println!("ram_bank_mode set to {}", self.ram_bank_mode);
                 }
             }
-            0x8000...0x9FFF => {
+            0x8000..=0x9FFF => {
                 // VRAM
                 // TODO: if writing to tile RAM, update tiles in IO class?
             }
-            0xA000...0xBFFF => {
+            0xA000..=0xBFFF => {
                 // external RAM, bankable
                 if !self.ram_enable {
                     panic!(
@@ -169,32 +169,32 @@ impl RAM {
                 }
                 self.cart.ram[addr_within_ram as usize] = val;
             }
-            0xC000...0xCFFF => {
+            0xC000..=0xCFFF => {
                 // work RAM, bank 0
             }
-            0xD000...0xDFFF => {
+            0xD000..=0xDFFF => {
                 // work RAM, bankable in CGB
             }
-            0xE000...0xFDFF => {
+            0xE000..=0xFDFF => {
                 // ram[E000-FE00] mirrors ram[C000-DE00]
                 self.data[addr as usize - 0x2000] = val;
             }
-            0xFE00...0xFEA0 => {
+            0xFE00..=0xFE9F => {
                 // Sprite attribute table
             }
-            0xFEA0...0xFEFF => {
+            0xFEA0..=0xFEFF => {
                 // Unusable
                 if self.debug {
                     println!("Writing to invalid ram: {:04x} = {:02x}", addr, val);
                 }
             }
-            0xFF00...0xFF7F => {
+            0xFF00..=0xFF7F => {
                 // IO Registers
                 //if addr == consts::IO::SCX as u16 {
                 //    println!("LY = {}, SCX = {}", self.get(consts::IO::LY), val);
                 //}
             }
-            0xFF80...0xFFFE => {
+            0xFF80..=0xFFFE => {
                 // High RAM
             }
             0xFFFF => {
@@ -209,14 +209,14 @@ impl RAM {
     pub fn get<T: consts::Address>(&self, addr: T) -> u8 {
         let addr = addr.to_u16();
         match addr {
-            0x0000...0x3FFF => {
+            0x0000..=0x3FFF => {
                 // ROM bank 0
                 if self.data[consts::IO::BOOT as usize] == 0 && addr < 0x0100 {
                     return self.boot[addr as usize];
                 }
                 return self.cart.data[addr as usize];
             }
-            0x4000...0x7FFF => {
+            0x4000..=0x7FFF => {
                 // Switchable ROM bank
                 // TODO: array bounds check
                 let bank = 0x4000 * self.rom_bank as usize;
@@ -231,10 +231,10 @@ impl RAM {
                 }
                 return self.cart.data[offset + bank];
             }
-            0x8000...0x9FFF => {
+            0x8000..=0x9FFF => {
                 // VRAM
             }
-            0xA000...0xBFFF => {
+            0xA000..=0xBFFF => {
                 // 8KB Switchable RAM bank
                 if !self.ram_enable {
                     panic!("Reading from external ram while disabled: {:04X}", addr);
@@ -252,27 +252,27 @@ impl RAM {
                 }
                 return self.cart.ram[addr_within_ram];
             }
-            0xC000...0xCFFF => {
+            0xC000..=0xCFFF => {
                 // work RAM, bank 0
             }
-            0xD000...0xDFFF => {
+            0xD000..=0xDFFF => {
                 // work RAM, bankable in CGB
             }
-            0xE000...0xFDFF => {
+            0xE000..=0xFDFF => {
                 // ram[E000-FE00] mirrors ram[C000-DE00]
                 return self.data[addr as usize - 0x2000];
             }
-            0xFE00...0xFE9F => {
+            0xFE00..=0xFE9F => {
                 // Sprite attribute table
             }
-            0xFEA0...0xFEFF => {
+            0xFEA0..=0xFEFF => {
                 // Unusable
                 return 0xFF;
             }
-            0xFF00...0xFF7F => {
+            0xFF00..=0xFF7F => {
                 // IO Registers
             }
-            0xFF80...0xFFFE => {
+            0xFF80..=0xFFFE => {
                 // High RAM
             }
             0xFFFF => {

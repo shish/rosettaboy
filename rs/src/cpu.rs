@@ -322,25 +322,24 @@ impl CPU {
             self.tick_main(ram, op);
             self.owed_cycles = consts::OP_CYCLES[op as usize];
         }
-        unsafe {
-            self.regs.r8.f = if self.flag_z {
-                consts::Bits::Bit7 as u8
-            } else {
-                0
-            } | if self.flag_n {
-                consts::Bits::Bit6 as u8
-            } else {
-                0
-            } | if self.flag_h {
-                consts::Bits::Bit5 as u8
-            } else {
-                0
-            } | if self.flag_c {
-                consts::Bits::Bit4 as u8
-            } else {
-                0
-            };
-        }
+
+        self.regs.r8.f = if self.flag_z {
+            consts::Bits::Bit7 as u8
+        } else {
+            0
+        } | if self.flag_n {
+            consts::Bits::Bit6 as u8
+        } else {
+            0
+        } | if self.flag_h {
+            consts::Bits::Bit5 as u8
+        } else {
+            0
+        } | if self.flag_c {
+            consts::Bits::Bit4 as u8
+        } else {
+            0
+        };
 
         // HALT has cycles=0
         if self.owed_cycles > 0 {
@@ -386,7 +385,7 @@ impl CPU {
 
         unsafe {
             match op {
-                0x00 => { /* NOP */; }
+                0x00 => { /* NOP */ }
                 0x01 => {
                     self.regs.r16.bc = arg.u16;
                 }
@@ -593,7 +592,7 @@ impl CPU {
                     self.flag_n = false;
                 }
 
-                0x40...0x7F => {
+                0x40..=0x7F => {
                     // LD r,r
                     if op == 0x76 {
                         // FIXME: weird timing side effects
@@ -603,14 +602,14 @@ impl CPU {
                 }
 
                 // <math> <reg>
-                0x80...0x87 => self._add(self.get_reg(op, ram)),
-                0x88...0x8F => self._adc(self.get_reg(op, ram)),
-                0x90...0x97 => self._sub(self.get_reg(op, ram)),
-                0x98...0x9F => self._sbc(self.get_reg(op, ram)),
-                0xA0...0xA7 => self._and(self.get_reg(op, ram)),
-                0xA8...0xAF => self._xor(self.get_reg(op, ram)),
-                0xB0...0xB7 => self._or(self.get_reg(op, ram)),
-                0xB8...0xBF => self._cp(self.get_reg(op, ram)),
+                0x80..=0x87 => self._add(self.get_reg(op, ram)),
+                0x88..=0x8F => self._adc(self.get_reg(op, ram)),
+                0x90..=0x97 => self._sub(self.get_reg(op, ram)),
+                0x98..=0x9F => self._sbc(self.get_reg(op, ram)),
+                0xA0..=0xA7 => self._and(self.get_reg(op, ram)),
+                0xA8..=0xAF => self._xor(self.get_reg(op, ram)),
+                0xB0..=0xB7 => self._or(self.get_reg(op, ram)),
+                0xB8..=0xBF => self._cp(self.get_reg(op, ram)),
 
                 0xC0 => {
                     if !self.flag_z {
@@ -846,7 +845,7 @@ impl CPU {
         let mut val = self.get_reg(op & 0x07, ram);
         match op & 0xF8 {
             // RLC
-            0x00...0x07 => {
+            0x00..=0x07 => {
                 self.flag_c = (val & consts::Bits::Bit7 as u8) != 0;
                 val <<= 1;
                 if self.flag_c {
@@ -858,7 +857,7 @@ impl CPU {
             }
 
             // RRC
-            0x08...0x0F => {
+            0x08..=0x0F => {
                 self.flag_c = (val & consts::Bits::Bit0 as u8) != 0;
                 val >>= 1;
                 if self.flag_c {
@@ -870,7 +869,7 @@ impl CPU {
             }
 
             // RL
-            0x10...0x17 => {
+            0x10..=0x17 => {
                 let orig_c = self.flag_c;
                 self.flag_c = (val & consts::Bits::Bit7 as u8) != 0;
                 val <<= 1;
@@ -883,7 +882,7 @@ impl CPU {
             }
 
             // RR
-            0x18...0x1F => {
+            0x18..=0x1F => {
                 let orig_c = self.flag_c;
                 self.flag_c = (val & consts::Bits::Bit0 as u8) != 0;
                 val >>= 1;
@@ -896,7 +895,7 @@ impl CPU {
             }
 
             // SLA
-            0x20...0x27 => {
+            0x20..=0x27 => {
                 self.flag_c = (val & consts::Bits::Bit7 as u8) != 0;
                 val <<= 1;
                 val &= 0xFF;
@@ -906,7 +905,7 @@ impl CPU {
             }
 
             // SRA
-            0x28...0x2F => {
+            0x28..=0x2F => {
                 self.flag_c = (val & consts::Bits::Bit0 as u8) != 0;
                 val >>= 1;
                 if val & consts::Bits::Bit6 as u8 != 0 {
@@ -918,7 +917,7 @@ impl CPU {
             }
 
             // SWAP
-            0x30...0x37 => {
+            0x30..=0x37 => {
                 val = ((val & 0xF0) >> 4) | ((val & 0x0F) << 4);
                 self.flag_c = false;
                 self.flag_n = false;
@@ -927,7 +926,7 @@ impl CPU {
             }
 
             // SRL
-            0x38...0x3F => {
+            0x38..=0x3F => {
                 self.flag_c = (val & consts::Bits::Bit0 as u8) != 0;
                 val >>= 1;
                 self.flag_n = false;
@@ -936,7 +935,7 @@ impl CPU {
             }
 
             // BIT
-            0x40...0x7F => {
+            0x40..=0x7F => {
                 let bit = (op - 0x40) / 8;
                 self.flag_z = (val & (1 << bit)) == 0;
                 self.flag_n = false;
@@ -944,13 +943,13 @@ impl CPU {
             }
 
             // SET
-            0x80...0xBF => {
+            0x80..=0xBF => {
                 let bit = (op - 0x80) / 8;
                 val &= (1 << bit) ^ 0xFF;
             }
 
             // RES
-            0xC0...0xFF => {
+            0xC0..=0xFF => {
                 let bit = (op - 0xC0) / 8;
                 val |= 1 << bit;
             }

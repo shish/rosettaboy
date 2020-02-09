@@ -31,21 +31,21 @@ int main(int argc, char *argv[]) {
     Cart *cart = nullptr;
     RAM *ram = nullptr;
     CPU *cpu = nullptr;
-    GPU *io = nullptr;
+    GPU *gpu = nullptr;
     Buttons *buttons = nullptr;
     Clock *clock = nullptr;
 
     cart = new Cart(args::get(rom).c_str());
     ram = new RAM(cart);
     cpu = new CPU(ram, debug_cpu);
-    io = new GPU(cpu, headless, debug_gpu);
+    gpu = new GPU(cpu, headless, debug_gpu);
     buttons = new Buttons(cpu);
     if(!silent) new APU(cpu, debug_apu);
     clock = new Clock(buttons, profile, turbo);
 
     while(true) {
         if(!cpu->tick()) break;
-        if(!io->tick()) break;
+        if(!gpu->tick()) break;
         if(!buttons->tick()) break;
         if(!clock->tick()) break;
     }

@@ -17,7 +17,10 @@ Stick a gameboy BIOS into boot.gb in the current directory. Finding a BIOS
 is left as an exercise to the reader.
 
 ```
-python main.py run <myrom.gb> [--debug-gpu] [--debug-cpu] [--headless]
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install pygame
+./main.py run <myrom.gb> [--debug-gpu] [--debug-cpu] [--headless]
 ```
 
 ## Requirements
