@@ -1,8 +1,9 @@
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime};
 
 pub struct Clock {
     start: SystemTime,
-    last_frame_start: Duration,
+    last_frame_start: SystemTime,
+    time_per_frame: Duration,
     cycle: u32,
     frame: u32,
     profile: bool,
@@ -12,11 +13,13 @@ pub struct Clock {
 impl Clock {
     pub fn init(profile: bool, turbo: bool) -> Clock {
         let start = SystemTime::now();
-        let last_frame_start = start.duration_since(UNIX_EPOCH).expect("time");
+        let last_frame_start = SystemTime::now();
+        let time_per_frame = Duration::from_millis((1000.0 / 60.0) as u64);
 
         Clock {
             start,
             last_frame_start,
+            time_per_frame,
             cycle: 0,
             frame: 0,
             profile,
@@ -33,16 +36,16 @@ impl Clock {
             // println!("Frame {}", self.frame);
             self.frame += 1;
 
-            let time_spent =
-                self.start.duration_since(UNIX_EPOCH).expect("time") - self.last_frame_start;
-            // printf("Frame took %d/%d ticks\n", time_spent, 1000/60);
+            let time_spent = SystemTime::now().duration_since(self.last_frame_start).expect("time");
+            //if self.frame % 60 == 0 {
+            //    println!("Used {}/{}ms", time_spent.as_millis(), self.time_per_frame.as_millis());
+            //}
 
-            // sleep_for can be <= 0 if our last frame processing time was more than 16ms
-            let sleep_for = Duration::from_millis((1000.0 / 60.0) as u64) - time_spent;
-            if !self.turbo && sleep_for.as_millis() > 0 {
-                ::std::thread::sleep(sleep_for);
+            // if we're below budget for this frame, sleep the rest of the time
+            if !self.turbo && time_spent < self.time_per_frame {
+                ::std::thread::sleep(self.time_per_frame - time_spent);
             }
-            self.last_frame_start = self.start.duration_since(UNIX_EPOCH).expect("time");
+            self.last_frame_start = SystemTime::now();
 
             if self.profile && self.frame > 60 * 10 {
                 println!(
