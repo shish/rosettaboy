@@ -756,13 +756,14 @@ pub enum StatMode {
     Drawing = 0x03,
 }
 
-#[derive(Clone, Copy)]
-pub enum Interrupt {
-    VBLANK = Bits::Bit0 as isize,
-    STAT = Bits::Bit1 as isize,
-    TIMER = Bits::Bit2 as isize,
-    SERIAL = Bits::Bit3 as isize,
-    JOYPAD = Bits::Bit4 as isize,
+bitflags! {
+    pub struct Interrupt: u8 {
+        const VBLANK = 1<<0;
+        const STAT = 1<<1;
+        const TIMER = 1<<2;
+        const SERIAL = 1<<3;
+        const JOYPAD = 1<<4;
+    }
 }
 
 bitflags! {

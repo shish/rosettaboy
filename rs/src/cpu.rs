@@ -115,7 +115,7 @@ impl CPU {
      * are enabled), then the interrupt handler will be called.
      */
     pub fn interrupt(&mut self, ram: &mut ram::RAM, i: consts::Interrupt) {
-        ram._or(consts::IO::IF, i as u8);
+        ram._or(consts::IO::IF, i.bits());
         self.halt = false; // interrupts interrupt HALT state
     }
 
@@ -159,11 +159,11 @@ impl CPU {
         let c = if self.flag_c { 'C' } else { 'c' };
         let h = if self.flag_h { 'H' } else { 'h' };
 
-        let ien = ram.get(consts::IO::IE);
-        let ifl = ram.get(consts::IO::IF);
+        let ien = consts::Interrupt::from_bits(ram.get(consts::IO::IE)).unwrap();
+        let ifl = consts::Interrupt::from_bits(ram.get(consts::IO::IF)).unwrap();
         let flag = |i: consts::Interrupt, c: char| -> char {
-            if ien & i as u8 != 0 {
-                if ifl & i as u8 != 0 {
+            if ien.contains(i) {
+                if ifl.contains(i) {
                     (c as u8 | 0b01000000) as char
                 } else {
                     c
@@ -257,8 +257,10 @@ impl CPU {
      * clear the flag and call the handler for the first of them.
      */
     fn tick_interrupts(&mut self, ram: &mut ram::RAM) {
-        let queued_interrupts = ram.get(consts::IO::IE) & ram.get(consts::IO::IF);
-        if self.interrupts && queued_interrupts != 0 {
+        let queued_interrupts =
+            consts::Interrupt::from_bits(ram.get(consts::IO::IE) & ram.get(consts::IO::IF))
+                .unwrap();
+        if self.interrupts && !queued_interrupts.is_empty() {
             if self.debug {
                 println!(
                     "Handling interrupts: {:02X} & {:02X}",
@@ -270,26 +272,26 @@ impl CPU {
                                      // TODO: wait two cycles
                                      // TODO: push16(PC) should also take two cycles
                                      // TODO: one more cycle to store new PC
-            if queued_interrupts & consts::Interrupt::VBLANK as u8 != 0 {
+            if queued_interrupts.contains(consts::Interrupt::VBLANK) {
                 self.push(self.pc, ram);
                 self.pc = consts::InterruptHandler::VblankHandler as u16;
-                ram._and(consts::IO::IF, !(consts::Interrupt::VBLANK as u8));
-            } else if queued_interrupts & consts::Interrupt::STAT as u8 != 0 {
+                ram._and(consts::IO::IF, !(consts::Interrupt::VBLANK.bits()));
+            } else if queued_interrupts.contains(consts::Interrupt::STAT) {
                 self.push(self.pc, ram);
                 self.pc = consts::InterruptHandler::LcdHandler as u16;
-                ram._and(consts::IO::IF, !(consts::Interrupt::STAT as u8));
-            } else if queued_interrupts & consts::Interrupt::TIMER as u8 != 0 {
+                ram._and(consts::IO::IF, !(consts::Interrupt::STAT.bits()));
+            } else if queued_interrupts.contains(consts::Interrupt::TIMER) {
                 self.push(self.pc, ram);
                 self.pc = consts::InterruptHandler::TimerHandler as u16;
-                ram._and(consts::IO::IF, !(consts::Interrupt::TIMER as u8));
-            } else if queued_interrupts & consts::Interrupt::SERIAL as u8 != 0 {
+                ram._and(consts::IO::IF, !(consts::Interrupt::TIMER.bits()));
+            } else if queued_interrupts.contains(consts::Interrupt::SERIAL) {
                 self.push(self.pc, ram);
                 self.pc = consts::InterruptHandler::SerialHandler as u16;
-                ram._and(consts::IO::IF, !(consts::Interrupt::SERIAL as u8));
-            } else if queued_interrupts & consts::Interrupt::JOYPAD as u8 != 0 {
+                ram._and(consts::IO::IF, !(consts::Interrupt::SERIAL.bits()));
+            } else if queued_interrupts.contains(consts::Interrupt::JOYPAD) {
                 self.push(self.pc, ram);
                 self.pc = consts::InterruptHandler::JoypadHandler as u16;
-                ram._and(consts::IO::IF, !(consts::Interrupt::JOYPAD as u8));
+                ram._and(consts::IO::IF, !(consts::Interrupt::JOYPAD.bits()));
             }
         }
     }
