@@ -1,6 +1,9 @@
 use structopt::StructOpt;
 extern crate sdl2;
 
+#[macro_use]
+extern crate bitflags;
+
 mod apu;
 mod buttons;
 mod cart;

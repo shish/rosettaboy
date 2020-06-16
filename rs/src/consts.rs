@@ -765,21 +765,23 @@ pub enum Interrupt {
     JOYPAD = Bits::Bit4 as isize,
 }
 
-pub enum JoypSelect {
-    Buttons = Bits::Bit5 as isize,
-    Dpad = Bits::Bit4 as isize,
-}
-pub enum JoypButton {
-    START = Bits::Bit3 as isize,
-    SELECT = Bits::Bit2 as isize,
-    B = Bits::Bit1 as isize,
-    A = Bits::Bit0 as isize,
-}
-pub enum JoypDpad {
-    DOWN = Bits::Bit3 as isize,
-    UP = Bits::Bit2 as isize,
-    LEFT = Bits::Bit1 as isize,
-    RIGHT = Bits::Bit0 as isize,
+bitflags! {
+    pub struct Joypad: u8 {
+        const MODE_BUTTONS = 1<<5;
+        const MODE_DPAD = 1<<4;
+
+        const START = 1<<3;
+        const SELECT = 1<<2;
+        const B = 1<<1;
+        const A = 1<<0;
+
+        const DOWN = 1<<3;
+        const UP = 1<<2;
+        const LEFT = 1<<1;
+        const RIGHT = 1<<0;
+
+        const BUTTON_BITS = 0b00001111;
+    }
 }
 
 pub enum InterruptHandler {

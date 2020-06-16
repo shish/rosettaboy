@@ -100,54 +100,54 @@ impl Buttons {
      * If `ram[JOYP].bit4 == 0`, then set `ram[JOYP].bit0-3` to up / down / left / right
      * If `ram[JOYP].bit5 == 0`, then set `ram[JOYP].bit0-3` to a / b / start / select
      *
-     * Note that 0=pressed, 1=released
+     * Note that in memory, 0=pressed and 1=released - since this makes things
+     * incredibly confusing, we invert the bits when reading the byte and invert
+     * them back when writing.
      */
     fn update_buttons(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) {
-        let mut joyp = ram.get(consts::IO::JOYP as u16);
-        let prev_buttons = joyp & 0x0F;
-        joyp |= 0x0F; // clear all buttons (0=pressed, 1=released)
-        if joyp & consts::JoypSelect::Dpad as u8 == 0 {
+        let mut joyp = !consts::Joypad::from_bits_truncate(ram.get(consts::IO::JOYP as u16));
+        let prev_joyp = joyp;
+        joyp.remove(consts::Joypad::BUTTON_BITS);
+        if joyp.contains(consts::Joypad::MODE_DPAD) {
             if self.up {
-                joyp &= !(consts::JoypDpad::UP as u8);
+                joyp.insert(consts::Joypad::UP);
             }
             if self.down {
-                joyp &= !(consts::JoypDpad::DOWN as u8);
+                joyp.insert(consts::Joypad::DOWN);
             }
             if self.left {
-                joyp &= !(consts::JoypDpad::LEFT as u8);
+                joyp.insert(consts::Joypad::LEFT);
             }
             if self.right {
-                joyp &= !(consts::JoypDpad::RIGHT as u8);
+                joyp.insert(consts::Joypad::RIGHT);
             }
         }
-        if joyp & consts::JoypSelect::Buttons as u8 == 0 {
+        if joyp.contains(consts::Joypad::MODE_BUTTONS) {
             if self.b {
-                joyp &= !(consts::JoypButton::B as u8);
+                joyp.insert(consts::Joypad::B);
             }
             if self.a {
-                joyp &= !(consts::JoypButton::A as u8);
+                joyp.insert(consts::Joypad::A);
             }
             if self.start {
-                joyp &= !(consts::JoypButton::START as u8);
+                joyp.insert(consts::Joypad::START);
             }
             if self.select {
-                joyp &= !(consts::JoypButton::SELECT as u8);
+                joyp.insert(consts::Joypad::SELECT);
             }
         }
         // if any button is pressed which wasn't pressed last time, interrupt
         // FIXME: do we also need to interrupt on button release?
         // FIXME: do we also need to interrupt even when neither Dpad nor Buttons are selected?
-        if (joyp & 0x01 == 0 && prev_buttons & 0x01 == 0x01)
-            || (joyp & 0x02 == 0 && prev_buttons & 0x02 == 0x02)
-            || (joyp & 0x04 == 0 && prev_buttons & 0x04 == 0x04)
-            || (joyp & 0x08 == 0 && prev_buttons & 0x08 == 0x08)
-        {
-            println!("Joyp interrupt: {:02X} {:02X}", joyp, prev_buttons);
+        let pressed_now = joyp & consts::Joypad::BUTTON_BITS;
+        let not_pressed_last_time = (!prev_joyp) & consts::Joypad::BUTTON_BITS;
+        if pressed_now & not_pressed_last_time != consts::Joypad::empty() {
+            println!("Joyp interrupt: {:02X} {:02X}", joyp, prev_joyp);
             // FIXME: should interrupt() set stop=false? Then `stop`
             // can be private and we don't worry about it.
             cpu.stop = false;
             cpu.interrupt(ram, consts::Interrupt::JOYPAD);
         }
-        ram.set(consts::IO::JOYP, joyp);
+        ram.set(consts::IO::JOYP, !joyp.bits());
     }
 }
