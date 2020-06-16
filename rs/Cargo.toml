@@ -6,6 +6,5 @@ edition = "2018"
 
 [dependencies]
 sdl2 = "0.32"
-bitfield = "0.13.1"
 num_enum = "0.4.2"
 structopt = "*"

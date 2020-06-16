@@ -413,7 +413,7 @@ impl GPU {
     }
 }
 
-#[allow(exceeding_bitshifts)]
+#[allow(arithmetic_overflow)]
 fn gen_hue(n: u8) -> Color {
     let region = n / 43;
     let remainder = (n - (region * 43)) * 6;
