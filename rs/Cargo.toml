@@ -1,5 +1,5 @@
 [package]
-name = "spindle"
+name = "rosettaboy-rs"
 version = "0.1.0"
 authors = ["Shish <shish@shishnet.org>"]
 edition = "2018"

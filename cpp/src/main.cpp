@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     args::Flag debug_cpu(parser, "debug-cpu", "Debug CPU", {'c', "debug-cpu"});
     args::Flag debug_gpu(parser, "debug-gpu", "Debug GPU", {'g', "debug-gpu"});
     args::Flag debug_apu(parser, "debug-apu", "Debug APU", {'a', "debug-apu"});
-    args::Flag profile(parser, "profile", "Exit after some instructions", {'p', "profile"});
+    args::Flag profile(parser, "profile", "Exit after 600 frames", {'p', "profile"});
     args::Flag turbo(parser, "turbo", "No sleep between frames", {'t', "turbo"});
     args::Positional<std::string> rom(parser, "rom", "Path to a .gb file");
     args::CompletionFlag completion(parser, {"complete"});

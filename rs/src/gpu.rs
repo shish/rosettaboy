@@ -63,7 +63,12 @@ pub struct GPU {
 }
 
 impl GPU {
-    pub fn init(sdl_context: &sdl2::Sdl, title: &str, _headless: bool, debug: bool) -> Result<GPU, String> {
+    pub fn init(
+        sdl_context: &sdl2::Sdl,
+        title: &str,
+        _headless: bool,
+        debug: bool,
+    ) -> Result<GPU, String> {
         let video_subsystem = sdl_context.video()?;
         let (w, h) = if debug { (520, 144) } else { (160, 144) };
         let window = video_subsystem

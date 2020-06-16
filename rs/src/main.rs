@@ -1,6 +1,7 @@
 use structopt::StructOpt;
 extern crate sdl2;
 
+mod apu;
 mod buttons;
 mod cart;
 mod clock;
@@ -8,17 +9,20 @@ mod consts;
 mod cpu;
 mod gpu;
 mod ram;
-mod apu;
 
 #[derive(StructOpt)]
 #[structopt(about = "Shish's Gameboy Emulator: Rust Edition")]
 struct Args {
+    /// Path to a .gb file
+    #[structopt(default_value = "game.gb")]
+    rom: String,
+
     /// Disable GUI
-    #[structopt(short="H")]
+    #[structopt(short = "H", long)]
     headless: bool,
 
     /// Disable Sound
-    #[structopt(short="S")]
+    #[structopt(short = "S", long)]
     silent: bool,
 
     /// Debug CPU
@@ -30,24 +34,20 @@ struct Args {
     debug_gpu: bool,
 
     /// Debug APU
-    #[structopt(short="a", long)]
+    #[structopt(short = "a", long)]
     debug_apu: bool,
 
-    /// Debug Memory
-    #[structopt(short = "m", long)]
+    /// Debug RAM
+    #[structopt(short = "r", long)]
     debug_ram: bool,
 
-    /// Profile for 10s then exit
+    /// Exit after 600 frames
     #[structopt(short, long)]
     profile: bool,
 
     /// No sleep()
     #[structopt(short, long)]
     turbo: bool,
-
-    /// Path to a .gb file
-    #[structopt(short, default_value = "game.gb")]
-    romfile: String,
 }
 
 struct Gameboy {
@@ -65,10 +65,10 @@ impl Gameboy {
     fn init(args: Args) -> Result<Gameboy, String> {
         let sdl = sdl2::init()?;
 
-        let cart = cart::Cart::init(args.romfile.as_str()).unwrap();
+        let cart = cart::Cart::init(args.rom.as_str()).unwrap();
         let ram = ram::RAM::init(cart, args.debug_ram);
         let cpu = cpu::CPU::init(args.debug_cpu);
-        let gpu = gpu::GPU::init(&sdl, args.romfile.as_str(), args.headless, args.debug_gpu)?;
+        let gpu = gpu::GPU::init(&sdl, args.rom.as_str(), args.headless, args.debug_gpu)?;
         let apu = apu::APU::init(args.silent, args.debug_apu);
         let buttons = buttons::Buttons::init()?;
         let clock = clock::Clock::init(args.profile, args.turbo);

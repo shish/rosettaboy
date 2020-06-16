@@ -36,7 +36,9 @@ impl Clock {
             // println!("Frame {}", self.frame);
             self.frame += 1;
 
-            let time_spent = SystemTime::now().duration_since(self.last_frame_start).expect("time");
+            let time_spent = SystemTime::now()
+                .duration_since(self.last_frame_start)
+                .expect("time");
             //if self.frame % 60 == 0 {
             //    println!("Used {}/{}ms", time_spent.as_millis(), self.time_per_frame.as_millis());
             //}
