@@ -729,15 +729,17 @@ impl Address for IO {
     }
 }
 
-pub enum LCDC {
-    Enabled = Bits::Bit7 as isize,
-    WindowMap = Bits::Bit6 as isize,
-    WindowEnabled = Bits::Bit5 as isize,
-    DataSrc = Bits::Bit4 as isize,
-    BgMap = Bits::Bit3 as isize,
-    ObjSize = Bits::Bit2 as isize,
-    ObjEnabled = Bits::Bit1 as isize,
-    BgWinEnabled = Bits::Bit0 as isize,
+bitflags! {
+    pub struct LCDC: u8 {
+        const ENABLED = 1<<7;
+        const WINDOW_MAP = 1<<6;
+        const WINDOW_ENABLED = 1<<5;
+        const DATA_SRC = 1<<4;
+        const BG_MAP = 1<<3;
+        const OBJ_SIZE = 1<<2;
+        const OBJ_ENABLED = 1<<1;
+        const BG_WIN_ENABLED = 1<<0;
+    }
 }
 
 pub enum StatFlag {

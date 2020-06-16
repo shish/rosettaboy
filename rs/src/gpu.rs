@@ -110,10 +110,10 @@ impl GPU {
 
         self.cycle += 1;
 
-        let lcdc = ram.get(consts::IO::LCDC);
+        let lcdc = consts::LCDC::from_bits(ram.get(consts::IO::LCDC)).unwrap();
 
         // LCD enabled at all
-        if (lcdc & consts::LCDC::Enabled as u8) == 0 {
+        if !lcdc.contains(consts::LCDC::ENABLED) {
             // When LCD is re-enabled, LY is 0
             // Does it become 0 as soon as disabled??
             ram.set(consts::IO::LY, 0);
@@ -210,7 +210,7 @@ impl GPU {
     }
 
     fn draw_debug(&mut self, ram: &mut ram::RAM) {
-        let lcdc = ram.get(consts::IO::LCDC);
+        let lcdc = consts::LCDC::from_bits(ram.get(consts::IO::LCDC)).unwrap();
 
         // Tile data
         let tile_display_width = 32;
@@ -223,14 +223,14 @@ impl GPU {
         }
 
         // Background scroll border
-        if lcdc & consts::LCDC::BgWinEnabled as u8 != 0 {
+        if lcdc.contains(consts::LCDC::BG_WIN_ENABLED) {
             let rect = Rect::new(0, 0, 160, 144);
             self.canvas.set_draw_color(RED);
             self.canvas.draw_rect(rect).expect("draw rect");
         }
 
         // Window tiles
-        if lcdc & consts::LCDC::WindowEnabled as u8 != 0 {
+        if lcdc.contains(consts::LCDC::WINDOW_ENABLED) {
             let wnd_y = ram.get(consts::IO::WY);
             let wnd_x = ram.get(consts::IO::WX);
             let rect = Rect::new(wnd_x as i32 - 7, wnd_y as i32, 160, 144);
@@ -240,14 +240,14 @@ impl GPU {
     }
 
     fn draw_line(&mut self, ram: &mut ram::RAM, ly: i32) {
-        let lcdc = ram.get(consts::IO::LCDC);
+        let lcdc = consts::LCDC::from_bits(ram.get(consts::IO::LCDC)).unwrap();
 
         // Background tiles
-        if lcdc & consts::LCDC::BgWinEnabled as u8 != 0 {
+        if lcdc.contains(consts::LCDC::BG_WIN_ENABLED) {
             let scroll_y = ram.get(consts::IO::SCY) as i32;
             let scroll_x = ram.get(consts::IO::SCX) as i32;
-            let tile_offset = lcdc & consts::LCDC::DataSrc as u8 == 0;
-            let background_map = if lcdc & consts::LCDC::BgMap as u8 != 0 {
+            let tile_offset = !lcdc.contains(consts::LCDC::DATA_SRC);
+            let background_map = if lcdc.contains(consts::LCDC::BG_MAP) {
                 consts::Mem::Map1
             } else {
                 consts::Mem::Map0
@@ -280,11 +280,11 @@ impl GPU {
         }
 
         // Window tiles
-        if lcdc & consts::LCDC::WindowEnabled as u8 != 0 {
+        if lcdc.contains(consts::LCDC::WINDOW_ENABLED) {
             let wnd_y = ram.get(consts::IO::WY);
             let wnd_x = ram.get(consts::IO::WX);
-            let tile_offset = lcdc & consts::LCDC::DataSrc as u8 == 0;
-            let window_map = if lcdc & consts::LCDC::WindowMap as u8 != 0 {
+            let tile_offset = !lcdc.contains(consts::LCDC::DATA_SRC);
+            let window_map = if lcdc.contains(consts::LCDC::WINDOW_MAP) {
                 consts::Mem::Map1
             } else {
                 consts::Mem::Map0
@@ -313,8 +313,8 @@ impl GPU {
         }
 
         // Sprites
-        if lcdc & consts::LCDC::ObjEnabled as u8 != 0 {
-            let dbl = (lcdc & consts::LCDC::ObjSize as u8) != 0;
+        if lcdc.contains(consts::LCDC::OBJ_ENABLED) {
+            let dbl = lcdc.contains(consts::LCDC::OBJ_SIZE);
 
             // TODO: sorted by x
             // let sprites: [Sprite; 40] = [];
