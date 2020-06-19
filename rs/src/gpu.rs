@@ -27,28 +27,25 @@ const BLUE: Color = Color {
     a: 0xFF,
 };
 
+bitflags! {
+    pub struct SpriteFlags: u8 {
+        const PALETTE = 1<<4;
+        const FLIP_X = 1<<5;
+        const FLIP_Y = 1<<6;
+        const BEHIND = 1<<7;
+    }
+}
+
 struct Sprite {
     y: u8,
     x: u8,
     tile_id: u8,
-    flags: u8,
+    flags: SpriteFlags,
 }
 
 impl Sprite {
     fn is_live(&self) -> bool {
         self.x > 0 && self.x < 168 && self.y > 0 && self.y < 160
-    }
-    fn palette(&self) -> bool {
-        self.flags & 1<<4 != 0
-    }
-    fn flip_x(&self) -> bool {
-        self.flags & 1<<5 != 0
-    }
-    fn flip_y(&self) -> bool {
-        self.flags & 1<<6 != 0
-    }
-    fn _behind(&self) -> bool {
-        self.flags & 1<<7 != 0
     }
 }
 
@@ -322,10 +319,10 @@ impl GPU {
                     y: ram.get(consts::Mem::OamBase as u16 + 4 * n + 0),
                     x: ram.get(consts::Mem::OamBase as u16 + 4 * n + 1),
                     tile_id: ram.get(consts::Mem::OamBase as u16 + 4 * n + 2),
-                    flags: ram.get(consts::Mem::OamBase as u16 + 4 * n + 3),
+                    flags: SpriteFlags::from_bits(ram.get(consts::Mem::OamBase as u16 + 4 * n + 3)).unwrap(),
                 };
                 if sprite.is_live() {
-                    let palette = if sprite.palette() {
+                    let palette = if sprite.flags.contains(SpriteFlags::PALETTE) {
                         self.obp1
                     } else {
                         self.obp0
@@ -337,8 +334,8 @@ impl GPU {
                         sprite.tile_id as i16,
                         &xy,
                         palette,
-                        sprite.flip_x(),
-                        sprite.flip_y(),
+                        sprite.flags.contains(SpriteFlags::FLIP_X),
+                        sprite.flags.contains(SpriteFlags::FLIP_Y),
                     );
 
                     if dbl {
@@ -348,8 +345,8 @@ impl GPU {
                             sprite.tile_id as i16 + 1,
                             &xy,
                             palette,
-                            sprite.flip_x(),
-                            sprite.flip_y(),
+                            sprite.flags.contains(SpriteFlags::FLIP_X),
+                            sprite.flags.contains(SpriteFlags::FLIP_Y),
                         );
                     }
                 }
