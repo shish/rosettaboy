@@ -39,16 +39,16 @@ impl Sprite {
         self.x > 0 && self.x < 168 && self.y > 0 && self.y < 160
     }
     fn palette(&self) -> bool {
-        self.flags & consts::Bits::Bit4 as u8 != 0
+        self.flags & 1<<4 != 0
     }
     fn flip_x(&self) -> bool {
-        self.flags & consts::Bits::Bit5 as u8 != 0
+        self.flags & 1<<5 != 0
     }
     fn flip_y(&self) -> bool {
-        self.flags & consts::Bits::Bit6 as u8 != 0
+        self.flags & 1<<6 != 0
     }
     fn _behind(&self) -> bool {
-        self.flags & consts::Bits::Bit7 as u8 != 0
+        self.flags & 1<<7 != 0
     }
 }
 

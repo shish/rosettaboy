@@ -21,19 +21,13 @@ impl Address for Mem {
     }
 }
 
-// It's too easy to make a subtle typo when
-// trying to type these by hand... like 95%
-// of bugs in development have been "missing
-// a zero" or "used 0x instead of 0b" >.>
-pub enum Bits {
-    Bit7 = 0b10000000,
-    Bit6 = 0b01000000,
-    Bit5 = 0b00100000,
-    Bit4 = 0b00010000,
-    // Bit3 = 0b00001000,
-    Bit2 = 0b00000100,
-    // Bit1 = 0b00000010,
-    Bit0 = 0b00000001,
+bitflags! {
+    pub struct Flag: u8 {
+        const Z = 1<<7;
+        const N = 1<<6;
+        const H = 1<<5;
+        const C = 1<<4;
+    }
 }
 
 #[repr(u8)]
