@@ -124,33 +124,32 @@ impl GPU {
 
         let lx = self.cycle % 114;
         let ly = (self.cycle / 114) % 154;
+        let stat = consts::Stat::from_bits(ram.get(consts::IO::STAT)).unwrap();
         ram.set(consts::IO::LY, ly as u8);
 
         // LYC compare & interrupt
         if ram.get(consts::IO::LY) == ram.get(consts::IO::LYC) {
-            if ram.get(consts::IO::STAT) & consts::StatFlag::LCYInterrupt as u8 != 0 {
+            if stat.contains(consts::Stat::LCY_INTERRUPT) {
                 cpu.interrupt(ram, consts::Interrupt::STAT);
             }
-            ram._or(consts::IO::STAT, consts::StatFlag::LCYEqual as u8);
+            ram._or(consts::IO::STAT, consts::Stat::LCY_EQUAL.bits());
         } else {
-            ram._and(consts::IO::STAT, !(consts::StatFlag::LCYEqual as u8));
+            ram._and(consts::IO::STAT, !consts::Stat::LCY_EQUAL.bits());
         }
 
         // Set `ram[STAT].bit{0,1}` to `OAM / Drawing / HBlank / VBlank`
         if lx == 0 && ly < 144 {
             ram.set(
                 consts::IO::STAT,
-                (ram.get(consts::IO::STAT) & !(consts::StatFlag::Mode as u8))
-                    | consts::StatMode::OAM as u8,
+                ((stat & !consts::Stat::MODE_BITS) | consts::Stat::OAM).bits(),
             );
-            if ram.get(consts::IO::STAT) & consts::StatFlag::OAMInterrupt as u8 != 0 {
+            if stat.contains(consts::Stat::OAM_INTERRUPT) {
                 cpu.interrupt(ram, consts::Interrupt::STAT);
             }
         } else if lx == 20 && ly < 144 {
             ram.set(
                 consts::IO::STAT,
-                (ram.get(consts::IO::STAT) & !(consts::StatFlag::Mode as u8))
-                    | consts::StatMode::Drawing as u8,
+                ((stat & !consts::Stat::MODE_BITS) | consts::Stat::DRAWING).bits(),
             );
             if ly == 0 {
                 // TODO: how often should we update palettes?
@@ -170,19 +169,17 @@ impl GPU {
         } else if lx == 63 && ly < 144 {
             ram.set(
                 consts::IO::STAT,
-                (ram.get(consts::IO::STAT) & !(consts::StatFlag::Mode as u8))
-                    | consts::StatMode::HBlank as u8,
+                ((stat & !consts::Stat::MODE_BITS) | consts::Stat::HBLANK).bits(),
             );
-            if ram.get(consts::IO::STAT) & consts::StatFlag::HBlankInterrupt as u8 != 0 {
+            if stat.contains(consts::Stat::HBLANK_INTERRUPT) {
                 cpu.interrupt(ram, consts::Interrupt::STAT);
             }
         } else if lx == 0 && ly == 144 {
             ram.set(
                 consts::IO::STAT,
-                (ram.get(consts::IO::STAT) & !(consts::StatFlag::Mode as u8))
-                    | consts::StatMode::VBlank as u8,
+                ((stat & !consts::Stat::MODE_BITS) | consts::Stat::VBLANK).bits(),
             );
-            if ram.get(consts::IO::STAT) & consts::StatFlag::VBlankInterrupt as u8 != 0 {
+            if stat.contains(consts::Stat::VBLANK_INTERRUPT) {
                 cpu.interrupt(ram, consts::Interrupt::STAT);
             }
             cpu.interrupt(ram, consts::Interrupt::VBLANK);

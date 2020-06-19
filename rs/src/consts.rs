@@ -30,9 +30,9 @@ pub enum Bits {
     Bit6 = 0b01000000,
     Bit5 = 0b00100000,
     Bit4 = 0b00010000,
-    Bit3 = 0b00001000,
+    // Bit3 = 0b00001000,
     Bit2 = 0b00000100,
-    Bit1 = 0b00000010,
+    // Bit1 = 0b00000010,
     Bit0 = 0b00000001,
 }
 
@@ -742,20 +742,19 @@ bitflags! {
     }
 }
 
-pub enum StatFlag {
-    LCYInterrupt = Bits::Bit6 as isize,
-    OAMInterrupt = Bits::Bit5 as isize,
-    VBlankInterrupt = Bits::Bit4 as isize,
-    HBlankInterrupt = Bits::Bit3 as isize,
-    LCYEqual = Bits::Bit2 as isize,
-    Mode = Bits::Bit1 as isize | Bits::Bit0 as isize,
-}
-
-pub enum StatMode {
-    HBlank = 0x00,
-    VBlank = 0x01,
-    OAM = 0x02,
-    Drawing = 0x03,
+bitflags! {
+    pub struct Stat: u8 {
+        const LCY_INTERRUPT = 1<<6;
+        const OAM_INTERRUPT = 1<<5;
+        const VBLANK_INTERRUPT = 1<<4;
+        const HBLANK_INTERRUPT = 1<<3;
+        const LCY_EQUAL = 1<<2;
+        const MODE_BITS = 0b00000011;
+        const HBLANK = 0x00;
+        const VBLANK = 0x01;
+        const OAM = 0x02;
+        const DRAWING = 0x03;
+    }
 }
 
 bitflags! {
