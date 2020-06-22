@@ -237,7 +237,7 @@ impl CPU {
             ram._inc(consts::IO::DIV);
         }
 
-        if ram.get(consts::IO::TAC) & 1<<2 == 1<<2 {
+        if ram.get(consts::IO::TAC) & 1 << 2 == 1 << 2 {
             // timer enable
             let speeds: [u32; 4] = [256, 4, 16, 64]; // increment per X cycles
             let speed = speeds[(ram.get(consts::IO::TAC) & 0x03) as usize];
@@ -325,10 +325,20 @@ impl CPU {
             self.owed_cycles = consts::OP_CYCLES[op as usize];
         }
 
-        self.regs.r8.f = if self.flag_z { 1 << 7 } else { 0 }
-            | if self.flag_n { 1 << 6 } else { 0 }
-            | if self.flag_h { 1 << 5 } else { 0 }
-            | if self.flag_c { 1 << 4 } else { 0 };
+        let mut f = consts::Flag::empty();
+        if self.flag_z {
+            f.insert(consts::Flag::Z)
+        }
+        if self.flag_n {
+            f.insert(consts::Flag::N)
+        }
+        if self.flag_h {
+            f.insert(consts::Flag::H)
+        }
+        if self.flag_c {
+            f.insert(consts::Flag::C)
+        }
+        self.regs.r8.f = f.bits();
 
         // HALT has cycles=0
         if self.owed_cycles > 0 {
@@ -543,22 +553,22 @@ impl CPU {
                     let carry = if self.flag_c { 1 } else { 0 };
                     if op == 0x07 {
                         // RCLA
-                        self.flag_c = (self.regs.r8.a & 1<<7) != 0;
+                        self.flag_c = (self.regs.r8.a & 1 << 7) != 0;
                         self.regs.r8.a = (self.regs.r8.a << 1) | (self.regs.r8.a >> 7);
                     }
                     if op == 0x17 {
                         // RLA
-                        self.flag_c = (self.regs.r8.a & 1<<7) != 0;
+                        self.flag_c = (self.regs.r8.a & 1 << 7) != 0;
                         self.regs.r8.a = (self.regs.r8.a << 1) | carry;
                     }
                     if op == 0x0F {
                         // RRCA
-                        self.flag_c = (self.regs.r8.a & 1<<0) != 0;
+                        self.flag_c = (self.regs.r8.a & 1 << 0) != 0;
                         self.regs.r8.a = (self.regs.r8.a >> 1) | (self.regs.r8.a << 7);
                     }
                     if op == 0x1F {
                         // RRA
-                        self.flag_c = (self.regs.r8.a & 1<<0) != 0;
+                        self.flag_c = (self.regs.r8.a & 1 << 0) != 0;
                         self.regs.r8.a = (self.regs.r8.a >> 1) | (carry << 7);
                     }
                     self.flag_n = false;
@@ -836,10 +846,10 @@ impl CPU {
         match op & 0xF8 {
             // RLC
             0x00..=0x07 => {
-                self.flag_c = (val & 1<<7) != 0;
+                self.flag_c = (val & 1 << 7) != 0;
                 val <<= 1;
                 if self.flag_c {
-                    val |= 1<<0;
+                    val |= 1 << 0;
                 }
                 self.flag_n = false;
                 self.flag_h = false;
@@ -848,10 +858,10 @@ impl CPU {
 
             // RRC
             0x08..=0x0F => {
-                self.flag_c = (val & 1<<0) != 0;
+                self.flag_c = (val & 1 << 0) != 0;
                 val >>= 1;
                 if self.flag_c {
-                    val |= 1<<7;
+                    val |= 1 << 7;
                 }
                 self.flag_n = false;
                 self.flag_h = false;
@@ -861,10 +871,10 @@ impl CPU {
             // RL
             0x10..=0x17 => {
                 let orig_c = self.flag_c;
-                self.flag_c = (val & 1<<7) != 0;
+                self.flag_c = (val & 1 << 7) != 0;
                 val <<= 1;
                 if orig_c {
-                    val |= 1<<0;
+                    val |= 1 << 0;
                 }
                 self.flag_n = false;
                 self.flag_h = false;
@@ -874,10 +884,10 @@ impl CPU {
             // RR
             0x18..=0x1F => {
                 let orig_c = self.flag_c;
-                self.flag_c = (val & 1<<0) != 0;
+                self.flag_c = (val & 1 << 0) != 0;
                 val >>= 1;
                 if orig_c {
-                    val |= 1<<7;
+                    val |= 1 << 7;
                 }
                 self.flag_n = false;
                 self.flag_h = false;
@@ -886,7 +896,7 @@ impl CPU {
 
             // SLA
             0x20..=0x27 => {
-                self.flag_c = (val & 1<<7) != 0;
+                self.flag_c = (val & 1 << 7) != 0;
                 val <<= 1;
                 val &= 0xFF;
                 self.flag_n = false;
@@ -896,10 +906,10 @@ impl CPU {
 
             // SRA
             0x28..=0x2F => {
-                self.flag_c = (val & 1<<0) != 0;
+                self.flag_c = (val & 1 << 0) != 0;
                 val >>= 1;
-                if val & 1<<6 != 0 {
-                    val |= 1<<7;
+                if val & 1 << 6 != 0 {
+                    val |= 1 << 7;
                 }
                 self.flag_n = false;
                 self.flag_h = false;
@@ -917,7 +927,7 @@ impl CPU {
 
             // SRL
             0x38..=0x3F => {
-                self.flag_c = (val & 1<<0) != 0;
+                self.flag_c = (val & 1 << 0) != 0;
                 val >>= 1;
                 self.flag_n = false;
                 self.flag_h = false;
