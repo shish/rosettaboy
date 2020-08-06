@@ -31,7 +31,7 @@ def run(args):
 
     running = True
     clock = 0
-    frames = 0
+    frame = 0
     while running:
         try:
             if not cpu.halt and not cpu.stop:
