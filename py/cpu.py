@@ -1,5 +1,6 @@
 from enum import Enum
 from cart import Cart, TestCart
+import sys
 from textwrap import dedent
 
 
@@ -546,6 +547,7 @@ class CPU:
         if val == 0x01:
             print(chr(self.A), end="")
             # print("0xFF%02X = 0x%02X (%s)" % (val, self.A, chr(self.A)))
+            sys.stdout.flush()
         self.ram[0xFF00 + val] = self.A
 
     # ===================================
