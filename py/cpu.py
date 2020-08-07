@@ -219,33 +219,37 @@ class CPU:
         ]
 
     def __str__(self):
-        s = (
-            "ZNHC PC   SP   STACK:\n"
-            "%d%d%d%d %04X %04X (%02X%02X)\n"
-            f"A  {self.A:02X} {self.A:08b} {self.A}\n"
-            f"B  {self.B:02X} {self.B:08b} {self.B}\n"
-            f"C  {self.C:02X} {self.C:08b} {self.C}\n"
-            f"D  {self.D:02X} {self.D:08b} {self.D}\n"
-            f"E  {self.E:02X} {self.E:08b} {self.E}\n"
-            f"H  {self.H:02X} {self.H:08b} {self.H}\n"
-            f"L  {self.L:02X} {self.L:08b} {self.L}\n"
-            % (
-                self.FLAG_Z or 0, self.FLAG_N or 0, self.FLAG_H or 0, self.FLAG_C or 0,
-                self.PC, self.SP,
-                self.ram[self.SP], self.ram[self.SP+1],
-            )
+        VBLANK = 1<<0;
+        STAT = 1<<1;
+        TIMER = 1<<2;
+        SERIAL = 1<<3;
+        JOYPAD = 1<<4;
+        IF = 0xFF0F
+        IE = 0xFFFF
+
+        ien = self.ram[IE]
+        ifl = self.ram[IF]
+        def flag(i: int, c: str) -> str:
+            if ien & i != 0:
+                if ifl & i != 0:
+                    return c.upper()
+                else:
+                    return c
+            else:
+                return '_'
+        v = flag(VBLANK, 'v')
+        l = flag(STAT, 'l')
+        t = flag(TIMER, 't')
+        s = flag(SERIAL, 's')
+        j = flag(JOYPAD, 'j')
+
+        return "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:04X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}".format(
+            self.AF, self.BC, self.DE, self.HL,
+            self.SP, self.ram[self.SP] & self.ram[(self.SP+1) % 0xFFFF] << 8,
+            "Z" if self.FLAG_Z else "z", "N" if self.FLAG_N else "n", "H" if self.FLAG_H else "h", "C" if self.FLAG_C else "c",
+            v, l, t, s, j,
+            self.PC, self.ram[self.PC], self.ops[self.ram[self.PC]].name
         )
-        if (
-            self.A > 0xFF or self.A < 0x00 or
-            self.B > 0xFF or self.B < 0x00 or
-            self.C > 0xFF or self.C < 0x00 or
-            self.D > 0xFF or self.D < 0x00 or
-            self.E > 0xFF or self.E < 0x00 or
-            self.H > 0xFF or self.H < 0x00 or
-            self.L > 0xFF or self.L < 0x00
-        ):
-            raise Exception("Register value out of range:" + s)
-        return s
 
     # </editor-fold>
 
@@ -298,13 +302,11 @@ class CPU:
             self.PC += 1
 
         if self._debug:
-            print(self._debug_str)
+            print(self)
         if param is not None:
             cmd(param)
         else:
             cmd()
-        if self._debug:
-            print(self)
 
         return cmd.cycles
     # </editor-fold>
