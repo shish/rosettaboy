@@ -1,4 +1,4 @@
-# spygab
+# RosettaBoy-Py
 Python GameBoy Emulator
 
 My first ever attempt at an emulator, it passes the core-cpu test suite
@@ -13,8 +13,8 @@ are able to run.
 
 ## Usage
 
-Stick a gameboy BIOS into boot.gb in the current directory. Finding a BIOS
-is left as an exercise to the reader.
+Stick a gameboy boot ROM into boot.gb in the current directory. Finding a
+boot ROM is left as an exercise to the reader.
 
 ```
 python3 -m venv .venv
