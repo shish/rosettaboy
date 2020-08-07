@@ -19,7 +19,7 @@ is left as an exercise to the reader.
 ```
 python3 -m venv .venv
 source .venv/bin/activate
-pip3 install pygame==2.0.0.dev6
+python3 -m pip install --pre pygame
 ./main.py run <myrom.gb> [--debug-gpu] [--debug-cpu] [--headless]
 ```
 
