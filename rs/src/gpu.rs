@@ -319,7 +319,9 @@ impl GPU {
                     y: ram.get(consts::Mem::OamBase as u16 + 4 * n + 0),
                     x: ram.get(consts::Mem::OamBase as u16 + 4 * n + 1),
                     tile_id: ram.get(consts::Mem::OamBase as u16 + 4 * n + 2),
-                    flags: SpriteFlags::from_bits_truncate(ram.get(consts::Mem::OamBase as u16 + 4 * n + 3)),
+                    flags: SpriteFlags::from_bits_truncate(
+                        ram.get(consts::Mem::OamBase as u16 + 4 * n + 3),
+                    ),
                 };
                 if sprite.is_live() {
                     let palette = if sprite.flags.contains(SpriteFlags::PALETTE) {

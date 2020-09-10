@@ -187,7 +187,7 @@ impl CPU {
                 self.regs.r16.de,
                 self.regs.r16.hl,
                 self.sp,
-                (ram.get(self.sp+1) as u16) << 8 & ram.get(self.sp) as u16,
+                (ram.get(self.sp.overflowing_add(1).0) as u16) << 8 & ram.get(self.sp) as u16,
                 z, n, h, c,
                 v, l, t, s, j,
                 self.pc, op, op_str
@@ -402,7 +402,7 @@ impl CPU {
                     self.regs.r8.a = ram.get(self.regs.r16.bc);
                 }
                 0x0B => {
-                    self.regs.r16.bc -= 1;
+                    self.regs.r16.bc = self.regs.r16.bc.overflowing_sub(1).0;
                 }
 
                 0x10 => {
@@ -415,7 +415,7 @@ impl CPU {
                     ram.set(self.regs.r16.de, self.regs.r8.a);
                 }
                 0x13 => {
-                    self.regs.r16.de += 1;
+                    self.regs.r16.de = self.regs.r16.de.overflowing_add(1).0;
                 }
                 0x18 => {
                     self.pc = self.pc.overflowing_add(arg.i8 as u16).0;
@@ -424,7 +424,7 @@ impl CPU {
                     self.regs.r8.a = ram.get(self.regs.r16.de);
                 }
                 0x1B => {
-                    self.regs.r16.de -= 1;
+                    self.regs.r16.de = self.regs.r16.de.overflowing_sub(1).0;
                 }
 
                 0x20 => {
@@ -437,10 +437,10 @@ impl CPU {
                 }
                 0x22 => {
                     ram.set(self.regs.r16.hl, self.regs.r8.a);
-                    self.regs.r16.hl += 1;
+                    self.regs.r16.hl = self.regs.r16.hl.overflowing_add(1).0;
                 }
                 0x23 => {
-                    self.regs.r16.hl += 1;
+                    self.regs.r16.hl = self.regs.r16.hl.overflowing_add(1).0;
                 }
                 0x27 => {
                     let mut val16 = self.regs.r8.a as u16;
@@ -476,10 +476,10 @@ impl CPU {
                 }
                 0x2A => {
                     self.regs.r8.a = ram.get(self.regs.r16.hl);
-                    self.regs.r16.hl += 1;
+                    self.regs.r16.hl = self.regs.r16.hl.overflowing_add(1).0;
                 }
                 0x2B => {
-                    self.regs.r16.hl -= 1;
+                    self.regs.r16.hl = self.regs.r16.hl.overflowing_sub(1).0;
                 }
                 0x2F => {
                     self.regs.r8.a ^= 0xFF;
@@ -497,10 +497,10 @@ impl CPU {
                 }
                 0x32 => {
                     ram.set(self.regs.r16.hl, self.regs.r8.a);
-                    self.regs.r16.hl -= 1
+                    self.regs.r16.hl = self.regs.r16.hl.overflowing_sub(1).0;
                 }
                 0x33 => {
-                    self.sp += 1;
+                    self.sp = self.sp.overflowing_add(1).0;
                 }
                 0x37 => {
                     self.flag_n = false;
@@ -514,7 +514,7 @@ impl CPU {
                 }
                 0x3A => {
                     self.regs.r8.a = ram.get(self.regs.r16.hl);
-                    self.regs.r16.hl -= 1;
+                    self.regs.r16.hl = self.regs.r16.hl.overflowing_sub(1).0;
                 }
                 0x3B => {
                     self.sp = self.sp.overflowing_sub(1).0;
@@ -758,15 +758,15 @@ impl CPU {
                     self.pc = 0x20;
                 }
                 0xE8 => {
-                    let val16 = self.sp + arg.i8 as u16;
+                    let val16 = self.sp.overflowing_add(arg.i8 as u16).0;
                     //self.flag_h = ((self.sp & 0x0FFF) + (arg.i8 & 0x0FFF) > 0x0FFF);
                     //self.flag_c = (self.sp + arg.i8 > 0xFFFF);
                     self.flag_h = ((self.sp ^ arg.i8 as u16 ^ val16) & 0x10) != 0;
                     self.flag_c = ((self.sp ^ arg.i8 as u16 ^ val16) & 0x100) != 0;
                     if arg.i8 > 0 {
-                        self.sp += arg.i8 as u16;
+                        self.sp = self.sp.overflowing_add(arg.i8 as u16).0;
                     } else {
-                        self.sp -= (-arg.i8) as u16;
+                        self.sp = self.sp.overflowing_sub((-arg.i8) as u16).0;
                     }
                     self.flag_z = false;
                     self.flag_n = false;
