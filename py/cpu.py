@@ -243,12 +243,17 @@ class CPU:
         s = flag(SERIAL, 's')
         j = flag(JOYPAD, 'j')
 
+        if self.ram[0xFF50] == 0:
+            src = BOOT
+        else:
+            src = self.ram
+
         return "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:04X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}".format(
             self.AF, self.BC, self.DE, self.HL,
             self.SP, self.ram[self.SP] & self.ram[(self.SP+1) % 0xFFFF] << 8,
             "Z" if self.FLAG_Z else "z", "N" if self.FLAG_N else "n", "H" if self.FLAG_H else "h", "C" if self.FLAG_C else "c",
             v, l, t, s, j,
-            self.PC, self.ram[self.PC], self.ops[self.ram[self.PC]].name
+            self.PC, src[self.PC], self.ops[src[self.PC]].name
         )
 
     # </editor-fold>
