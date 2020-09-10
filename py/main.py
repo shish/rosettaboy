@@ -70,7 +70,7 @@ def run(args):
 
 
 def dump(cpu: CPU, err: str):
-    print("Error: %s\nWriting details to crash.txt" % err)
+    print(f"Error: {err}\nWriting details to crash.txt")
     with open("crash.txt", "w") as fp:
         fp.write(str(err) + "\n\n")
         fp.write(str(cpu._debug_str) + "\n\n")
