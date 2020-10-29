@@ -256,15 +256,15 @@ bool CPU::tick_instructions() {
 void CPU::tick_main(u8 op) {
     // Load args
     oparg arg;
-    arg.H = 0xCA75;
+    arg.u16 = 0xCA75;
     u8 nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]];
     if(nargs == 1) {
-        arg.B = this->ram->get(this->PC++);
+        arg.u8 = this->ram->get(this->PC++);
     }
     if(nargs == 2) {
         u16 low = this->ram->get(this->PC++);
         u16 high = this->ram->get(this->PC++);
-        arg.H = high << 8 | low;
+        arg.u16 = high << 8 | low;
     }
 
     // Execute
@@ -272,26 +272,26 @@ void CPU::tick_main(u8 op) {
     u16 val16 = 0;
     switch(op) {
         case 0x00: /* NOP */; break;
-        case 0x01: this->BC = arg.H; break;
+        case 0x01: this->BC = arg.u16; break;
         case 0x02: this->ram->set(this->BC, this->A); break;
         case 0x03: this->BC++; break;
         case 0x08:
-            this->ram->set(arg.H+1, ((this->SP >> 8) & 0xFF));
-            this->ram->set(arg.H, (this->SP & 0xFF));
+            this->ram->set(arg.u16+1, ((this->SP >> 8) & 0xFF));
+            this->ram->set(arg.u16, (this->SP & 0xFF));
             break;  // how does this fit?
         case 0x0A: this->A = this->ram->get(this->BC); break;
         case 0x0B: this->BC--; break;
 
         case 0x10: this->stop = true; break;
-        case 0x11: this->DE = arg.H; break;
+        case 0x11: this->DE = arg.u16; break;
         case 0x12: this->ram->set(this->DE, this->A); break;
         case 0x13: this->DE++; break;
-        case 0x18: this->PC += arg.b; break;
+        case 0x18: this->PC += arg.u8; break;
         case 0x1A: this->A = this->ram->get(this->DE); break;
         case 0x1B: this->DE--; break;
 
-        case 0x20: if(!this->FLAG_Z) this->PC += arg.b; break;
-        case 0x21: this->HL = arg.H; break;
+        case 0x20: if(!this->FLAG_Z) this->PC += arg.u8; break;
+        case 0x21: this->HL = arg.u16; break;
         case 0x22: this->ram->set(this->HL++, this->A); break;
         case 0x23: this->HL++; break;
         case 0x27:
@@ -312,17 +312,17 @@ void CPU::tick_main(u8 op) {
             this->A = val16 & 0xFF;
             this->FLAG_Z = this->A == 0;
             break;
-        case 0x28: if(this->FLAG_Z) this->PC += arg.b; break;
+        case 0x28: if(this->FLAG_Z) this->PC += arg.u8; break;
         case 0x2A: this->A = this->ram->get(this->HL++); break;
         case 0x2B: this->HL--; break;
         case 0x2F: this->A ^= 0xFF; this->FLAG_N = true; this->FLAG_H = true; break;
 
-        case 0x30: if(!this->FLAG_C) this->PC += arg.b; break;
-        case 0x31: this->SP = arg.H; break;
+        case 0x30: if(!this->FLAG_C) this->PC += arg.u8; break;
+        case 0x31: this->SP = arg.u16; break;
         case 0x32: this->ram->set(this->HL--, this->A); break;
         case 0x33: this->SP++; break;
         case 0x37: this->FLAG_N = false; this->FLAG_H = false; this->FLAG_C = true; break;
-        case 0x38: if(this->FLAG_C) this->PC += arg.b; break;
+        case 0x38: if(this->FLAG_C) this->PC += arg.u8; break;
         case 0x3A: this->A = this->ram->get(this->HL--); break;
         case 0x3B: this->SP--; break;
         case 0x3F: this->FLAG_C = !this->FLAG_C; this->FLAG_N = false; this->FLAG_H = false; break;
@@ -355,7 +355,7 @@ void CPU::tick_main(u8 op) {
         case 0x16: case 0x1E:
         case 0x26: case 0x2E:
         case 0x36: case 0x3E:
-            this->set_reg((op-0x06)/8, arg.B);
+            this->set_reg((op-0x06)/8, arg.u8);
             break;
 
         case 0x07: // RCLA
@@ -418,85 +418,85 @@ void CPU::tick_main(u8 op) {
         
         case 0xC0: if(!this->FLAG_Z) this->PC = this->pop(); break;
         case 0xC1: this->BC = this->pop(); break;
-        case 0xC2: if(!this->FLAG_Z) this->PC = arg.H; break;
-        case 0xC3: this->PC = arg.H; break;
-        case 0xC4: if(!this->FLAG_Z) {this->push(this->PC); this->PC = arg.H;} break;
+        case 0xC2: if(!this->FLAG_Z) this->PC = arg.u16; break;
+        case 0xC3: this->PC = arg.u16; break;
+        case 0xC4: if(!this->FLAG_Z) {this->push(this->PC); this->PC = arg.u16;} break;
         case 0xC5: this->push(this->BC); break;
-        case 0xC6: this->_add(arg.B); break;
+        case 0xC6: this->_add(arg.u8); break;
         case 0xC7: this->push(this->PC); this->PC = 0x00; break;
         case 0xC8: if(this->FLAG_Z) this->PC = this->pop(); break;
         case 0xC9: this->PC = this->pop(); break;
-        case 0xCA: if(this->FLAG_Z) this->PC = arg.H; break;
+        case 0xCA: if(this->FLAG_Z) this->PC = arg.u16; break;
         // case 0xCB: break;
-        case 0xCC: if(this->FLAG_Z) {this->push(this->PC); this->PC = arg.H;} break;
-        case 0xCD: this->push(this->PC); this->PC = arg.H; break;
-        case 0xCE: this->_adc(arg.B); break;
+        case 0xCC: if(this->FLAG_Z) {this->push(this->PC); this->PC = arg.u16;} break;
+        case 0xCD: this->push(this->PC); this->PC = arg.u16; break;
+        case 0xCE: this->_adc(arg.u8); break;
         case 0xCF: this->push(this->PC); this->PC = 0x08; break;
 
         case 0xD0: if(!this->FLAG_C) this->PC = this->pop(); break;
         case 0xD1: this->DE = this->pop(); break;
-        case 0xD2: if(!this->FLAG_C) this->PC = arg.H; break;
+        case 0xD2: if(!this->FLAG_C) this->PC = arg.u16; break;
         // case 0xD3: break;
-        case 0xD4: if(!this->FLAG_C) {this->push(this->PC); this->PC = arg.H;} break;
+        case 0xD4: if(!this->FLAG_C) {this->push(this->PC); this->PC = arg.u16;} break;
         case 0xD5: this->push(this->DE); break;
-        case 0xD6: this->_sub(arg.B); break;
+        case 0xD6: this->_sub(arg.u8); break;
         case 0xD7: this->push(this->PC); this->PC = 0x10; break;
         case 0xD8: if(this->FLAG_C) this->PC = this->pop(); break;
         case 0xD9: this->PC = this->pop(); this->interrupts = true; break;
-        case 0xDA: if(this->FLAG_C) this->PC = arg.H; break;
+        case 0xDA: if(this->FLAG_C) this->PC = arg.u16; break;
         // case 0xDB: break;
-        case 0xDC: if(this->FLAG_C) {this->push(this->PC); this->PC = arg.H;} break;
+        case 0xDC: if(this->FLAG_C) {this->push(this->PC); this->PC = arg.u16;} break;
         // case 0xDD: break;
-        case 0xDE: this->_sbc(arg.B); break;
+        case 0xDE: this->_sbc(arg.u8); break;
         case 0xDF: this->push(this->PC); this->PC = 0x18; break;
 
-        case 0xE0: this->ram->set(0xFF00 + arg.B, this->A); if(arg.B == 0x01) {putchar(this->A);}; break;
+        case 0xE0: this->ram->set(0xFF00 + arg.u8, this->A); if(arg.u8 == 0x01) {putchar(this->A);}; break;
         case 0xE1: this->HL = this->pop(); break;
         case 0xE2: this->ram->set(0xFF00 + this->C, this->A); if(this->C == 0x01) {putchar(this->A);}; break;
         // case 0xE3: break;
         // case 0xE4: break;
         case 0xE5: this->push(this->HL); break;
-        case 0xE6: this->_and(arg.B); break;
+        case 0xE6: this->_and(arg.u8); break;
         case 0xE7: this->push(this->PC); this->PC = 0x20; break;
         case 0xE8:
-            val16 = this->SP + arg.b;
-            //this->FLAG_H = ((this->SP & 0x0FFF) + (arg.b & 0x0FFF) > 0x0FFF);
-            //this->FLAG_C = (this->SP + arg.b > 0xFFFF);
-            this->FLAG_H = ((this->SP ^ arg.b ^ val16) & 0x10 ? true : false);
-            this->FLAG_C = ((this->SP ^ arg.b ^ val16) & 0x100 ? true : false);
-            this->SP += arg.b;
+            val16 = this->SP + arg.u8;
+            //this->FLAG_H = ((this->SP & 0x0FFF) + (arg.u8 & 0x0FFF) > 0x0FFF);
+            //this->FLAG_C = (this->SP + arg.u8 > 0xFFFF);
+            this->FLAG_H = ((this->SP ^ arg.u8 ^ val16) & 0x10 ? true : false);
+            this->FLAG_C = ((this->SP ^ arg.u8 ^ val16) & 0x100 ? true : false);
+            this->SP += arg.u8;
             this->FLAG_Z = false;
             this->FLAG_N = false;
             break;
         case 0xE9: this->PC = this->HL; break;
-        case 0xEA: this->ram->set(arg.H, this->A); break;
+        case 0xEA: this->ram->set(arg.u16, this->A); break;
         // case 0xEB: break;
         // case 0xEC: break;
         // case 0xED: break;
-        case 0xEE: this->_xor(arg.B); break;
+        case 0xEE: this->_xor(arg.u8); break;
         case 0xEF: this->push(this->PC); this->PC = 0x28; break;
 
-        case 0xF0: this->A = this->ram->get(0xFF00 + arg.B); break;
+        case 0xF0: this->A = this->ram->get(0xFF00 + arg.u8); break;
         case 0xF1: this->AF = (this->pop() & 0xFFF0); break;
         case 0xF2: this->A = this->ram->get(0xFF00 + this->C); break;
         case 0xF3: this->interrupts = false; break;
         // case 0xF4: break;
         case 0xF5: this->push(this->AF); break;
-        case 0xF6: this->_or(arg.B); break;
+        case 0xF6: this->_or(arg.u8); break;
         case 0xF7: this->push(this->PC); this->PC = 0x30; break;
         case 0xF8:
-            this->FLAG_H = ((((this->SP & 0x0f) + (arg.B & 0x0f)) & 0x10) != 0);
-            this->FLAG_C = ((((this->SP & 0xff) + (arg.B & 0xff)) & 0x100) != 0);
-            this->HL = this->SP + arg.b;
+            this->FLAG_H = ((((this->SP & 0x0f) + (arg.u8 & 0x0f)) & 0x10) != 0);
+            this->FLAG_C = ((((this->SP & 0xff) + (arg.u8 & 0xff)) & 0x100) != 0);
+            this->HL = this->SP + arg.u8;
             this->FLAG_Z = false;
             this->FLAG_N = false;
             break;
         case 0xF9: this->SP = this->HL; break;
-        case 0xFA: this->A = this->ram->get(arg.H); break;
+        case 0xFA: this->A = this->ram->get(arg.u16); break;
         case 0xFB: this->interrupts = true; break;
         // case 0xFC: break;
         // case 0xFD: break;
-        case 0xFE: this->_cp(arg.B); break;
+        case 0xFE: this->_cp(arg.u8); break;
         case 0xFF: this->push(this->PC); this->PC = 0x38; break;
 
         // missing ops

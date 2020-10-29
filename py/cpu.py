@@ -4,18 +4,6 @@ import sys
 from textwrap import dedent
 
 
-# 01 - special:     PASS
-# 02 - interrupts:  Fail...
-# 03 - op sp,hl:    PASS
-# 04 - op r,imm:    PASS
-# 05 - op rp:       PASS
-# 06 - ld r,r:      PASS
-# 07 - jumps:       PASS
-# 08 - misc:        PASS
-# 09 - op r,r:      PASS
-# 10 - bit ops:     PASS
-# 11 - op a,(hl):   PASS
-
 try:
     # boot with the logo scroll if we have a boot rom
     with open("boot.gb", "rb") as fp:
@@ -45,6 +33,7 @@ except IOError:
         0x1E, 0xD8,  # LD E,$D8
         0x26, 0x01,  # LD H,$01
         0x2E, 0x4D,  # LD L,$4D
+        0xC3, 0xFD, 0x00,  # JP 0x00FD
     ]
 
     # these 5 instructions must be the final 2 --
@@ -104,22 +93,24 @@ class CPU:
         self._debug_str = ""
 
         # registers
-        self.A = 0x01  # GB / SGB. FF=GBP, 11=GBC
-        self.B = 0x00
-        self.C = 0x13
-        self.D = 0x00
-        self.E = 0xD8
-        self.H = 0x01
-        self.L = 0x4D
+        # boot rom should set these to defaults
+        self.A = 0  # 0x01  # GB / SGB. FF=GBP, 11=GBC
+        self.B = 0  # 0x00
+        self.C = 0  # 0x13
+        self.D = 0  # 0x00
+        self.E = 0  # 0xD8
+        self.H = 0  # 0x01
+        self.L = 0  # 0x4D
 
-        self.SP = 0xFFFE
+        self.SP = 0x0000  # 0xFFFE
         self.PC = 0x0000
 
         # flags
-        self.FLAG_Z: bool = True  # zero
-        self.FLAG_N: bool = False  # subtract
-        self.FLAG_H: bool = True  # half-carry
-        self.FLAG_C: bool = True  # carry
+        # should be set by boot rom
+        self.FLAG_Z: bool = False  # True   # zero
+        self.FLAG_N: bool = False  # False  # subtract
+        self.FLAG_H: bool = False  # True   # half-carry
+        self.FLAG_C: bool = False  # True   # carry
 
         self.ram = [0] * (0xFFFF+1)
 
@@ -218,12 +209,12 @@ class CPU:
             for n in range(0x00, 0xFF+1)
         ]
 
-    def __str__(self):
-        VBLANK = 1<<0;
-        STAT = 1<<1;
-        TIMER = 1<<2;
-        SERIAL = 1<<3;
-        JOYPAD = 1<<4;
+    def dump(self, pc: int, cmd_str: str) -> str:
+        VBLANK = 1<<0
+        STAT = 1<<1
+        TIMER = 1<<2
+        SERIAL = 1<<3
+        JOYPAD = 1<<4
         IF = 0xFF0F
         IE = 0xFFFF
 
@@ -248,12 +239,14 @@ class CPU:
         else:
             src = self.ram
 
+        op = src[pc+1] if src[pc] == 0xCB else src[pc]
+
         return "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:04X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}".format(
             self.AF, self.BC, self.DE, self.HL,
             self.SP, self.ram[self.SP] & self.ram[(self.SP+1) % 0xFFFF] << 8,
             "Z" if self.FLAG_Z else "z", "N" if self.FLAG_N else "n", "H" if self.FLAG_H else "h", "C" if self.FLAG_C else "c",
             v, l, t, s, j,
-            self.PC, src[self.PC], self.ops[src[self.PC]].name
+            pc, op, cmd_str
         )
 
     # </editor-fold>
@@ -268,18 +261,11 @@ class CPU:
             src = self.ram
 
         if self.PC >= 0xFF00:
-            raise Exception("PC reached IO ports (0x%04X) after %d NOPs" % (self.PC, self._nopslide))
+            raise Exception("PC reached IO ports (0x%04X)" % (self.PC, ))
+
+        original_pc = self.PC
 
         ins = src[self.PC]
-        if ins == 0x00:
-            self._nopslide += 1
-            self.PC += 1
-            if self._nopslide > 0xFF and False:
-                raise Exception("NOP slide")
-            return 4
-        else:
-            self._nopslide = 0
-
         if ins == 0xCB:
             ins = src[self.PC + 1]
             cmd = self.cb_ops[ins]
@@ -289,25 +275,29 @@ class CPU:
 
         if cmd.args == "B":
             param = src[self.PC + 1]
-            self._debug_str = f"[{self.PC:04X}({ins:02X})]: {cmd.name.replace('n', '$%02X' % param)}"
+            cmd_str = cmd.name.replace('n', '$%02X' % param)
             self.PC += 2
         elif cmd.args == "b":
             param = src[self.PC + 1]
             if param > 128:
                 param -= 256
-            self._debug_str = f"[{self.PC:04X}({ins:02X})]: {cmd.name.replace('n', '%d' % param)}"
+                cmd_str = cmd.name.replace('n', '%d' % param)
+            else:
+                cmd_str = cmd.name.replace('n', '+%d' % param)
             self.PC += 2
         elif cmd.args == "H":
             param = (src[self.PC + 1]) | (src[self.PC + 2] << 8)
-            self._debug_str = f"[{self.PC:04X}({ins:02X})]: {cmd.name.replace('nn', '$%04X' % param)}"
+            cmd_str = cmd.name.replace('nn', '$%04X' % param)
             self.PC += 3
         else:
             param = None
-            self._debug_str = f"[{self.PC:04X}({ins:02X})]: {cmd.name}"
+            cmd_str = cmd.name
             self.PC += 1
+        self._debug_str = f"[{self.PC:04X}({ins:02X})]: {cmd_str}"
 
         if self._debug:
-            print(self)
+            print(self.dump(original_pc, cmd_str))
+
         if param is not None:
             cmd(param)
         else:

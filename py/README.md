@@ -17,8 +17,8 @@ Stick a gameboy boot ROM into boot.gb in the current directory. Finding a
 boot ROM is left as an exercise to the reader.
 
 ```
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 python3 -m pip install --pre pygame
 ./main.py run <myrom.gb> [--debug-gpu] [--debug-cpu] [--headless]
 ```

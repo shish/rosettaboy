@@ -7,9 +7,9 @@
 #include "ram.h"
 
 union oparg {
-    u8 B;
-    i8 b;
-    u16 H;
+    u8 u8;  // B
+    i8 i8;  // b
+    u16 u16;  // H
 };
 
 class CPU {

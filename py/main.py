@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 import sys
 from typing import List
 from cart import Cart
 from cpu import CPU, OpNotImplemented
 from gpu import GPU
 import argparse
-
 
 def info(cart):
     with open(cart, "rb") as fp:
@@ -54,16 +56,14 @@ def run(args):
             dump(cpu, str(e))
 
         # 4MHz / 60FPS ~= 70000 instructions per frame
-        if clock > 70224 or clock > 1000:
+        if clock > 70224:
             # print(last_frame - time.time())
             clock = 0
-            if lcd:
-                if lcd.update():
-                    frame = frame + 1
-                    if args.profile and frame >= 600:
-                        running = False
-                else:
-                    running = False
+            frame = frame + 1
+            if args.profile and frame >= args.profile:
+                running = False
+            if lcd and not lcd.update():
+                running = False
 
     if lcd:
         lcd.close()
@@ -91,9 +91,8 @@ def main(argv: List[str]) -> int:
     parser.add_argument(
         "-p",
         "--profile",
-        action="store_true",
-        default=False,
-        help="Exit after 600 frames",
+        type=int,
+        help="Exit after N frames",
     )
     args = parser.parse_args()
 
