@@ -42,8 +42,8 @@ def run(args):
                 break
     except OpNotImplemented as e:
         print(e, file=sys.stderr)
-    except (Exception, KeyboardInterrupt) as e:
-        dump(cpu, str(e))
+    #except (Exception, KeyboardInterrupt) as e:
+    #    dump(cpu, str(e))
     finally:
         if gpu:
             gpu.close()
@@ -74,6 +74,7 @@ def main(argv: List[str]) -> int:
         "--profile",
         type=int,
         help="Exit after N frames",
+        default=0,
     )
     args = parser.parse_args()
 

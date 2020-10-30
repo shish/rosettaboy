@@ -44,8 +44,8 @@ struct Args {
     #[structopt(short = "r", long)]
     debug_ram: bool,
 
-    /// Exit after 600 frames
-    #[structopt(short, long)]
+    /// Exit after N frames
+    #[structopt(short, long, default_value="0")]
     profile: u32,
 
     /// No sleep()
