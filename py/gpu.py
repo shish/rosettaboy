@@ -25,13 +25,14 @@ class GPU:
         else:
             self.buffer = pygame.Surface((512, 256))
             self.screen = pygame.display.set_mode((512 * SCALE, 256 * SCALE))
-        pygame.display.set_caption("SPYGB - " + (cpu.cart.name or "<corrupt>"))
+        pygame.display.set_caption("RosettaBoy - " + (cpu.cart.name or "<corrupt>"))
+        pygame.display.update()
         self.pyclock = pygame.time.Clock()
         self.clock = 0
 
     def tick(self):
         lx = self.clock % 114
-        ly = (self.clock / 114) % 154
+        ly = (self.clock // 114) % 154
         if lx == 20 and ly == 0:
             if not self.update():
                 return False
