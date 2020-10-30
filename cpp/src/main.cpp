@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     args::Flag debug_cpu(parser, "debug-cpu", "Debug CPU", {'c', "debug-cpu"});
     args::Flag debug_gpu(parser, "debug-gpu", "Debug GPU", {'g', "debug-gpu"});
     args::Flag debug_apu(parser, "debug-apu", "Debug APU", {'a', "debug-apu"});
-    args::Flag profile(parser, "profile", "Exit after 600 frames", {'p', "profile"});
+    args::ValueFlag<int> profile(parser, "profile", "Exit after N frames", {'p', "profile"});
     args::Flag turbo(parser, "turbo", "No sleep between frames", {'t', "turbo"});
     args::Positional<std::string> rom(parser, "rom", "Path to a .gb file");
     args::CompletionFlag completion(parser, {"complete"});
@@ -35,13 +35,15 @@ int main(int argc, char *argv[]) {
     Buttons *buttons = nullptr;
     Clock *clock = nullptr;
 
+    int profile_frames = profile ? args::get(profile) : 0;
+
     cart = new Cart(args::get(rom).c_str());
     ram = new RAM(cart);
     cpu = new CPU(ram, debug_cpu);
     gpu = new GPU(cpu, headless, debug_gpu);
     buttons = new Buttons(cpu);
     if(!silent) new APU(cpu, debug_apu);
-    clock = new Clock(buttons, profile, turbo);
+    clock = new Clock(buttons, profile_frames, turbo);
 
     while(true) {
         if(!cpu->tick()) break;
@@ -51,5 +53,5 @@ int main(int argc, char *argv[]) {
     }
 
     printf("\n");
-    return cpu->A;
+    return 0;
 }

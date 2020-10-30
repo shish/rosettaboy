@@ -51,8 +51,9 @@ class OldLicensee(Enum):
 
 
 class Cart:
-    def __init__(self, data: bytes):
-        self.data = data
+    def __init__(self, rom: str):
+        with open(rom, "rb") as fp:
+            self.data = fp.read()
 
         self.rsts: str
         self.init: Tuple[int]
@@ -94,7 +95,7 @@ class Cart:
         ]
         offset = 0
         for fmt, name, mod in fmts:
-            val = struct.unpack_from(fmt, data, offset)
+            val = struct.unpack_from(fmt, self.data, offset)
             offset += struct.calcsize(fmt)
             if len(val) == 1:
                 val = val[0]
@@ -106,7 +107,7 @@ class Cart:
         if logo_checksum != 5446:
             raise CorruptCart("Logo checksum failed: %d != 5446" % logo_checksum)
 
-        header_checksum = (sum(struct.unpack("26B", data[0x0134:0x014E])) + 25) & 0xFF
+        header_checksum = (sum(struct.unpack("26B", self.data[0x0134:0x014E])) + 25) & 0xFF
         if header_checksum != 0:
             raise CorruptCart("Header checksum failed: %02X != 0" % header_checksum)
 

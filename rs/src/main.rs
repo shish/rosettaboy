@@ -46,7 +46,7 @@ struct Args {
 
     /// Exit after 600 frames
     #[structopt(short, long)]
-    profile: bool,
+    profile: u32,
 
     /// No sleep()
     #[structopt(short, long)]
@@ -97,11 +97,11 @@ impl Gameboy {
                 println!("Break from CPU");
                 break;
             }
+            self.gpu.tick(&mut self.ram, &mut self.cpu);
             if !self.buttons.tick(&self.sdl, &mut self.ram, &mut self.cpu) {
                 println!("Break from buttons");
                 break;
             }
-            self.gpu.tick(&mut self.ram, &mut self.cpu);
             if !self.clock.tick() {
                 println!("Break from clock");
                 break;

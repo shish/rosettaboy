@@ -8,6 +8,7 @@ from typing import List
 from cart import Cart
 from cpu import CPU, OpNotImplemented
 from gpu import GPU
+from clock import Clock
 import argparse
 
 def info(cart):
@@ -22,51 +23,30 @@ def info(cart):
 
 
 def run(args):
-    with open(args.rom, "rb") as fp:
-        data = fp.read()
-    cart = Cart(data)
+    cart = Cart(args.rom)
     cpu = CPU(cart, debug=args.debug_cpu)
+    clock = Clock(args.profile, args.turbo)
 
-    lcd = None
+    gpu = None
     if not args.headless:
-        lcd = GPU(cpu, debug=args.debug_gpu)
+        gpu = GPU(cpu, debug=args.debug_gpu)
 
-    running = True
-    clock = 0
-    frame = 0
-    while running:
-        try:
-            if not cpu.halt and not cpu.stop:
-                clock += cpu.tick()
-            else:
-                clock += 4
-            # if cpu.halt:
-            #    print("CPU halted, waiting for interrupt")
-            #    break
-            # if cpu.stop:
-            #    print("CPU stopped, waiting for button")
-            #    break
-
-        except OpNotImplemented as e:
-            running = False
-            # print(cpu)
-            print(e, file=sys.stderr)
-        except (Exception, KeyboardInterrupt) as e:
-            running = False
-            dump(cpu, str(e))
-
-        # 4MHz / 60FPS ~= 70000 instructions per frame
-        if clock > 70224:
-            # print(last_frame - time.time())
-            clock = 0
-            frame = frame + 1
-            if args.profile and frame >= args.profile:
-                running = False
-            if lcd and not lcd.update():
-                running = False
-
-    if lcd:
-        lcd.close()
+    try:
+        while True:
+            cpu.tick()
+            if gpu and not gpu.tick():
+                break
+            # if not buttons.tick():
+            #     break
+            if not clock.tick():
+                break
+    except OpNotImplemented as e:
+        print(e, file=sys.stderr)
+    except (Exception, KeyboardInterrupt) as e:
+        dump(cpu, str(e))
+    finally:
+        if gpu:
+            gpu.close()
 
 
 def dump(cpu: CPU, err: str):
@@ -88,6 +68,7 @@ def main(argv: List[str]) -> int:
     parser.add_argument("-c", "--debug-cpu", action="store_true", default=False)
     parser.add_argument("-g", "--debug-gpu", action="store_true", default=False)
     parser.add_argument("-H", "--headless", action="store_true", default=False)
+    parser.add_argument("-t", "--turbo", action="store_true", default=False)
     parser.add_argument(
         "-p",
         "--profile",

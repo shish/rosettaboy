@@ -10,11 +10,11 @@ private:
     int cycle=0;
     int frame=0;
     int last_frame_start = SDL_GetTicks();
-    bool profile = false;
+    int profile = 0;
     bool turbo = false;
     Buttons *buttons = nullptr;
 public:
-    Clock(Buttons *buttons, bool profile, bool turbo);
+    Clock(Buttons *buttons, int profile, bool turbo);
     ~Clock();
     bool tick();
 };

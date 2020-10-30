@@ -91,6 +91,7 @@ class CPU:
         self._nopslide = 0
         self._debug = debug
         self._debug_str = ""
+        self._owed_cycles = 0
 
         # registers
         # boot rom should set these to defaults
@@ -253,7 +254,22 @@ class CPU:
 
     # <editor-fold description="Tick">
     def tick(self):
+        # self.tick_debugger()
+        # self.tick_dma()
+        # self.tick_clock()
+        # self.tick_interrupts()
+        if self.halt:
+            return True
+        if self.stop:
+            return False
+        self.tick_instructions()
+        return True
+
+    def tick_instructions(self):
         # TODO: extra cycles when conditional jumps are taken
+        if self._owed_cycles:
+            self._owed_cycles -= 4
+            return
 
         if self.ram[0xFF50] == 0:
             src = BOOT
@@ -303,7 +319,8 @@ class CPU:
         else:
             cmd()
 
-        return cmd.cycles
+        self._owed_cycles = cmd.cycles - 4
+        return True
     # </editor-fold>
 
     # <editor-fold description="Debugger">

@@ -26,7 +26,17 @@ class GPU:
             self.buffer = pygame.Surface((512, 256))
             self.screen = pygame.display.set_mode((512 * SCALE, 256 * SCALE))
         pygame.display.set_caption("SPYGB - " + (cpu.cart.name or "<corrupt>"))
-        self.clock = pygame.time.Clock()
+        self.pyclock = pygame.time.Clock()
+        self.clock = 0
+
+    def tick(self):
+        lx = self.clock % 114
+        ly = (self.clock / 114) % 154
+        if lx == 20 and ly == 0:
+            if not self.update():
+                return False
+        self.clock += 1
+        return True
 
     def update(self):
         for event in pygame.event.get():
@@ -200,7 +210,7 @@ class GPU:
             (0, 0),
         )
         pygame.display.update()
-        self.clock.tick(60)
+        self.pyclock.tick(60)
         return True
 
     def get_tile(self, table, tile_id, pallette):
