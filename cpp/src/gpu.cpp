@@ -31,7 +31,7 @@ GPU::GPU(CPU *cpu, bool headless, bool debug) {
     }
     if(!headless) {
         this->window = SDL_CreateWindow(
-                "Spigot",                  // window title
+                "RosettaBoy",              // window title
                 SDL_WINDOWPOS_UNDEFINED,   // initial x position
                 SDL_WINDOWPOS_UNDEFINED,   // initial y position
                 w * SCALE,                 // width, in pixels

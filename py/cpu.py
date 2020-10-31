@@ -33,6 +33,8 @@ except IOError:
         0x1E, 0xD8,  # LD E,$D8
         0x26, 0x01,  # LD H,$01
         0x2E, 0x4D,  # LD L,$4D
+
+        # skip to the end of the bootloader
         0xC3, 0xFD, 0x00,  # JP 0x00FD
     ]
 

@@ -69,7 +69,7 @@ impl GPU {
         let video_subsystem = sdl_context.video()?;
         let (w, h) = if debug { (520, 144) } else { (160, 144) };
         let window = video_subsystem
-            .window(&format!("Spindle: {}", title)[..], w, h)
+            .window(&format!("RosettaBoy - {}", title)[..], w, h)
             .position_centered()
             .build()
             .map_err(|e| e.to_string())?;

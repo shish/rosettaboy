@@ -1,4 +1,5 @@
 import pygame
+import time
 
 VRAM_BASE = 0x8000
 TILE_DATA_TABLE_0 = 0x8800
@@ -17,34 +18,39 @@ class GPU:
         self._game_only = not debug
         self.tiles = []
         self._last_tile_data = []
+        self.title = "RosettaBoy - " + (cpu.cart.name or "<corrupt>")
 
-        pygame.init()
         if self._game_only:
             self.buffer = pygame.Surface((160, 144))
             self.screen = pygame.display.set_mode((160 * SCALE, 144 * SCALE))
         else:
             self.buffer = pygame.Surface((512, 256))
             self.screen = pygame.display.set_mode((512 * SCALE, 256 * SCALE))
-        pygame.display.set_caption("RosettaBoy - " + (cpu.cart.name or "<corrupt>"))
+        pygame.display.set_caption(self.title)
         pygame.display.update()
-        self.pyclock = pygame.time.Clock()
         self.clock = 0
+        self.frame = 0
+        self._last_time = time.time()
 
     def tick(self):
         lx = self.clock % 114
         ly = (self.clock // 114) % 154
+
+        # TODO: interrupts
+
         if lx == 20 and ly == 0:
-            if not self.update():
+            if self.frame % 60 == 0:
+                t = time.time()
+                fps = 60/(t - self._last_time)
+                pygame.display.set_caption(f"{self.title} - {fps:.1f}fps")
+                self._last_time = t
+            self.frame += 1
+            if not self.draw_lcd():
                 return False
         self.clock += 1
         return True
 
-    def update(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                print("Quitting")
-                return False
-
+    def update_palettes(self):
         neon = [
             pygame.Color(255, 63, 63),
             pygame.Color(63, 255, 63),
@@ -59,24 +65,27 @@ class GPU:
         ]
         available_colors = default
 
-        bgp = [
+        self.bgp = [
             available_colors[(self.cpu.ram[0xFF47] >> 0) & 0x3],
             available_colors[(self.cpu.ram[0xFF47] >> 2) & 0x3],
             available_colors[(self.cpu.ram[0xFF47] >> 4) & 0x3],
             available_colors[(self.cpu.ram[0xFF47] >> 6) & 0x3],
         ]
-        obp0 = [
+        self.obp0 = [
             available_colors[(self.cpu.ram[0xFF48] >> 0) & 0x3],
             available_colors[(self.cpu.ram[0xFF48] >> 2) & 0x3],
             available_colors[(self.cpu.ram[0xFF48] >> 4) & 0x3],
             available_colors[(self.cpu.ram[0xFF48] >> 6) & 0x3],
         ]
-        obp1 = [
+        self.obp1 = [
             available_colors[(self.cpu.ram[0xFF49] >> 0) & 0x3],
             available_colors[(self.cpu.ram[0xFF49] >> 2) & 0x3],
             available_colors[(self.cpu.ram[0xFF49] >> 4) & 0x3],
             available_colors[(self.cpu.ram[0xFF49] >> 6) & 0x3],
         ]
+
+    def draw_lcd(self):
+        self.update_palettes()
 
         SCROLL_Y = self.cpu.ram[0xFF42]
         SCROLL_X = self.cpu.ram[0xFF43]
@@ -103,7 +112,7 @@ class GPU:
         if self._last_tile_data != tile_data:
             self.tiles = []
             for tile_id in range(0x180):  # 384 tiles
-                self.tiles.append(self.get_tile(TILE_DATA_TABLE_1, tile_id, bgp))
+                self.tiles.append(self.get_tile(TILE_DATA_TABLE_1, tile_id, self.bgp))
             self._last_tile_data = tile_data
 
         if LCDC & LCDC_DATA_SRC:
@@ -113,7 +122,7 @@ class GPU:
             table = TILE_DATA_TABLE_0
             tile_offset = 0xFF
 
-        self.buffer.fill(bgp[0])
+        self.buffer.fill(self.bgp[0])
 
         # Display only valid area
         if self._game_only:
@@ -211,7 +220,6 @@ class GPU:
             (0, 0),
         )
         pygame.display.update()
-        self.pyclock.tick(60)
         return True
 
     def get_tile(self, table, tile_id, pallette):
@@ -228,6 +236,3 @@ class GPU:
                 surf.fill(pallette[px], ((x, y), (1, 1)))
 
         return surf
-
-    def close(self):
-        pygame.quit()
