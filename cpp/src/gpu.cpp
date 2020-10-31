@@ -24,12 +24,12 @@ GPU::GPU(CPU *cpu, bool headless, bool debug) {
 
     // Window
     int w=160, h=144;
-    SDL_Init(SDL_INIT_EVERYTHING);
     if(this->debug) {
         w = 512;
         h = 256;
     }
     if(!headless) {
+        SDL_InitSubSystem(SDL_INIT_VIDEO);
         this->window = SDL_CreateWindow(
                 "RosettaBoy",              // window title
                 SDL_WINDOWPOS_UNDEFINED,   // initial x position

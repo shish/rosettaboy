@@ -42,6 +42,8 @@ static int hz_to_samples(int n, int hz) {
     ch = ch * ch##_envelope_vol / 0x0F;
 
 APU::APU(CPU *cpu, bool debug) {
+    SDL_InitSubSystem(SDL_INIT_AUDIO);
+    
     this->cpu = cpu;
     this->debug = debug;
 

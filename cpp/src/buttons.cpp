@@ -1,12 +1,15 @@
 #include "buttons.h"
 
 Buttons::Buttons(CPU *cpu) {
+    SDL_InitSubSystem(SDL_INIT_EVENTS);
     this->cpu = cpu;
+    this->cycle = 0;
 }
 
 bool Buttons::tick() {
-    u8 LX = cycle % 114;
-    u8 LY = (cycle / 114) % 154;
+    u8 LX = this->cycle % 114;
+    u8 LY = (this->cycle / 114) % 154;
+    this->cycle++;
 
     this->update_buttons();
 
