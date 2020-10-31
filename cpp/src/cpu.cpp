@@ -286,11 +286,11 @@ void CPU::tick_main(u8 op) {
         case 0x11: this->DE = arg.u16; break;
         case 0x12: this->ram->set(this->DE, this->A); break;
         case 0x13: this->DE++; break;
-        case 0x18: this->PC += arg.u8; break;
+        case 0x18: this->PC += arg.i8; break;
         case 0x1A: this->A = this->ram->get(this->DE); break;
         case 0x1B: this->DE--; break;
 
-        case 0x20: if(!this->FLAG_Z) this->PC += arg.u8; break;
+        case 0x20: if(!this->FLAG_Z) this->PC += arg.i8; break;
         case 0x21: this->HL = arg.u16; break;
         case 0x22: this->ram->set(this->HL++, this->A); break;
         case 0x23: this->HL++; break;
@@ -312,17 +312,17 @@ void CPU::tick_main(u8 op) {
             this->A = val16 & 0xFF;
             this->FLAG_Z = this->A == 0;
             break;
-        case 0x28: if(this->FLAG_Z) this->PC += arg.u8; break;
+        case 0x28: if(this->FLAG_Z) this->PC += arg.i8; break;
         case 0x2A: this->A = this->ram->get(this->HL++); break;
         case 0x2B: this->HL--; break;
         case 0x2F: this->A ^= 0xFF; this->FLAG_N = true; this->FLAG_H = true; break;
 
-        case 0x30: if(!this->FLAG_C) this->PC += arg.u8; break;
+        case 0x30: if(!this->FLAG_C) this->PC += arg.i8; break;
         case 0x31: this->SP = arg.u16; break;
         case 0x32: this->ram->set(this->HL--, this->A); break;
         case 0x33: this->SP++; break;
         case 0x37: this->FLAG_N = false; this->FLAG_H = false; this->FLAG_C = true; break;
-        case 0x38: if(this->FLAG_C) this->PC += arg.u8; break;
+        case 0x38: if(this->FLAG_C) this->PC += arg.i8; break;
         case 0x3A: this->A = this->ram->get(this->HL--); break;
         case 0x3B: this->SP--; break;
         case 0x3F: this->FLAG_C = !this->FLAG_C; this->FLAG_N = false; this->FLAG_H = false; break;
@@ -459,12 +459,12 @@ void CPU::tick_main(u8 op) {
         case 0xE6: this->_and(arg.u8); break;
         case 0xE7: this->push(this->PC); this->PC = 0x20; break;
         case 0xE8:
-            val16 = this->SP + arg.u8;
-            //this->FLAG_H = ((this->SP & 0x0FFF) + (arg.u8 & 0x0FFF) > 0x0FFF);
-            //this->FLAG_C = (this->SP + arg.u8 > 0xFFFF);
-            this->FLAG_H = ((this->SP ^ arg.u8 ^ val16) & 0x10 ? true : false);
-            this->FLAG_C = ((this->SP ^ arg.u8 ^ val16) & 0x100 ? true : false);
-            this->SP += arg.u8;
+            val16 = this->SP + arg.i8;
+            //this->FLAG_H = ((this->SP & 0x0FFF) + (arg.i8 & 0x0FFF) > 0x0FFF);
+            //this->FLAG_C = (this->SP + arg.i8 > 0xFFFF);
+            this->FLAG_H = ((this->SP ^ arg.i8 ^ val16) & 0x10 ? true : false);
+            this->FLAG_C = ((this->SP ^ arg.i8 ^ val16) & 0x100 ? true : false);
+            this->SP += arg.i8;
             this->FLAG_Z = false;
             this->FLAG_N = false;
             break;
@@ -487,7 +487,7 @@ void CPU::tick_main(u8 op) {
         case 0xF8:
             this->FLAG_H = ((((this->SP & 0x0f) + (arg.u8 & 0x0f)) & 0x10) != 0);
             this->FLAG_C = ((((this->SP & 0xff) + (arg.u8 & 0xff)) & 0x100) != 0);
-            this->HL = this->SP + arg.u8;
+            this->HL = this->SP + arg.i8;
             this->FLAG_Z = false;
             this->FLAG_N = false;
             break;
