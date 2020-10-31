@@ -1,7 +1,9 @@
 import pygame
 
 class Buttons:
-    def __init__(self):
+    def __init__(self, headless=False):
+        self.headless = headless
+
         self.cycle = 0
         self.up = False
         self.down = False
@@ -27,6 +29,9 @@ class Buttons:
 
 
     def update_buttons(self) -> bool:
+        if self.headless:
+            return True
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False

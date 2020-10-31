@@ -13,21 +13,27 @@ SCALE = 2
 
 
 class GPU:
-    def __init__(self, cpu, debug=False):
+    def __init__(self, cpu, debug=False, headless=False):
         self.cpu = cpu
+        self.headless = headless
         self._game_only = not debug
         self.tiles = []
         self._last_tile_data = []
         self.title = "RosettaBoy - " + (cpu.cart.name or "<corrupt>")
 
         if self._game_only:
-            self.buffer = pygame.Surface((160, 144))
-            self.screen = pygame.display.set_mode((160 * SCALE, 144 * SCALE))
+            size = (160, 144)
         else:
-            self.buffer = pygame.Surface((512, 256))
-            self.screen = pygame.display.set_mode((512 * SCALE, 256 * SCALE))
-        pygame.display.set_caption(self.title)
-        pygame.display.update()
+            size = (512, 256)
+
+        if not headless:
+            pygame.display.init()
+            self.screen = pygame.display.set_mode((size[0] * SCALE, size[1] * SCALE))
+            pygame.display.set_caption(self.title)
+            pygame.display.update()
+
+        self.buffer = pygame.Surface(size)
+
         self.clock = 0
         self.frame = 0
         self._last_time = time.time()
@@ -213,13 +219,14 @@ class GPU:
                 for x in range(32):
                     self.buffer.blit(self.tiles[y * 32 + x], (256 + x * 8, y * 8))
 
-        self.screen.blit(
-            pygame.transform.scale(
-                self.buffer, (self.screen.get_width(), self.screen.get_height())
-            ),
-            (0, 0),
-        )
-        pygame.display.update()
+        if not self.headless:
+            self.screen.blit(
+                pygame.transform.scale(
+                    self.buffer, (self.screen.get_width(), self.screen.get_height())
+                ),
+                (0, 0),
+            )
+            pygame.display.update()
         return True
 
     def get_tile(self, table, tile_id, pallette):

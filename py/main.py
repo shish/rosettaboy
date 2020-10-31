@@ -23,6 +23,7 @@ def main(argv: List[str]) -> int:
     parser.add_argument("-c", "--debug-cpu", action="store_true", default=False)
     parser.add_argument("-g", "--debug-gpu", action="store_true", default=False)
     parser.add_argument("-H", "--headless", action="store_true", default=False)
+    parser.add_argument("-S", "--silent", action="store_true", default=False)
     parser.add_argument("-t", "--turbo", action="store_true", default=False)
     parser.add_argument(
         "-p",
@@ -37,20 +38,16 @@ def main(argv: List[str]) -> int:
         print(Cart(args.rom))
         return
 
-    pygame.init()
     try:
         cart = Cart(args.rom)
-        buttons = Buttons()
+        buttons = Buttons(headless=args.headless)
         cpu = CPU(cart, debug=args.debug_cpu)
         clock = Clock(args.profile, args.turbo)
-
-        gpu = None
-        if not args.headless:
-            gpu = GPU(cpu, debug=args.debug_gpu)
+        gpu = GPU(cpu, debug=args.debug_gpu, headless=args.headless)
 
         while True:
             cpu.tick()
-            if gpu and not gpu.tick():
+            if not gpu.tick():
                 break
             if not buttons.tick():
                 break
@@ -64,7 +61,7 @@ def main(argv: List[str]) -> int:
     #        fp.write(str(cpu) + "\n\n")
     #        for n in range(0x0000, 0xFFFF, 0x0010):
     #            fp.write(("%04X :" + (" %02X" * 16) + "\n") % (n, *cpu.ram[n : n + 0x0010]))
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, BrokenPipeError):
         pass
     finally:
         pygame.quit()
