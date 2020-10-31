@@ -27,7 +27,7 @@ except IOError:
 
         # set registers
         0x3E, 0x01,  # LD A,$01
-        0x06, 0x00,  # LD B,$01
+        0x06, 0x00,  # LD B,$00
         0x0E, 0x13,  # LD C,$13
         0x16, 0x00,  # LD D,$00
         0x1E, 0xD8,  # LD E,$D8

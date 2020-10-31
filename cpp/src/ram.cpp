@@ -16,12 +16,14 @@ u8 BOOT[0x100] = {
 
         // set registers
         0x3E, 0x01,  // LD A,$01
-        0x06, 0x00,  // LD B,$01
+        0x06, 0x00,  // LD B,$00
         0x0E, 0x13,  // LD C,$13
         0x16, 0x00,  // LD D,$00
         0x1E, 0xD8,  // LD E,$D8
         0x26, 0x01,  // LD H,$01
         0x2E, 0x4D,  // LD L,$4D
+
+        // skip to the end of the bootloader
         0xC3, 0xFD, 0x00,  // JP 0x00FD
 };
 
