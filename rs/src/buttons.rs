@@ -7,6 +7,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
 pub struct Buttons {
+    sdl_context: sdl2::Sdl,
     up: bool,
     down: bool,
     left: bool,
@@ -19,8 +20,9 @@ pub struct Buttons {
 }
 
 impl Buttons {
-    pub fn init() -> Result<Buttons, String> {
+    pub fn init(sdl_context: sdl2::Sdl) -> Result<Buttons, String> {
         Ok(Buttons {
+            sdl_context,
             up: false,
             down: false,
             left: false,
@@ -36,7 +38,7 @@ impl Buttons {
     /**
      * Turn OS keypresses into updates for the IO::JOYP byte
      */
-    pub fn tick(&mut self, sdl: &sdl2::Sdl, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> bool {
+    pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> bool {
         self.cycle += 1;
 
         let lx = self.cycle % 114;
@@ -45,7 +47,7 @@ impl Buttons {
         // handle SDL inputs every frame, but handle button register every CPU instruction
         self.update_buttons(ram, cpu);
         if lx == 20 && ly == 0 {
-            return self.handle_inputs(sdl);
+            return self.handle_inputs();
         } else {
             return true;
         }
@@ -55,8 +57,8 @@ impl Buttons {
      * Once per frame, check the queue of input events from the OS,
      * store which buttons are pressed or not
      */
-    fn handle_inputs(&mut self, sdl: &sdl2::Sdl) -> bool {
-        for event in sdl.event_pump().unwrap().poll_iter() {
+    fn handle_inputs(&mut self) -> bool {
+        for event in self.sdl_context.event_pump().unwrap().poll_iter() {
             // println!("Event: {:?}", event);
             match event {
                 Event::Quit { .. } => return false,
