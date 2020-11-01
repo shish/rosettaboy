@@ -50,7 +50,7 @@ impl Sprite {
 }
 
 pub struct GPU {
-    canvas: sdl2::render::Canvas<sdl2::video::Window>,
+    canvas: Option<sdl2::render::Canvas<sdl2::video::Window>>,
     cycle: u32,
     colors: [Color; 4],
     bgp: [Color; 4],
@@ -63,21 +63,26 @@ impl GPU {
     pub fn init(
         sdl_context: &sdl2::Sdl,
         title: &str,
-        _headless: bool,
+        headless: bool,
         debug: bool,
     ) -> Result<GPU, String> {
-        let video_subsystem = sdl_context.video()?;
         let (w, h) = if debug { (520, 144) } else { (160, 144) };
-        let window = video_subsystem
-            .window(&format!("RosettaBoy - {}", title)[..], w, h)
-            .position_centered()
-            .build()
-            .map_err(|e| e.to_string())?;
-        let canvas = window
-            .into_canvas()
-            .software()
-            .build()
-            .map_err(|e| e.to_string())?;
+        let canvas = if !headless {
+            let video_subsystem = sdl_context.video()?;
+            let window = video_subsystem
+                .window(&format!("RosettaBoy - {}", title)[..], w, h)
+                .position_centered()
+                .build()
+                .map_err(|e| e.to_string())?;
+            let canvas = window
+                .into_canvas()
+                .software()
+                .build()
+                .map_err(|e| e.to_string())?;
+            Some(canvas)
+        } else {
+            None
+        };
 
         let colors = [
             Color::RGBA(0x9B, 0xBC, 0x0F, 0xFF),
@@ -153,15 +158,19 @@ impl GPU {
                 // Should every pixel reference them directly?
                 self.update_palettes(ram);
                 // TODO: do we need to clear if we write every pixel?
-                self.canvas.set_draw_color(self.bgp[0]);
-                self.canvas.clear();
+                if let Some(canvas) = &mut self.canvas {
+                    canvas.set_draw_color(self.bgp[0]);
+                    canvas.clear();
+                }
             }
             self.draw_line(ram, ly as i32);
             if ly == 143 {
                 if self.debug {
                     self.draw_debug(ram);
                 }
-                self.canvas.present();
+                if let Some(canvas) = &mut self.canvas {
+                    canvas.present();
+                }
             }
         } else if lx == 63 && ly < 144 {
             ram.set(
@@ -219,8 +228,10 @@ impl GPU {
         // Background scroll border
         if lcdc.contains(consts::LCDC::BG_WIN_ENABLED) {
             let rect = Rect::new(0, 0, 160, 144);
-            self.canvas.set_draw_color(RED);
-            self.canvas.draw_rect(rect).expect("draw rect");
+            if let Some(canvas) = &mut self.canvas {
+                canvas.set_draw_color(RED);
+                canvas.draw_rect(rect).expect("draw rect");
+            }
         }
 
         // Window tiles
@@ -228,8 +239,10 @@ impl GPU {
             let wnd_y = ram.get(consts::IO::WY);
             let wnd_x = ram.get(consts::IO::WX);
             let rect = Rect::new(wnd_x as i32 - 7, wnd_y as i32, 160, 144);
-            self.canvas.set_draw_color(BLUE);
-            self.canvas.draw_rect(rect).expect("draw rect");
+            if let Some(canvas) = &mut self.canvas {
+                canvas.set_draw_color(BLUE);
+                canvas.draw_rect(rect).expect("draw rect");
+            }
         }
     }
 
@@ -248,10 +261,12 @@ impl GPU {
             } as u16;
 
             if self.debug {
-                self.canvas.set_draw_color(RED);
-                self.canvas
-                    .draw_point(Point::new(256 - scroll_x, ly))
-                    .expect("draw point");
+                if let Some(canvas) = &mut self.canvas {
+                    canvas.set_draw_color(RED);
+                    canvas
+                        .draw_point(Point::new(256 - scroll_x, ly))
+                        .expect("draw point");
+                }
             }
 
             let y_in_bgmap = (ly - scroll_y) & 0xFF; // % 256
@@ -286,8 +301,10 @@ impl GPU {
 
             // blank out the background
             let rect = Rect::new(wnd_x as i32 - 7, wnd_y as i32, 160, 144);
-            self.canvas.set_draw_color(self.bgp[0]);
-            self.canvas.fill_rect(rect).expect("fill rect");
+            if let Some(canvas) = &mut self.canvas {
+                canvas.set_draw_color(self.bgp[0]);
+                canvas.fill_rect(rect).expect("fill rect");
+            }
 
             let y_in_bgmap = ly - wnd_y as i32;
             let tile_y = y_in_bgmap / 8;
@@ -371,10 +388,12 @@ impl GPU {
         }
 
         if self.debug {
-            self.canvas.set_draw_color(gen_hue(tile_id as u8));
-            self.canvas
-                .draw_rect(Rect::new(offset.x, offset.y, 8, 8))
-                .expect("draw rect");
+            if let Some(canvas) = &mut self.canvas {
+                canvas.set_draw_color(gen_hue(tile_id as u8));
+                canvas
+                    .draw_rect(Rect::new(offset.x, offset.y, 8, 8))
+                    .expect("draw rect");
+            }
         }
     }
 
@@ -402,8 +421,10 @@ impl GPU {
                     offset.x + if flip_x { 7 - x } else { x },
                     offset.y + if flip_y { 7 - y } else { y },
                 );
-                self.canvas.set_draw_color(palette[px as usize]);
-                self.canvas.draw_point(xy).expect("draw point");
+                if let Some(canvas) = &mut self.canvas {
+                    canvas.set_draw_color(palette[px as usize]);
+                    canvas.draw_point(xy).expect("draw point");
+                }
             }
         }
     }
