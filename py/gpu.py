@@ -28,7 +28,7 @@ class GPU:
 
         if not headless:
             pygame.display.init()
-            self.screen = pygame.display.set_mode((size[0] * SCALE, size[1] * SCALE))
+            self.window = pygame.display.set_mode((size[0] * SCALE, size[1] * SCALE))
             pygame.display.set_caption(self.title)
             pygame.display.update()
 
@@ -220,9 +220,9 @@ class GPU:
                     self.buffer.blit(self.tiles[y * 32 + x], (256 + x * 8, y * 8))
 
         if not self.headless:
-            self.screen.blit(
+            self.window.blit(
                 pygame.transform.scale(
-                    self.buffer, (self.screen.get_width(), self.screen.get_height())
+                    self.buffer, (self.window.get_width(), self.window.get_height())
                 ),
                 (0, 0),
             )
