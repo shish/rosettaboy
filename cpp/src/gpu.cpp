@@ -57,9 +57,20 @@ GPU::~GPU() {
 }
 
 bool GPU::tick() {
+    this->cycle++;
+
     // CPU STOP stops all LCD activity until a button is pressed
     if(this->cpu->stop) {
         return true;
+    }
+
+    // Check if LCD enabled at all
+    u8 LCDC = this->cpu->ram->get(IO_LCDC);
+    if (!(LCDC & LCDC_ENABLED)) {
+        // When LCD is re-enabled, LY is 0
+        // Does it become 0 as soon as disabled??
+        this->cpu->ram->set(IO_LY, 0);
+        if(!debug) return true;
     }
 
     u8 LX = cycle % 114;
@@ -106,8 +117,6 @@ bool GPU::tick() {
         this->cpu->interrupt(INT_VBLANK);
     }
 
-    this->cycle++;
-
     return true;
 }
 
@@ -137,14 +146,6 @@ bool GPU::draw_lcd() {
     u8 LCDC = this->cpu->ram->get(IO_LCDC);
 
     SDL_FillRect(this->buffer, nullptr, bgp[0]);
-
-    // LCD enabled at all
-    if (!(LCDC & LCDC_ENABLED)) {
-        // When LCD is re-enabled, LY is 0
-        // Does it become 0 as soon as disabled??
-        this->cpu->ram->set(IO_LY, 0);
-        if(!debug) return true;
-    }
 
     // Tile data
     if(debug) {

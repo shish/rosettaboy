@@ -16,6 +16,7 @@ class GPU:
     def __init__(self, cpu, debug=False, headless=False):
         self.cpu = cpu
         self.headless = headless
+        self.debug = debug
         self._game_only = not debug
         self.tiles = []
         self._last_tile_data = []
@@ -38,9 +39,24 @@ class GPU:
         self.frame = 0
         self._last_time = time.time()
 
-    def tick(self):
+    def tick(self) -> bool:
+        self.clock += 1
+
+        # CPU STOP stops all LCD activity until a button is pressed
+        if self.cpu.stop:
+            return True
+
+        # Check if LCD enabled at all
+        if not (self.cpu.ram[0xFF40] & (1<<7)):  # IO_LCDC & ENABLED
+            # When LCD is re-enabled, LY is 0
+            # Does it become 0 as soon as disabled??
+            self.cpu.ram[0xFF44] = 0  # IO_LY
+            if not self.debug:
+                return True
+
         lx = self.clock % 114
         ly = (self.clock // 114) % 154
+        self.cpu.ram[0xFF44] = ly  # IO_LY
 
         # TODO: interrupts
 
@@ -53,7 +69,6 @@ class GPU:
             self.frame += 1
             if not self.draw_lcd():
                 return False
-        self.clock += 1
         return True
 
     def update_palettes(self):

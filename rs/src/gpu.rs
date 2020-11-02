@@ -105,16 +105,15 @@ impl GPU {
     }
 
     pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) {
+        self.cycle += 1;
+
         // CPU STOP stops all LCD activity until a button is pressed
         if cpu.stop {
             return;
         }
 
-        self.cycle += 1;
-
+        // Check if LCD enabled at all
         let lcdc = consts::LCDC::from_bits(ram.get(consts::IO::LCDC)).unwrap();
-
-        // LCD enabled at all
         if !lcdc.contains(consts::LCDC::ENABLED) {
             // When LCD is re-enabled, LY is 0
             // Does it become 0 as soon as disabled??

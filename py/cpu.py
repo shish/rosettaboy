@@ -179,7 +179,7 @@ class CPU:
         self.ram[0xFF25] = 0xF3  # NR51
         self.ram[0xFF26] = 0xF1  # NR52  # 0xF0 on SGB
 
-        self.ram[0xFF40] = 0x91  # LCDC
+        self.ram[0xFF40] = 0x00  # LCDC - official boot rom inits this to 0x91
         self.ram[0xFF41] = 0x00  # STAT
         self.ram[0xFF42] = 0x00  # SCX aka SCROLL_Y
         self.ram[0xFF43] = 0x00  # SCY aka SCROLL_X
