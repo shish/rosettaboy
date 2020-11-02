@@ -2,7 +2,7 @@ from enum import Enum
 from cart import Cart, TestCart
 import sys
 from textwrap import dedent
-
+from consts import *
 
 try:
     # boot with the logo scroll if we have a boot rom
@@ -256,8 +256,7 @@ class CPU:
 
     # <editor-fold description="Tick">
     def tick(self):
-        # self.tick_debugger()
-        # self.tick_dma()
+        self.tick_dma()
         # self.tick_clock()
         # self.tick_interrupts()
         if self.halt:
@@ -267,19 +266,28 @@ class CPU:
         self.tick_instructions()
         return True
 
+    def tick_dma(self):
+        """
+        If there is a non-zero value in ram[IO_DMA], eg 0x42, then
+        we should copy memory from eg 0x4200 to OAM space.
+        """
+        # TODO: DMA should take 26 cycles, during which main RAM is inaccessible
+        if self.ram[IO_DMA]:
+            dma_src = self.ram[IO_DMA] << 8
+            for i in range(0, 0xA0):
+                self.ram[OAM_BASE + i] = self.ram[dma_src + i]
+            self.ram[IO_DMA] = 0x00
+
     def tick_instructions(self):
         # TODO: extra cycles when conditional jumps are taken
         if self._owed_cycles:
             self._owed_cycles -= 4
             return
 
-        if self.ram[0xFF50] == 0:
+        if self.ram[IO_BOOT] == 0:
             src = BOOT
         else:
             src = self.ram
-
-        if self.PC >= 0xFF00:
-            raise Exception("PC reached IO ports (0x%04X)" % (self.PC, ))
 
         original_pc = self.PC
 

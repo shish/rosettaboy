@@ -120,9 +120,6 @@ impl CPU {
     }
 
     pub fn tick(&mut self, ram: &mut ram::RAM) -> bool {
-        if !self.tick_debugger(ram) {
-            return false;
-        }
         self.tick_dma(ram);
         self.tick_clock(ram);
         self.tick_interrupts(ram);
@@ -193,20 +190,6 @@ impl CPU {
                 self.pc, op, op_str
             );
         }
-    }
-
-    fn tick_debugger(&mut self, ram: &ram::RAM) -> bool {
-        if self.debug {
-            if self.owed_cycles == 0 {
-                self.dump_regs(ram);
-            }
-
-            if self.stepping {
-                let mut buffer = String::new();
-                ::std::io::stdin().read_to_string(&mut buffer).unwrap();
-            }
-        }
-        true
     }
 
     /**
@@ -309,8 +292,8 @@ impl CPU {
             return;
         }
 
-        if self.pc > 0xFF00 && self.pc < 0xFF80 {
-            panic!("Tried to execute IO memory {:04X}", self.pc);
+        if self.debug {
+            self.dump_regs(ram);
         }
 
         let op = ram.get(self.pc);

@@ -106,29 +106,12 @@ void CPU::interrupt(Interrupt i) {
  * 1MHz to perform all the CPU simulation.
  */
 bool CPU::tick() {
-    if(!this->tick_debugger()) return false;
     this->tick_dma();
     if(!this->tick_clock()) return false;
     if(!this->tick_interrupts()) return false;
     if(this->halt) return true;
     if(this->stop) return false;
     if(!this->tick_instructions()) return false;
-    return true;
-}
-
-bool CPU::tick_debugger() {
-    if(this->stepping) {
-        this->debug = true;
-        printf("dbg> ");
-        int c = getchar();
-        if(c == 'r') {
-            this->stepping = false;
-        }
-        if(c == 'd') {
-            this->ram->dump();
-        }
-        if(c != '\n') getchar();
-    }
     return true;
 }
 
@@ -225,11 +208,6 @@ bool CPU::tick_instructions() {
     if(owed_cycles) {
         owed_cycles--;
         return true;
-    }
-
-    if(this->PC > 0xFF00 && PC < 0xFF80) {
-        printf("Tried to execute GPU memory %04X\n", PC);
-        return false;
     }
 
     if(this->debug) {

@@ -7,15 +7,10 @@ init()
 
 tick()
 ------
-- tick_debugger()
 - tick_dma()
 - tick_clock()
 - tick_interrupts()
 - tick_instructions()
-
-tick_debugger()
----------------
-- if in debug mode, take commands, single step
 
 tick_dma()
 ----------
