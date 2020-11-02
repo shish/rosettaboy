@@ -1,29 +1,29 @@
-# RosettaBoy-Py
-Python GameBoy Emulator
+RosettaBoy Python
+=================
+My first ever attempt at an emulator
 
-My first ever attempt at an emulator, it passes the core-cpu test suite
-(ie all the CPU instructions are implemented correctly, barring some really
-weird hardware bugs), but I/O is very incomplete.
-
-In particular RAM is just implemented as a flat array, when in reality
-there's a memory controller sitting between the CPU and other hardware
-which is supposed to be doing things like bank switching. This means that
-basically nothing except the boot screen and basic single-bank test ROMs
-are able to run.
-
-## Usage
-
-Stick a gameboy boot ROM into boot.gb in the current directory. Finding a
-boot ROM is left as an exercise to the reader.
-
+Usage
+-----
 ```
 python3 -m venv venv
 source venv/bin/activate
 python3 -m pip install pygame
-./main.py run <myrom.gb> [--debug-gpu] [--debug-cpu] [--headless]
+./main.py game.gb
 ```
 
-## Requirements
-
+Requirements
+------------
 - Python 3.6+
 - PyGame
+
+Completeness
+------------
+- Passes most of gblargh's CPU test suite, except for #2 (`Interrupts`) :|
+- RAM is just implemented as a flat array, when in reality
+  there's a memory controller sitting between the CPU and other hardware
+  which is supposed to be doing things like bank switching. This means that
+  basically nothing except the boot screen and basic single-bank test ROMs
+  are able to run :(
+- Sound is not even started :(
+- Backgrounds and sprites are rendered all at once, instead of a line at
+  a time :(
