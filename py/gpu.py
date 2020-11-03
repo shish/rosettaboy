@@ -65,19 +65,12 @@ class GPU:
         return True
 
     def update_palettes(self):
-        neon = [
-            pygame.Color(255, 63, 63),
-            pygame.Color(63, 255, 63),
-            pygame.Color(63, 63, 255),
-            pygame.Color(0, 0, 0),
+        available_colors = [
+            pygame.Color(0x9B, 0xBC, 0x0F),
+            pygame.Color(0x8B, 0xAC, 0x0F),
+            pygame.Color(0x30, 0x62, 0x30),
+            pygame.Color(0x0F, 0x38, 0x0F),
         ]
-        default = [
-            pygame.Color(255, 255, 255),
-            pygame.Color(192, 192, 192),
-            pygame.Color(128, 128, 128),
-            pygame.Color(0, 0, 0),
-        ]
-        available_colors = default
 
         self.bgp = [
             available_colors[(self.cpu.ram[0xFF47] >> 0) & 0x3],
