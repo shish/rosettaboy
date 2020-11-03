@@ -9,7 +9,7 @@ use sdl2::keyboard::Keycode;
 
 pub struct Buttons {
     sdl_context: sdl2::Sdl,
-    _controller: GameController, // need to keep a reference to avoid deconstructor
+    _controller: Option<GameController>, // need to keep a reference to avoid deconstructor
     up: bool,
     down: bool,
     left: bool,
@@ -25,9 +25,7 @@ impl Buttons {
     pub fn init(sdl_context: sdl2::Sdl) -> Result<Buttons, String> {
         let game_controller_subsystem = sdl_context.game_controller()?;
 
-        let available = game_controller_subsystem
-            .num_joysticks()
-            .map_err(|e| format!("can't enumerate joysticks: {}", e))?;
+        let available = game_controller_subsystem.num_joysticks()?;
 
         // Iterate over all available joysticks and look for game controllers.
         let mut _controller = (0..available)
@@ -40,8 +38,7 @@ impl Buttons {
                     Ok(c) => Some(c),
                     Err(_) => None,
                 }
-            })
-            .expect("Couldn't open any controller");
+            });
 
         Ok(Buttons {
             sdl_context,
