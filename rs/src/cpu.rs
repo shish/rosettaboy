@@ -793,7 +793,7 @@ impl CPU {
                 0xF8 => {
                     let new_hl = self.sp.overflowing_add(arg.i8 as u16).0;
                     if arg.i8 >= 0 {
-                        self.flag_c = ((self.sp & 0xFF) + (arg.i8       ) as u16) > 0xFF;
+                        self.flag_c = ((self.sp & 0xFF) + (arg.i8) as u16) > 0xFF;
                         self.flag_h = ((self.sp & 0x0F) + (arg.i8 & 0x0F) as u16) > 0x0F;
                     } else {
                         self.flag_c = (new_hl & 0xFF) <= (self.sp & 0xFF);

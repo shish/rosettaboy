@@ -3,11 +3,13 @@ use crate::consts;
 use crate::cpu;
 use crate::ram;
 
+use sdl2::controller::{Button, GameController};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
 pub struct Buttons {
     sdl_context: sdl2::Sdl,
+    _controller: GameController, // need to keep a reference to avoid deconstructor
     up: bool,
     down: bool,
     left: bool,
@@ -21,8 +23,29 @@ pub struct Buttons {
 
 impl Buttons {
     pub fn init(sdl_context: sdl2::Sdl) -> Result<Buttons, String> {
+        let game_controller_subsystem = sdl_context.game_controller()?;
+
+        let available = game_controller_subsystem
+            .num_joysticks()
+            .map_err(|e| format!("can't enumerate joysticks: {}", e))?;
+
+        // Iterate over all available joysticks and look for game controllers.
+        let mut _controller = (0..available)
+            .find_map(|id| {
+                if !game_controller_subsystem.is_game_controller(id) {
+                    return None;
+                }
+
+                match game_controller_subsystem.open(id) {
+                    Ok(c) => Some(c),
+                    Err(_) => None,
+                }
+            })
+            .expect("Couldn't open any controller");
+
         Ok(Buttons {
             sdl_context,
+            _controller,
             up: false,
             down: false,
             left: false,
@@ -78,7 +101,6 @@ impl Buttons {
                     Some(Keycode::Space) => self.select = true,
                     _ => {}
                 },
-
                 Event::KeyUp { keycode, .. } => match keycode {
                     Some(Keycode::Up) => self.up = false,
                     Some(Keycode::Down) => self.down = false,
@@ -91,6 +113,28 @@ impl Buttons {
                     _ => {}
                 },
 
+                Event::ControllerButtonDown { button, .. } => match button {
+                    Button::DPadUp => self.up = true,
+                    Button::DPadDown => self.down = true,
+                    Button::DPadLeft => self.left = true,
+                    Button::DPadRight => self.right = true,
+                    Button::A => self.b = true,
+                    Button::B => self.a = true,
+                    Button::Start => self.start = true,
+                    Button::Back => self.select = true,
+                    _ => {}
+                },
+                Event::ControllerButtonUp { button, .. } => match button {
+                    Button::DPadUp => self.up = false,
+                    Button::DPadDown => self.down = false,
+                    Button::DPadLeft => self.left = false,
+                    Button::DPadRight => self.right = false,
+                    Button::A => self.b = false,
+                    Button::B => self.a = false,
+                    Button::Start => self.start = false,
+                    Button::Back => self.select = false,
+                    _ => {}
+                },
                 _ => {}
             }
         }
