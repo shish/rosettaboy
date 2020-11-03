@@ -667,7 +667,7 @@ class CPU:
     # ===================================
     # 3. LD HL,SP+n
     # 4. LDHL SP,n
-    @opcode("LD HL,SP+n", 12, "b")
+    @opcode("LD HL,SPn", 12, "b")
     def opF8(self, val):
         self.FLAG_H = ((((self.SP & 0x0f) + (val & 0x0f)) & 0x10) != 0)
         self.FLAG_C = ((((self.SP & 0xff) + (val & 0xff)) & 0x100) != 0)
