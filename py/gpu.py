@@ -1,14 +1,7 @@
 import pygame
 import time
+from consts import *
 
-VRAM_BASE = 0x8000
-TILE_DATA_TABLE_0 = 0x8800
-TILE_DATA_TABLE_1 = 0x8000
-BACKGROUND_MAP_0 = 0x9800
-BACKGROUND_MAP_1 = 0x9C00
-WINDOW_MAP_0 = 0x9800
-WINDOW_MAP_1 = 0x9C00
-OAM_BASE = 0xFE00
 SCALE = 2
 
 
@@ -47,16 +40,16 @@ class GPU:
             return True
 
         # Check if LCD enabled at all
-        if not (self.cpu.ram[0xFF40] & (1<<7)):  # IO_LCDC & ENABLED
+        if not (self.cpu.ram[IO_LCDC] & (1<<7)):  # IO_LCDC & ENABLED
             # When LCD is re-enabled, LY is 0
             # Does it become 0 as soon as disabled??
-            self.cpu.ram[0xFF44] = 0  # IO_LY
+            self.cpu.ram[IO_LY] = 0
             if not self.debug:
                 return True
 
         lx = self.clock % 114
         ly = (self.clock // 114) % 154
-        self.cpu.ram[0xFF44] = ly  # IO_LY
+        self.cpu.ram[IO_LY] = ly
 
         # TODO: interrupts
 

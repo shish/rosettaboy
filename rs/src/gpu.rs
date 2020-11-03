@@ -125,8 +125,9 @@ impl GPU {
 
         let lx = self.cycle % 114;
         let ly = (self.cycle / 114) % 154;
-        let stat = consts::Stat::from_bits(ram.get(consts::IO::STAT)).unwrap();
         ram.set(consts::IO::LY, ly as u8);
+
+        let stat = consts::Stat::from_bits(ram.get(consts::IO::STAT)).unwrap();
 
         // LYC compare & interrupt
         if ram.get(consts::IO::LY) == ram.get(consts::IO::LYC) {
