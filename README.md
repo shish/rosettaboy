@@ -20,11 +20,18 @@ I wrote one copy of the documentation for all the implementations:
 
 Completeness
 ------------
-
-| Feature                                           | Py  | C++ | Rs  |
-| -------                                           | --- | --- | --- |
-| glbargh's CPU test suite          | Fails `interrupts`  |  y  |  y  |
-| audio                                        |  n  |  off-key |  n  |
-| gamepad                                           |  n  |  n  |  y  |
-| memory mapping                                    |  n  |  y  |  y  |
-| scanline rendering                                |  n  |  n  |  y  |
+| Feature                            | Python    | C++       | Rust      |
+| -------                            | -------   | ---       | ----      |
+| glbargh's CPU test suite         | Fails `#02` |  &check;  |  &check;  |
+| silent / headless / profile modes  |  &check;  |  &check;  |  &check;  |
+| real-time performance              |  &cross;  |  &check;  |  &check;  |
+| CPU logging / turbo modes          |  &check;  |  &check;  |  &check;  |
+| keyboard input                     |  &cross;  |  &check;  |  &check;  |
+| gamepad input                      |  &cross;  |  &cross;  |  &check;  |
+| turbo button                       |  &cross;  |  &check;  |  &cross;  |
+| audio                              |  &cross;  |  off-key  |  &cross;  |
+| memory mapping                     |  &cross;  |  &check;  |  &check;  |
+| scanline rendering                 |  &cross;  |  &cross;  |  &check;  |
+| bank swapping                      |  &cross;  |  ?        |  ?        |
+| CPU interrupts                     |  &check;  |  &check;  |  &check;  |
+| GPU interrupts                     |  &cross;  |  &check;  |  &check;  |
