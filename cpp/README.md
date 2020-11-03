@@ -13,10 +13,3 @@ make -j 8
 Requirements
 ------------
 - SDL2
-
-Completeness
-------------
-- Passes all of gblargh's CPU test cases :)
-- Audio works, but sounds off-key :|
-- Backgrounds and sprites are rendered all at once, instead of a line at
-  a time :(

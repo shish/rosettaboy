@@ -17,3 +17,14 @@ I wrote one copy of the documentation for all the implementations:
 - [clock](docs/clock.md): timing / sleeping
 - [consts](docs/consts.md): lists of constant values
 - [ram](docs/ram.md): array access where some array values are special
+
+Completeness
+------------
+
+| Feature                                           | Py  | C++ | Rs  |
+| -------                                           | --- | --- | --- |
+| glbargh's CPU test suite          | Fails `interrupts`  |  y  |  y  |
+| audio                                        |  n  |  off-key |  n  |
+| gamepad                                           |  n  |  n  |  y  |
+| memory mapping                                    |  n  |  y  |  y  |
+| scanline rendering                                |  n  |  n  |  y  |

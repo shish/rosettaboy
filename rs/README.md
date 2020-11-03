@@ -12,9 +12,3 @@ cargo build --release
 Requirements
 ------------
 - SDL2
-
-Completeness
-------------
-- Most CPU tests pass, except #3 (`OP SP,HL`) :|
-- No attempt at audio :(
-- Graphics rendered a line at a time, so we get to see parallax effects :)
