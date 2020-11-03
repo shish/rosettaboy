@@ -22,7 +22,7 @@ Completeness
 ------------
 | Feature                            | Python    | C++       | Rust      |
 | -------                            | -------   | ---       | ----      |
-| glbargh's CPU test suite         | Fails `#02` |  &check;  |  &check;  |
+| gblargh's CPU test suite         | Fails `#02` |  &check;  |  &check;  |
 | silent / headless / profile modes  |  &check;  |  &check;  |  &check;  |
 | real-time performance              |  &cross;  |  &check;  |  &check;  |
 | CPU logging / turbo modes          |  &check;  |  &check;  |  &check;  |
