@@ -25,6 +25,7 @@ def main(argv: List[str]) -> int:
     parser.add_argument("-H", "--headless", action="store_true", default=False)
     parser.add_argument("-S", "--silent", action="store_true", default=False)
     parser.add_argument("-t", "--turbo", action="store_true", default=False)
+    parser.add_argument("-f", "--fps", action="store_true", default=False)
     parser.add_argument(
         "-p",
         "--profile",
@@ -42,7 +43,7 @@ def main(argv: List[str]) -> int:
         cart = Cart(args.rom)
         buttons = Buttons(headless=args.headless)
         cpu = CPU(cart, debug=args.debug_cpu)
-        clock = Clock(args.profile, args.turbo)
+        clock = Clock(args.profile, args.turbo, args.fps)
         gpu = GPU(cpu, debug=args.debug_gpu, headless=args.headless)
 
         while True:

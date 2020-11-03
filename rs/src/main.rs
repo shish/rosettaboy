@@ -14,7 +14,7 @@ mod gpu;
 mod ram;
 
 #[derive(StructOpt)]
-#[structopt(about = "Shish's Gameboy Emulator: Rust Edition")]
+#[structopt(about = "RosettaBoy - Rust")]
 struct Args {
     /// Path to a .gb file
     #[structopt(default_value = "game.gb")]
@@ -51,6 +51,10 @@ struct Args {
     /// No sleep()
     #[structopt(short, long)]
     turbo: bool,
+
+    /// Print out FPS reports
+    #[structopt(short, long)]
+    fps: bool,
 }
 
 struct Gameboy {
@@ -77,7 +81,7 @@ impl Gameboy {
         )?;
         let apu = apu::APU::init(args.silent, args.debug_apu);
         let buttons = buttons::Buttons::init(sdl_context)?;
-        let clock = clock::Clock::init(args.profile, args.turbo);
+        let clock = clock::Clock::init(args.profile, args.turbo, args.fps);
 
         Ok(Gameboy {
             ram,

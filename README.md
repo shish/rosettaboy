@@ -23,9 +23,9 @@ Completeness
 | Feature                            | Python    | C++       | Rust      |
 | -------                            | -------   | ---       | ----      |
 | gblargh's CPU test suite         | Fails `#02` |  &check;  |  &check;  |
-| silent / headless / profile modes  |  &check;  |  &check;  |  &check;  |
-| real-time performance              |  &cross;  |  &check;  |  &check;  |
-| CPU logging / turbo modes          |  &check;  |  &check;  |  &check;  |
+| silent / headless                  |  &check;  |  &check;  |  &check;  |
+| max fps (goal=60; debug/release)   |  5        |  120/750  |  40/1000  |
+| CPU logging                        |  &check;  |  &check;  |  &check;  |
 | keyboard input                     |  &cross;  |  &check;  |  &check;  |
 | gamepad input                      |  &cross;  |  &cross;  |  &check;  |
 | turbo button                       |  &cross;  |  &check;  |  &cross;  |

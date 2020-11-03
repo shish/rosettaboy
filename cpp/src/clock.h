@@ -7,14 +7,16 @@
 
 class Clock {
 private:
-    int cycle=0;
-    int frame=0;
+    int cycle = 0;
+    int frame = 0;
     int last_frame_start = SDL_GetTicks();
+    int last_report = SDL_GetTicks();
     int profile = 0;
     bool turbo = false;
+    bool fps = false;
     Buttons *buttons = nullptr;
 public:
-    Clock(Buttons *buttons, int profile, bool turbo);
+    Clock(Buttons *buttons, int profile, bool turbo, bool fps);
     ~Clock();
     bool tick();
 };
