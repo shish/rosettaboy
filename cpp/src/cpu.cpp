@@ -463,8 +463,15 @@ void CPU::tick_main(u8 op) {
         case 0xF6: this->_or(arg.u8); break;
         case 0xF7: this->push(this->PC); this->PC = 0x30; break;
         case 0xF8:
-            this->FLAG_H = ((((this->SP & 0x0f) + (arg.u8 & 0x0f)) & 0x10) != 0);
-            this->FLAG_C = ((((this->SP & 0xff) + (arg.u8 & 0xff)) & 0x100) != 0);
+            if(arg.i8 >= 0) {
+                this->FLAG_C = ((this->SP & 0xFF) + (arg.i8 & 0xFF)) > 0xFF;
+                this->FLAG_H = ((this->SP & 0x0F) + (arg.i8 & 0x0F)) > 0x0F;
+            } else {
+                this->FLAG_C = ((this->SP + arg.i8) & 0xFF) <= (this->SP & 0xFF);
+                this->FLAG_H = ((this->SP + arg.i8) & 0x0F) <= (this->SP & 0x0F);
+            }
+            // this->FLAG_H = ((((this->SP & 0x0f) + (arg.u8 & 0x0f)) & 0x10) != 0);
+            // this->FLAG_C = ((((this->SP & 0xff) + (arg.u8 & 0xff)) & 0x100) != 0);
             this->HL = this->SP + arg.i8;
             this->FLAG_Z = false;
             this->FLAG_N = false;
