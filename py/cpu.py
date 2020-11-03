@@ -90,6 +90,7 @@ class CPU:
         self.interrupts = True
         self.halt = False
         self.stop = False
+        self.cycle = 0
         self._nopslide = 0
         self._debug = debug
         self._debug_str = ""
@@ -252,13 +253,19 @@ class CPU:
             pc, op, cmd_str
         )
 
-    # </editor-fold>
+    def interrupt(self, i: int):
+        """
+        Set a given interrupt bit - on the next tick, if the interrupt
+        handler for this interrupt is enabled (and interrupts in general
+        are enabled), then the interrupt handler will be called.
+        """
+        self.ram[IO_IF] |= i
+        self.halt = False  # interrupts interrupt HALT state
 
-    # <editor-fold description="Tick">
     def tick(self):
         self.tick_dma()
-        # self.tick_clock()
-        # self.tick_interrupts()
+        self.tick_clock()
+        self.tick_interrupts()
         if self.halt:
             return True
         if self.stop:
@@ -277,6 +284,64 @@ class CPU:
             for i in range(0, 0xA0):
                 self.ram[OAM_BASE + i] = self.ram[dma_src + i]
             self.ram[IO_DMA] = 0x00
+
+    def tick_clock(self):
+        """
+        Increment the timer registers, and send an interrupt
+        when `ram[IO::TIMA]` wraps around.
+        """
+        self.cycle += 1
+
+        # TODO: writing any value to IO::DIV should reset it to 0x00
+        # increment at 16384Hz (each 64 cycles?)
+        if self.cycle % 64 == 0:
+            self.ram[IO_DIV] += 1
+
+        if self.ram[IO_TAC] & 1 << 2 == 1 << 2:
+            # timer enable
+            speeds = [256, 4, 16, 64]  # increment per X cycles
+            speed = speeds[self.ram[IO_TAC] & 0x03]
+            if self.cycle % speed == 0:
+                if self.ram[IO_TIMA] == 0xFF:
+                    self.ram[IO_TIMA] = self.ram[IO_TMA]  # if timer overflows, load base
+                    self.interrupt(Interrupt.TIMER)
+                self.ram[IO_TIMA] += 1
+
+    def tick_interrupts(self):
+        """
+        Compare Interrupt Enabled and Interrupt Flag registers - if
+        there are any interrupts which are both enabled and flagged,
+        clear the flag and call the handler for the first of them.
+        """
+        queued_interrupts = self.ram[IO_IE] & self.ram[IO_IF]
+        if self.interrupts and queued_interrupts:
+            if self._debug:
+                print(f"Handling interrupts: {self.ram[IO_IE]:02X} & {self.ram[IO_IF]:02X}")
+
+            self.interrupts = False  # no nested interrupts, RETI will re-enable
+                                     # TODO: wait two cycles
+                                     # TODO: push16(PC) should also take two cycles
+                                     # TODO: one more cycle to store new PC
+            if queued_interrupts & Interrupt.VBLANK:
+                self._push16(Reg.PC)
+                self.PC = InterruptHandler.VBLANK_HANDLER
+                self.ram[IO_IF] &= ~Interrupt.VBLANK
+            elif queued_interrupts & Interrupt.STAT:
+                self._push16(Reg.PC)
+                self.PC = InterruptHandler.LCD_HANDLER
+                self.ram[IO_IF] &= ~Interrupt.STAT
+            elif queued_interrupts & Interrupt.TIMER:
+                self._push16(Reg.PC)
+                self.PC = InterruptHandler.TIMER_HANDLER
+                self.ram[IO_IF] &= ~Interrupt.TIMER
+            elif queued_interrupts & Interrupt.SERIAL:
+                self._push16(Reg.PC)
+                self.PC = InterruptHandler.SERIAL_HANDLER
+                self.ram[IO_IF] &= ~Interrupt.SERIAL
+            elif queued_interrupts & Interrupt.JOYPAD:
+                self._push16(Reg.PC)
+                self.PC = InterruptHandler.JOYPAD_HANDLER
+                self.ram[IO_IF] &= ~Interrupt.JOYPAD
 
     def tick_instructions(self):
         # TODO: extra cycles when conditional jumps are taken
