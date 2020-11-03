@@ -1,6 +1,5 @@
 use crate::consts;
 use crate::ram;
-use std::io::Read;
 
 struct OpArg {
     u8: u8,   // B
@@ -32,7 +31,6 @@ union Regs {
 }
 pub struct CPU {
     pub stop: bool,
-    stepping: bool,
     interrupts: bool,
     halt: bool,
     debug: bool,
@@ -51,7 +49,6 @@ impl CPU {
     pub fn init(debug: bool) -> CPU {
         CPU {
             stop: false,
-            stepping: false,
 
             interrupts: true,
             halt: false,
