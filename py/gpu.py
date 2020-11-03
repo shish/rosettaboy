@@ -29,8 +29,6 @@ class GPU:
         self.buffer = pygame.Surface(size)
 
         self.clock = 0
-        self.frame = 0
-        self._last_time = time.time()
 
     def tick(self) -> bool:
         self.clock += 1
@@ -51,17 +49,36 @@ class GPU:
         ly = (self.clock // 114) % 154
         self.cpu.ram[IO_LY] = ly
 
-        # TODO: interrupts
+        # LYC compare & interrupt
+        if self.cpu.ram[IO_LY] == self.cpu.ram[IO_LCY]:
+            if self.cpu.ram[IO_STAT] & STATFlag.LYC_INTERRUPT:
+                self.cpu.interrupt(Interrupt.STAT)
+            self.cpu.ram[IO_STAT] |= STATFlag.LCY_EQUAL
+        else:
+            self.cpu.ram[IO_STAT] &= ~STATFlag.LCY_EQUAL
 
-        if lx == 20 and ly == 0:
-            if self.frame % 60 == 0:
-                t = time.time()
-                fps = 60/(t - self._last_time)
-                pygame.display.set_caption(f"{self.title} - {fps:.1f}fps")
-                self._last_time = t
-            self.frame += 1
-            if not self.draw_lcd():
-                return False
+        # Set mode
+        if lx == 0 and ly < 144:
+            self.cpu.ram[IO_STAT] = (self.cpu.ram[IO_STAT] & ~STATFlag.MODE) | STATMode.OAM
+            if self.cpu.ram[IO_STAT] & STATFlag.OAM_INTERRUPT:
+                self.cpu.interrupt(Interrupt.STAT)
+        elif lx == 20 and ly < 144:
+            self.cpu.ram[IO_STAT] = (self.cpu.ram[IO_STAT] & ~STATFlag.MODE) | STATMode.DRAWING
+            # TODO: really we should draw one line of pixels for each LY,
+            # rather than the whole screen at LY == 0
+            if ly == 0:
+                if not self.draw_lcd():
+                    return False
+        elif lx == 63 and ly < 144:
+            self.cpu.ram[IO_STAT] = (self.cpu.ram[IO_STAT] & ~STATFlag.MODE) | STATMode.HBLANK
+            if self.cpu.ram[IO_STAT] & STATFlag.HBLANK_INTERRUPT:
+                self.cpu.interrupt(Interrupt.STAT)
+        elif lx == 0 and ly == 144:
+            self.cpu.ram[IO_STAT] = (self.cpu.ram[IO_STAT] & ~STATFlag.MODE) | STATMode.VBLANK
+            if self.cpu.ram[IO_STAT] & STATFlag.VBLANK_INTERRUPT:
+                self.cpu.interrupt(Interrupt.STAT)
+            self.cpu.interrupt(Interrupt.VBLANK)
+
         return True
 
     def update_palettes(self):

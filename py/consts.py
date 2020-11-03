@@ -53,7 +53,7 @@ IO_STAT = 0xFF41
 IO_SCY = 0xFF42  # SCROLL_Y
 IO_SCX = 0xFF43  # SCROLL_X
 IO_LY = 0xFF44  # LY aka currently drawn line 0-153 >144 = vblank
-IO_LYC = 0xFF45
+IO_LCY = 0xFF45
 IO_DMA = 0xFF46
 IO_BGP = 0xFF47
 IO_OBP0 = 0xFF48
@@ -64,6 +64,22 @@ IO_WX = 0xFF4B
 IO_BOOT = 0xFF50
 
 IO_IE = 0xFFFF
+
+
+class STATFlag:
+    LYC_INTERRUPT = 1<<6
+    OAM_INTERRUPT = 1<<5
+    VBLANK_INTERRUPT = 1<<4
+    HBLANK_INTERRUPT = 1<<3
+    LCY_EQUAL = 1<<2
+    MODE = 1<<1 | 1<<0
+
+
+class STATMode:
+    HBLANK = 0x00
+    VBLANK = 0x01
+    OAM = 0x02
+    DRAWING = 0x03
 
 
 class Interrupt:
