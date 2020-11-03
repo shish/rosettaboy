@@ -1427,22 +1427,22 @@ class CPU:
     # ===================================
     # 2. JP cc,nn
     # Absolute jump if given flag is not set / set
-    @opcode("JP NZ,n", 12, "H")
+    @opcode("JP NZ,nn", 12, "H")
     def opC2(self, n):
         if not self.FLAG_Z:
             self.PC = n
 
-    @opcode("JP Z,n", 12, "H")
+    @opcode("JP Z,nn", 12, "H")
     def opCA(self, n):
         if self.FLAG_Z:
             self.PC = n
 
-    @opcode("JP NC,n", 12, "H")
+    @opcode("JP NC,nn", 12, "H")
     def opD2(self, n):
         if not self.FLAG_C:
             self.PC = n
 
-    @opcode("JP C,n", 12, "H")
+    @opcode("JP C,nn", 12, "H")
     def opDA(self, n):
         if self.FLAG_C:
             self.PC = n
