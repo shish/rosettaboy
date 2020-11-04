@@ -1132,7 +1132,7 @@ class CPU:
     # 7. HALT
     # Power down CPU until interrupt occurs
 
-    @opcode("HALT", 0)  # doc says 4
+    @opcode("HALT", 4)
     def op76(self):
         self.halt = True
         # FIXME: weird instruction skipping behaviour when interrupts are disabled
