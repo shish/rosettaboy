@@ -37,7 +37,7 @@ def main(argv: List[str]) -> int:
 
     if args.info:
         print(Cart(args.rom))
-        return
+        return 0
 
     try:
         cart = Cart(args.rom)

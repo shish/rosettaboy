@@ -27,7 +27,6 @@ class Buttons:
         else:
             return True
 
-
     def update_buttons(self) -> bool:
         if self.headless:
             return True

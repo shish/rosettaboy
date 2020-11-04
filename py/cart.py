@@ -110,16 +110,3 @@ class Cart:
         header_checksum = (sum(struct.unpack("26B", self.data[0x0134:0x014E])) + 25) & 0xFF
         if header_checksum != 0:
             raise CorruptCart("Header checksum failed: %02X != 0" % header_checksum)
-
-    def __str__(self):
-        to_print = {k: v for k, v in self.__dict__.items()}
-        del to_print["data"]
-        del to_print["logo"]
-        del to_print["rsts"]
-        return pformat(to_print)
-
-
-class TestCart(Cart):
-    def __init__(self):
-        with open("test_hello.gb", "rb") as fp:
-            Cart.__init__(self, fp.read())

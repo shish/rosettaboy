@@ -1,5 +1,5 @@
 from enum import Enum
-from cart import Cart, TestCart
+from cart import Cart
 import sys
 from textwrap import dedent
 from consts import *
@@ -85,8 +85,8 @@ def opcode(name, cycles, args=""):
 
 class CPU:
     # <editor-fold description="Init">
-    def __init__(self, cart: Cart=None, debug=False):
-        self.cart = cart or TestCart()
+    def __init__(self, cart: Cart, debug=False):
+        self.cart = cart
         self.interrupts = True
         self.halt = False
         self.stop = False
