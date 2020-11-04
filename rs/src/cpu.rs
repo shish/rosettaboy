@@ -158,7 +158,7 @@ impl CPU {
         let flag = |i: consts::Interrupt, c: char| -> char {
             if ien.contains(i) {
                 if ifl.contains(i) {
-                    (c as u8 | 0b01000000) as char
+                    c.to_ascii_uppercase()
                 } else {
                     c
                 }
