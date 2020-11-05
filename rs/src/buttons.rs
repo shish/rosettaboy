@@ -28,17 +28,16 @@ impl Buttons {
         let available = game_controller_subsystem.num_joysticks()?;
 
         // Iterate over all available joysticks and look for game controllers.
-        let mut _controller = (0..available)
-            .find_map(|id| {
-                if !game_controller_subsystem.is_game_controller(id) {
-                    return None;
-                }
+        let mut _controller = (0..available).find_map(|id| {
+            if !game_controller_subsystem.is_game_controller(id) {
+                return None;
+            }
 
-                match game_controller_subsystem.open(id) {
-                    Ok(c) => Some(c),
-                    Err(_) => None,
-                }
-            });
+            match game_controller_subsystem.open(id) {
+                Ok(c) => Some(c),
+                Err(_) => None,
+            }
+        });
 
         Ok(Buttons {
             sdl_context,

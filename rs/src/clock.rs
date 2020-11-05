@@ -49,7 +49,8 @@ impl Clock {
             // Print FPS once per frame
             if self.fps && self.frame % 60 == 0 {
                 let t = SystemTime::now();
-                let fps = 60000.0 / (t.duration_since(self.last_report).unwrap().as_millis()) as f32;
+                let fps =
+                    60000.0 / (t.duration_since(self.last_report).unwrap().as_millis()) as f32;
                 println!("{:.1}fps", fps);
                 self.last_report = t;
             }
