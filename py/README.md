@@ -8,7 +8,7 @@ Usage
 python3 -m venv venv
 source venv/bin/activate
 python3 -m pip install pygame
-./main.py game.gb
+python3 -m src.main game.gb
 ```
 
 Requirements

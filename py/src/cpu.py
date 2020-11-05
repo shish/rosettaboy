@@ -1,8 +1,8 @@
 from enum import Enum
-from cart import Cart
+from .cart import Cart
 import sys
 from textwrap import dedent
-from consts import *
+from .consts import *
 
 try:
     # boot with the logo scroll if we have a boot rom
@@ -214,16 +214,9 @@ class CPU:
         ]
 
     def dump(self, pc: int, cmd_str: str) -> str:
-        VBLANK = 1<<0
-        STAT = 1<<1
-        TIMER = 1<<2
-        SERIAL = 1<<3
-        JOYPAD = 1<<4
-        IF = 0xFF0F
-        IE = 0xFFFF
+        ien = self.ram[IO_IE]
+        ifl = self.ram[IO_IF]
 
-        ien = self.ram[IE]
-        ifl = self.ram[IF]
         def flag(i: int, c: str) -> str:
             if ien & i != 0:
                 if ifl & i != 0:
@@ -232,13 +225,13 @@ class CPU:
                     return c
             else:
                 return '_'
-        v = flag(VBLANK, 'v')
-        l = flag(STAT, 'l')
-        t = flag(TIMER, 't')
-        s = flag(SERIAL, 's')
-        j = flag(JOYPAD, 'j')
+        v = flag(Interrupt.VBLANK, 'v')
+        l = flag(Interrupt.STAT, 'l')
+        t = flag(Interrupt.TIMER, 't')
+        s = flag(Interrupt.SERIAL, 's')
+        j = flag(Interrupt.JOYPAD, 'j')
 
-        if self.ram[0xFF50] == 0:
+        if self.ram[IO_BOOT] == 0:
             src = BOOT
         else:
             src = self.ram
@@ -318,10 +311,12 @@ class CPU:
             if self._debug:
                 print(f"Handling interrupts: {self.ram[IO_IE]:02X} & {self.ram[IO_IF]:02X}")
 
-            self.interrupts = False  # no nested interrupts, RETI will re-enable
-                                     # TODO: wait two cycles
-                                     # TODO: push16(PC) should also take two cycles
-                                     # TODO: one more cycle to store new PC
+            # no nested interrupts, RETI will re-enable
+            self.interrupts = False
+
+            # TODO: wait two cycles
+            # TODO: push16(PC) should also take two cycles
+            # TODO: one more cycle to store new PC
             if queued_interrupts & Interrupt.VBLANK:
                 self._push16(Reg.PC)
                 self.PC = InterruptHandler.VBLANK_HANDLER

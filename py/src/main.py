@@ -7,11 +7,11 @@ environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 import pygame
 import sys
 from typing import List
-from cart import Cart
-from cpu import CPU, OpNotImplemented
-from gpu import GPU
-from clock import Clock
-from buttons import Buttons
+from .cart import Cart
+from .cpu import CPU
+from .gpu import GPU
+from .clock import Clock
+from .buttons import Buttons
 import argparse
 
 
@@ -34,7 +34,7 @@ def main(argv: List[str]) -> int:
         help="Exit after N frames",
         default=0,
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv[1:])
 
     if args.info:
         print(Cart(args.rom))

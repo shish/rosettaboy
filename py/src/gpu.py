@@ -1,6 +1,5 @@
 import pygame
-import time
-from consts import *
+from .consts import *
 
 SCALE = 2
 
@@ -28,6 +27,16 @@ class GPU:
 
         self.buffer = pygame.Surface(size)
 
+        self.colors = [
+            pygame.Color(0x9B, 0xBC, 0x0F),
+            pygame.Color(0x8B, 0xAC, 0x0F),
+            pygame.Color(0x30, 0x62, 0x30),
+            pygame.Color(0x0F, 0x38, 0x0F),
+        ]
+        self.bgp = self.colors
+        self.obp0 = self.colors
+        self.obp1 = self.colors
+
         self.clock = 0
 
     def tick(self) -> bool:
@@ -38,7 +47,7 @@ class GPU:
             return True
 
         # Check if LCD enabled at all
-        if not (self.cpu.ram[IO_LCDC] & (1<<7)):  # IO_LCDC & ENABLED
+        if not (self.cpu.ram[IO_LCDC] & (1 << 7)):  # IO_LCDC & ENABLED
             # When LCD is re-enabled, LY is 0
             # Does it become 0 as soon as disabled??
             self.cpu.ram[IO_LY] = 0
@@ -82,30 +91,23 @@ class GPU:
         return True
 
     def update_palettes(self):
-        available_colors = [
-            pygame.Color(0x9B, 0xBC, 0x0F),
-            pygame.Color(0x8B, 0xAC, 0x0F),
-            pygame.Color(0x30, 0x62, 0x30),
-            pygame.Color(0x0F, 0x38, 0x0F),
-        ]
-
         self.bgp = [
-            available_colors[(self.cpu.ram[0xFF47] >> 0) & 0x3],
-            available_colors[(self.cpu.ram[0xFF47] >> 2) & 0x3],
-            available_colors[(self.cpu.ram[0xFF47] >> 4) & 0x3],
-            available_colors[(self.cpu.ram[0xFF47] >> 6) & 0x3],
+            self.colors[(self.cpu.ram[0xFF47] >> 0) & 0x3],
+            self.colors[(self.cpu.ram[0xFF47] >> 2) & 0x3],
+            self.colors[(self.cpu.ram[0xFF47] >> 4) & 0x3],
+            self.colors[(self.cpu.ram[0xFF47] >> 6) & 0x3],
         ]
         self.obp0 = [
-            available_colors[(self.cpu.ram[0xFF48] >> 0) & 0x3],
-            available_colors[(self.cpu.ram[0xFF48] >> 2) & 0x3],
-            available_colors[(self.cpu.ram[0xFF48] >> 4) & 0x3],
-            available_colors[(self.cpu.ram[0xFF48] >> 6) & 0x3],
+            self.colors[(self.cpu.ram[0xFF48] >> 0) & 0x3],
+            self.colors[(self.cpu.ram[0xFF48] >> 2) & 0x3],
+            self.colors[(self.cpu.ram[0xFF48] >> 4) & 0x3],
+            self.colors[(self.cpu.ram[0xFF48] >> 6) & 0x3],
         ]
         self.obp1 = [
-            available_colors[(self.cpu.ram[0xFF49] >> 0) & 0x3],
-            available_colors[(self.cpu.ram[0xFF49] >> 2) & 0x3],
-            available_colors[(self.cpu.ram[0xFF49] >> 4) & 0x3],
-            available_colors[(self.cpu.ram[0xFF49] >> 6) & 0x3],
+            self.colors[(self.cpu.ram[0xFF49] >> 0) & 0x3],
+            self.colors[(self.cpu.ram[0xFF49] >> 2) & 0x3],
+            self.colors[(self.cpu.ram[0xFF49] >> 4) & 0x3],
+            self.colors[(self.cpu.ram[0xFF49] >> 6) & 0x3],
         ]
 
     def draw_lcd(self):
