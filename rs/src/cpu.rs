@@ -248,10 +248,13 @@ impl CPU {
                     ram.get(consts::IO::IF)
                 );
             }
-            self.interrupts = false; // no nested interrupts, RETI will re-enable
-                                     // TODO: wait two cycles
-                                     // TODO: push16(PC) should also take two cycles
-                                     // TODO: one more cycle to store new PC
+
+            // no nested interrupts, RETI will re-enable
+            self.interrupts = false;
+
+            // TODO: wait two cycles
+            // TODO: push16(PC) should also take two cycles
+            // TODO: one more cycle to store new PC
             if queued_interrupts.contains(consts::Interrupt::VBLANK) {
                 self.push(self.pc, ram);
                 self.pc = consts::InterruptHandler::VblankHandler as u16;
