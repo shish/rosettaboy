@@ -1,4 +1,5 @@
 import pygame
+import pygame.locals
 
 class Buttons:
     def __init__(self, headless=False):
@@ -15,19 +16,18 @@ class Buttons:
         self.select = False
 
     def tick(self) -> bool:
-        lx = self.cycle % 114
-        ly = (self.cycle / 114) % 154
         self.cycle += 1
-
-        if not self.update_buttons():
-            return False
-
-        if lx == 20 and ly == 0:
+        self.update_buttons()
+        if self.cycle % 17556 == 20:
             return self.handle_inputs()
         else:
             return True
 
-    def update_buttons(self) -> bool:
+    def update_buttons(self):
+        # TODO: implement this
+        return
+        
+    def handle_inputs(self) -> bool:
         if self.headless:
             return True
 
@@ -37,9 +37,9 @@ class Buttons:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.locals.K_ESCAPE:
                     return False
-                if event.key == pygame.locals.K_Z:
+                if event.key == pygame.locals.K_z:
                     self.b = True
-                if event.key == pygame.locals.K_X:
+                if event.key == pygame.locals.K_x:
                     self.a = True
                 if event.key == pygame.locals.K_RETURN:
                     self.start = True
@@ -54,9 +54,9 @@ class Buttons:
                 if event.key == pygame.locals.K_RIGHT:
                     self.right = True
             elif event.type == pygame.KEYUP:
-                if event.key == pygame.locals.K_Z:
+                if event.key == pygame.locals.K_z:
                     self.b = False
-                if event.key == pygame.locals.K_X:
+                if event.key == pygame.locals.K_x:
                     self.a = False
                 if event.key == pygame.locals.K_RETURN:
                     self.start = False
@@ -70,8 +70,4 @@ class Buttons:
                     self.left = False
                 if event.key == pygame.locals.K_RIGHT:
                     self.right = False
-        return True
-
-    def handle_inputs(self) -> bool:
-        # TODO: implement this
         return True

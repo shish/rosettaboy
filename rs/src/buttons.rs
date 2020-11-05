@@ -56,20 +56,18 @@ impl Buttons {
     }
 
     /**
-     * Turn OS keypresses into updates for the IO::JOYP byte
+     * Turn OS keypresses into updates for the IO::JOYP byte.
+     * Handle SDL inputs every frame, but handle button
+     * register every CPU instruction
      */
     pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> bool {
         self.cycle += 1;
 
-        let lx = self.cycle % 114;
-        let ly = (self.cycle / 114) % 154;
-
-        // handle SDL inputs every frame, but handle button register every CPU instruction
         self.update_buttons(ram, cpu);
-        if lx == 20 && ly == 0 {
-            return self.handle_inputs();
+        if self.cycle % 17556 == 20 {
+            self.handle_inputs()
         } else {
-            return true;
+            true
         }
     }
 
@@ -147,6 +145,7 @@ impl Buttons {
      * incredibly confusing, we invert the bits when reading the byte and invert
      * them back when writing.
      */
+    #[inline(always)]
     fn update_buttons(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) {
         let mut joyp = !consts::Joypad::from_bits_truncate(ram.get(consts::IO::JOYP as u16));
         let prev_joyp = joyp;

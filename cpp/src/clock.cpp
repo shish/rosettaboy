@@ -8,9 +8,10 @@ Clock::Clock(Buttons *buttons, int profile, bool turbo, bool fps) {
 }
 
 bool Clock::tick() {
-    if(cycle > 70224) {
-        cycle = 0;
+    this->cycle++;
 
+    // Do a whole frame's worth of sleeping at the start of each frame
+    if(this->cycle % 17556 == 20) {
         // Sleep if we have time left over
         u32 time_spent = (SDL_GetTicks() - last_frame_start);
         i32 sleep_for = (1000 / 60) - time_spent;
@@ -28,12 +29,12 @@ bool Clock::tick() {
         }
 
         // Exit if we've hit the frame limit
-        if(profile != 0 && frame > profile) {
+        if(this->profile != 0 && this->frame > this->profile) {
             return false;
         }
 
-        frame++;
+        this->frame++;
     }
-    cycle++;
+    
     return true;
 }

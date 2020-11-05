@@ -7,16 +7,11 @@ Buttons::Buttons(CPU *cpu) {
 }
 
 bool Buttons::tick() {
-    u8 LX = this->cycle % 114;
-    u8 LY = (this->cycle / 114) % 154;
     this->cycle++;
-
     this->update_buttons();
-
-    if(LX == 20 && LY == 0) {
+    if (this->cycle % 17556 == 20) {
         return this->handle_inputs();
-    }
-    else {
+    } else {
         return true;
     }
 }

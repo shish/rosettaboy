@@ -100,11 +100,6 @@ void CPU::interrupt(Interrupt i) {
     this->halt = false;  // interrupts interrupt HALT state
 }
 
-/**
- * GB CPU runs at 4MHz, but each action takes a multiple of 4Hz.
- * Each tick is one action, so this function should get called at
- * 1MHz to perform all the CPU simulation.
- */
 bool CPU::tick() {
     this->tick_dma();
     if(!this->tick_clock()) return false;

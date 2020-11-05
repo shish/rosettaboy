@@ -46,6 +46,11 @@ int main(int argc, char *argv[]) {
     if(!silent) new APU(cpu, debug_apu);
     clock = new Clock(buttons, profile_frames, turbo, fps);
 
+    /**
+     * GB CPU runs at 4MHz, but each action takes a multiple of 4 hardware
+     * cycles. So to avoid overhead, we run the main loop at 1MHz, and each
+     * "cycle" that each subsystem counts represents 4 hardware cycles.
+     */
     while(true) {
         if(!cpu->tick()) break;
         if(!gpu->tick()) break;

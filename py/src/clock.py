@@ -12,9 +12,10 @@ class Clock:
         self.last_report = time.time()
 
     def tick(self) -> bool:
-        if self.cycle > 70224:
-            self.cycle = 0
+        self.cycle += 1
 
+        # Do a whole frame's worth of sleeping at the start of each frame
+        if self.cycle % 17556 == 20:
             # Sleep if we have time left over
             if not self.turbo:
                 self.pyclock.tick(60)
@@ -31,6 +32,6 @@ class Clock:
                 return False
 
             self.frame += 1
-        self.cycle += 1
+
         return True
 

@@ -24,7 +24,8 @@ Completeness
 | -------                            | -------   | ---       | ----      |
 | gblargh's CPU test suite           |  &check;  |  &check;  |  &check;  |
 | silent / headless                  |  &check;  |  &check;  |  &check;  |
-| max fps (goal=60; debug/release)   |  5        |  120/750  |  40/1000  |
+| scaled output                      |  &check;  |  &check;  |  &cross;  |
+| max fps (goal=60; debug/release)   |  15       |  400/2000 |  140/2700 |
 | CPU logging                        |  &check;  |  &check;  |  &check;  |
 | keyboard input                     |  &cross;  |  &check;  |  &check;  |
 | gamepad input                      |  &cross;  |  &cross;  |  &check;  |

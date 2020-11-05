@@ -33,9 +33,10 @@ impl Clock {
     }
 
     pub fn tick(&mut self) -> bool {
-        if self.cycle > 70224 {
-            self.cycle = 0;
+        self.cycle += 1;
 
+        // Do a whole frame's worth of sleeping at the start of each frame
+        if self.cycle % 17556 == 20 {
             // Sleep if we have time left over
             let time_spent = SystemTime::now()
                 .duration_since(self.last_frame_start)
@@ -64,7 +65,7 @@ impl Clock {
 
             self.frame += 1;
         }
-        self.cycle += 1;
+
         return true;
     }
 }
