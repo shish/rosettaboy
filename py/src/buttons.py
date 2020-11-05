@@ -1,6 +1,7 @@
 import pygame
 import pygame.locals
 
+
 class Buttons:
     def __init__(self, headless=False):
         self.headless = headless
@@ -26,7 +27,7 @@ class Buttons:
     def update_buttons(self):
         # TODO: implement this
         return
-        
+
     def handle_inputs(self) -> bool:
         if self.headless:
             return True

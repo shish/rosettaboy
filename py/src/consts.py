@@ -67,12 +67,12 @@ IO_IE = 0xFFFF
 
 
 class STATFlag:
-    LYC_INTERRUPT = 1<<6
-    OAM_INTERRUPT = 1<<5
-    VBLANK_INTERRUPT = 1<<4
-    HBLANK_INTERRUPT = 1<<3
-    LCY_EQUAL = 1<<2
-    MODE = 1<<1 | 1<<0
+    LYC_INTERRUPT = 1 << 6
+    OAM_INTERRUPT = 1 << 5
+    VBLANK_INTERRUPT = 1 << 4
+    HBLANK_INTERRUPT = 1 << 3
+    LCY_EQUAL = 1 << 2
+    MODE = 1 << 1 | 1 << 0
 
 
 class STATMode:
@@ -83,11 +83,11 @@ class STATMode:
 
 
 class Interrupt:
-    VBLANK = 1<<0
-    STAT = 1<<1
-    TIMER = 1<<2
-    SERIAL = 1<<3
-    JOYPAD = 1<<4
+    VBLANK = 1 << 0
+    STAT = 1 << 1
+    TIMER = 1 << 2
+    SERIAL = 1 << 3
+    JOYPAD = 1 << 4
 
 
 class InterruptHandler:

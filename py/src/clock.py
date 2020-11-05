@@ -1,6 +1,7 @@
 import pygame
 import time
 
+
 class Clock:
     def __init__(self, profile: int, turbo: bool, fps: bool):
         self.cycle = 0
@@ -23,7 +24,7 @@ class Clock:
             # Print FPS once per frame
             if self.fps and self.frame % 60 == 0:
                 t = time.time()
-                fps = 60/(t - self.last_report)
+                fps = 60 / (t - self.last_report)
                 print(f"{fps:.1f}fps")
                 self.last_report = t
 
@@ -34,4 +35,3 @@ class Clock:
             self.frame += 1
 
         return True
-

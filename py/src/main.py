@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from os import environ
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
+environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 import pygame
 import sys
@@ -54,14 +55,14 @@ def main(argv: List[str]) -> int:
                 break
             if not clock.tick():
                 break
-    #except Exception as e:
-    #    print(f"Error: {e}\nWriting details to crash.txt")
-    #    with open("crash.txt", "w") as fp:
-    #        fp.write(str(e) + "\n\n")
-    #        fp.write(str(cpu._debug_str) + "\n\n")
-    #        fp.write(str(cpu) + "\n\n")
-    #        for n in range(0x0000, 0xFFFF, 0x0010):
-    #            fp.write(("%04X :" + (" %02X" * 16) + "\n") % (n, *cpu.ram[n : n + 0x0010]))
+    # except Exception as e:
+    #     print(f"Error: {e}\nWriting details to crash.txt")
+    #     with open("crash.txt", "w") as fp:
+    #         fp.write(str(e) + "\n\n")
+    #         fp.write(str(cpu._debug_str) + "\n\n")
+    #         fp.write(str(cpu) + "\n\n")
+    #         for n in range(0x0000, 0xFFFF, 0x0010):
+    #             fp.write(("%04X :" + (" %02X" * 16) + "\n") % (n, *cpu.ram[n : n + 0x0010]))
     except (KeyboardInterrupt, BrokenPipeError):
         pass
     finally:
