@@ -60,15 +60,10 @@ pub struct GPU {
 }
 
 impl GPU {
-    pub fn init(
-        sdl_context: &sdl2::Sdl,
-        title: &str,
-        headless: bool,
-        debug: bool,
-    ) -> Result<GPU, String> {
+    pub fn init(sdl: &sdl2::Sdl, title: &str, headless: bool, debug: bool) -> Result<GPU, String> {
         let (w, h) = if debug { (520, 144) } else { (160, 144) };
         let canvas = if !headless {
-            let video_subsystem = sdl_context.video()?;
+            let video_subsystem = sdl.video()?;
             let window = video_subsystem
                 .window(&format!("RosettaBoy - {}", title)[..], w, h)
                 .position_centered()

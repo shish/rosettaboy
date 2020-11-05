@@ -68,19 +68,14 @@ struct Gameboy {
 impl Gameboy {
     #[inline(never)]
     fn init(args: Args) -> Result<Gameboy, String> {
-        let sdl_context = sdl2::init()?;
+        let sdl = sdl2::init()?;
 
         let cart = cart::Cart::init(args.rom.as_str()).unwrap();
         let ram = ram::RAM::init(cart, args.debug_ram);
         let cpu = cpu::CPU::init(args.debug_cpu);
-        let gpu = gpu::GPU::init(
-            &sdl_context,
-            args.rom.as_str(),
-            args.headless,
-            args.debug_gpu,
-        )?;
+        let gpu = gpu::GPU::init(&sdl, args.rom.as_str(), args.headless, args.debug_gpu)?;
         let apu = apu::APU::init(args.silent, args.debug_apu);
-        let buttons = buttons::Buttons::init(sdl_context)?;
+        let buttons = buttons::Buttons::init(sdl)?;
         let clock = clock::Clock::init(args.profile, args.turbo, args.fps);
 
         Ok(Gameboy {

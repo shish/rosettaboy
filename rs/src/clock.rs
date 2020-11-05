@@ -56,7 +56,11 @@ impl Clock {
                 let t = SystemTime::now();
                 let fps =
                     60000.0 / (t.duration_since(self.last_report).unwrap().as_millis()) as f32;
-                println!("{:.1}fps, {:.1}% busy", fps, (1.0-self.sleep_duration.as_secs_f32())*100.0);
+                println!(
+                    "{:.1}fps, {:.1}% busy",
+                    fps,
+                    (1.0 - self.sleep_duration.as_secs_f32()) * 100.0
+                );
                 self.sleep_duration = Duration::new(0, 0);
                 self.last_report = t;
             }

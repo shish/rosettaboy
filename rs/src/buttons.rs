@@ -8,7 +8,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
 pub struct Buttons {
-    sdl_context: sdl2::Sdl,
+    sdl: sdl2::Sdl,
     _controller: Option<GameController>, // need to keep a reference to avoid deconstructor
     up: bool,
     down: bool,
@@ -22,8 +22,8 @@ pub struct Buttons {
 }
 
 impl Buttons {
-    pub fn init(sdl_context: sdl2::Sdl) -> Result<Buttons, String> {
-        let game_controller_subsystem = sdl_context.game_controller()?;
+    pub fn init(sdl: sdl2::Sdl) -> Result<Buttons, String> {
+        let game_controller_subsystem = sdl.game_controller()?;
 
         let available = game_controller_subsystem.num_joysticks()?;
 
@@ -40,7 +40,7 @@ impl Buttons {
         });
 
         Ok(Buttons {
-            sdl_context,
+            sdl,
             _controller,
             up: false,
             down: false,
@@ -75,7 +75,7 @@ impl Buttons {
      * store which buttons are pressed or not
      */
     fn handle_inputs(&mut self) -> bool {
-        for event in self.sdl_context.event_pump().unwrap().poll_iter() {
+        for event in self.sdl.event_pump().unwrap().poll_iter() {
             // println!("Event: {:?}", event);
             match event {
                 Event::Quit { .. } => return false,
