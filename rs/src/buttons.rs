@@ -59,14 +59,14 @@ impl Buttons {
      * Handle SDL inputs every frame, but handle button
      * register every CPU instruction
      */
-    pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> bool {
+    pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> Result<(), String> {
         self.cycle += 1;
 
         self.update_buttons(ram, cpu);
         if self.cycle % 17556 == 20 {
-            self.handle_inputs()
+            Ok(self.handle_inputs()?)
         } else {
-            true
+            Ok(())
         }
     }
 
@@ -74,15 +74,15 @@ impl Buttons {
      * Once per frame, check the queue of input events from the OS,
      * store which buttons are pressed or not
      */
-    fn handle_inputs(&mut self) -> bool {
-        for event in self.sdl.event_pump().unwrap().poll_iter() {
+    fn handle_inputs(&mut self) -> Result<(), String> {
+        for event in self.sdl.event_pump()?.poll_iter() {
             // println!("Event: {:?}", event);
             match event {
-                Event::Quit { .. } => return false,
+                Event::Quit { .. } => return Err("Quit".to_string()),
                 Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
-                } => return false,
+                } => return Err("Quit".to_string()),
 
                 Event::KeyDown { keycode, .. } => match keycode {
                     Some(Keycode::Up) => self.up = true,
@@ -133,7 +133,7 @@ impl Buttons {
             }
         }
 
-        true
+        Ok(())
     }
 
     /**

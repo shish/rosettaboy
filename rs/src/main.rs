@@ -67,10 +67,10 @@ struct Gameboy {
 }
 impl Gameboy {
     #[inline(never)]
-    fn init(args: Args) -> Result<Gameboy, String> {
+    fn init(args: Args) -> Result<Gameboy, Box<dyn std::error::Error>> {
         let sdl = sdl2::init()?;
 
-        let cart = cart::Cart::init(args.rom.as_str()).unwrap();
+        let cart = cart::Cart::init(args.rom.as_str())?;
         let ram = ram::RAM::init(cart, args.debug_ram);
         let cpu = cpu::CPU::init(args.debug_cpu);
         let gpu = gpu::GPU::init(&sdl, args.rom.as_str(), args.headless, args.debug_gpu)?;
@@ -89,29 +89,20 @@ impl Gameboy {
     }
 
     #[inline(never)]
-    fn run(&mut self) {
+    fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.apu.tick();
 
         loop {
-            if !self.cpu.tick(&mut self.ram) {
-                println!("Break from CPU");
-                break;
-            }
-            self.gpu.tick(&mut self.ram, &mut self.cpu);
-            if !self.buttons.tick(&mut self.ram, &mut self.cpu) {
-                println!("Break from buttons");
-                break;
-            }
-            if !self.clock.tick() {
-                println!("Break from clock");
-                break;
-            }
+            self.cpu.tick(&mut self.ram)?;
+            self.gpu.tick(&mut self.ram, &mut self.cpu)?;
+            self.buttons.tick(&mut self.ram, &mut self.cpu)?;
+            self.clock.tick()?;
         }
     }
 }
 
-fn main() -> Result<(), String> {
-    Gameboy::init(Args::from_args())?.run();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    Gameboy::init(Args::from_args())?.run()?;
 
     // because debug ROMs print to stdout without newline
     println!();

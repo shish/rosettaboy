@@ -1,5 +1,14 @@
 use std::time::{Duration, SystemTime};
 
+#[derive(Debug)]
+struct ProfileComplete(Duration);
+impl std::fmt::Display for ProfileComplete {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Hit frame limit after {:?}", self.0)
+    }
+}
+impl std::error::Error for ProfileComplete {}
+
 pub struct Clock {
     start: SystemTime,
     last_frame_start: SystemTime,
@@ -35,15 +44,13 @@ impl Clock {
         }
     }
 
-    pub fn tick(&mut self) -> bool {
+    pub fn tick(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.cycle += 1;
 
         // Do a whole frame's worth of sleeping at the start of each frame
         if self.cycle % 17556 == 20 {
             // Sleep if we have time left over
-            let time_spent = SystemTime::now()
-                .duration_since(self.last_frame_start)
-                .expect("time");
+            let time_spent = SystemTime::now().duration_since(self.last_frame_start)?;
             if !self.turbo && time_spent < self.time_per_frame {
                 let sleep_time = self.time_per_frame - time_spent;
                 self.sleep_duration += sleep_time;
@@ -54,8 +61,7 @@ impl Clock {
             // Print FPS once per frame
             if self.fps && self.frame % 60 == 0 {
                 let t = SystemTime::now();
-                let fps =
-                    60000.0 / (t.duration_since(self.last_report).unwrap().as_millis()) as f32;
+                let fps = 60000.0 / (t.duration_since(self.last_report)?.as_millis()) as f32;
                 println!(
                     "{:.1}fps, {:.1}% busy",
                     fps,
@@ -67,16 +73,14 @@ impl Clock {
 
             // Exit if we've hit the frame limit
             if self.profile != 0 && self.frame > self.profile {
-                println!(
-                    "Hit frame limit after {:?}",
-                    SystemTime::now().duration_since(self.start).expect("time")
-                );
-                return false;
+                return Err(Box::new(ProfileComplete(
+                    SystemTime::now().duration_since(self.start)?,
+                )));
             }
 
             self.frame += 1;
         }
 
-        return true;
+        return Ok(());
     }
 }

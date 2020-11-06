@@ -116,19 +116,19 @@ impl CPU {
         self.halt = false; // interrupts interrupt HALT state
     }
 
-    pub fn tick(&mut self, ram: &mut ram::RAM) -> bool {
+    pub fn tick(&mut self, ram: &mut ram::RAM) -> Result<(), String> {
         self.tick_dma(ram);
         self.tick_clock(ram);
         self.tick_interrupts(ram);
         if self.halt {
-            return true;
+            return Ok(());
         }
         if self.stop {
-            return false;
+            return Err("CPU Halted".to_string());
         }
         self.tick_instructions(ram);
 
-        return true;
+        return Ok(());
     }
 
     fn dump_regs(&self, ram: &ram::RAM) {

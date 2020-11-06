@@ -99,12 +99,12 @@ impl GPU {
         })
     }
 
-    pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) {
+    pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> Result<(), String> {
         self.cycle += 1;
 
         // CPU STOP stops all LCD activity until a button is pressed
         if cpu.stop {
-            return;
+            return Ok(());
         }
 
         // Check if LCD enabled at all
@@ -114,7 +114,7 @@ impl GPU {
             // Does it become 0 as soon as disabled??
             ram.set(consts::IO::LY, 0);
             if !self.debug {
-                return;
+                return Ok(());
             }
         }
 
@@ -161,7 +161,7 @@ impl GPU {
             self.draw_line(ram, ly as i32);
             if ly == 143 {
                 if self.debug {
-                    self.draw_debug(ram);
+                    self.draw_debug(ram)?;
                 }
                 if let Some(canvas) = &mut self.canvas {
                     canvas.present();
@@ -185,6 +185,8 @@ impl GPU {
             }
             cpu.interrupt(ram, consts::Interrupt::VBLANK);
         }
+
+        return Ok(());
     }
 
     fn update_palettes(&mut self, ram: &ram::RAM) {
@@ -207,7 +209,7 @@ impl GPU {
         self.obp1[3] = self.colors[((raw_obp1 >> 6) & 0x3) as usize];
     }
 
-    fn draw_debug(&mut self, ram: &mut ram::RAM) {
+    fn draw_debug(&mut self, ram: &mut ram::RAM) -> Result<(), String> {
         let lcdc = consts::LCDC::from_bits(ram.get(consts::IO::LCDC)).unwrap();
 
         // Tile data
@@ -225,7 +227,7 @@ impl GPU {
             let rect = Rect::new(0, 0, 160, 144);
             if let Some(canvas) = &mut self.canvas {
                 canvas.set_draw_color(RED);
-                canvas.draw_rect(rect).expect("draw rect");
+                canvas.draw_rect(rect)?;
             }
         }
 
@@ -236,9 +238,11 @@ impl GPU {
             let rect = Rect::new(wnd_x as i32 - 7, wnd_y as i32, 160, 144);
             if let Some(canvas) = &mut self.canvas {
                 canvas.set_draw_color(BLUE);
-                canvas.draw_rect(rect).expect("draw rect");
+                canvas.draw_rect(rect)?;
             }
         }
+
+        Ok(())
     }
 
     fn draw_line(&mut self, ram: &mut ram::RAM, ly: i32) {
