@@ -672,8 +672,8 @@ pub enum IO {
 
     IF = 0xFF0F,
 
-    /*
     NR10 = 0xFF10,
+    /*
     NR11 = 0xFF11,
     NR12 = 0xFF12,
     NR13 = 0xFF13,
@@ -701,6 +701,7 @@ pub enum IO {
     NR51 = 0xFF25,
     NR52 = 0xFF26,
     */
+
     LCDC = 0xFF40,
     STAT = 0xFF41,
     SCY = 0xFF42, // SCROLL_Y

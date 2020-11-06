@@ -90,13 +90,12 @@ impl Gameboy {
 
     #[inline(never)]
     fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        self.apu.tick();
-
         loop {
             self.cpu.tick(&mut self.ram)?;
             self.gpu.tick(&mut self.ram, &mut self.cpu)?;
             self.buttons.tick(&mut self.ram, &mut self.cpu)?;
             self.clock.tick()?;
+            self.apu.tick(&self.ram);
         }
     }
 }

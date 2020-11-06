@@ -1,5 +1,8 @@
 extern crate sdl2;
+use crate::ram;
+use crate::consts;
 use sdl2::audio::{AudioCallback, AudioDevice, AudioSpecDesired};
+use std::sync::{Arc,RwLock};
 
 const HZ: u32 = 44100;
 /*
@@ -11,6 +14,7 @@ let duty: u8 [4][8] = {
 };
 */
 
+/*
 fn hz_to_samples(n: u32, hz: u32) -> u32 {
     if hz == 0 {
         HZ
@@ -20,14 +24,25 @@ fn hz_to_samples(n: u32, hz: u32) -> u32 {
         (n * HZ) / hz
     }
 }
+*/
+
+struct SoundSettings {
+    phase_inc: f32,
+    phase: f32,
+    volume: f32,
+    _raw: Arc<RwLock<[u8; 23]>>,
+}
 
 pub struct APU {
-    _device: Option<AudioDevice<SquareWave>>, // need a reference to avoid deallocation
-    debug: bool,
+    _device: Option<AudioDevice<SoundSettings>>,  // need a reference to avoid deallocation
+    _debug: bool,
+    buffer: Arc<RwLock<[u8; 23]>>,
 }
 
 impl APU {
     pub fn init(sdl: &sdl2::Sdl, silent: bool, debug: bool) -> Result<APU, String> {
+        let buffer = Arc::new(RwLock::new([0; 23]));
+
         let _device = if !silent {
             let audio = sdl.audio()?;
             let spec = AudioSpecDesired {
@@ -42,10 +57,11 @@ impl APU {
                 println!("{:?}", spec);
 
                 // initialize the audio callback
-                SquareWave {
-                    phase_inc: 440.0 / spec.freq as f32,
+                SoundSettings {
+                    phase_inc: 440.0 / HZ as f32,
                     phase: 0.0,
                     volume: 0.25,
+                    _raw: buffer.clone(),
                 }
             })?;
             device.resume();
@@ -54,19 +70,19 @@ impl APU {
             None
         };
 
-        Ok(APU { _device, debug })
+        Ok(APU { _device, _debug: debug, buffer })
     }
 
-    pub fn tick(&self) {}
+    pub fn tick(&mut self, ram: &ram::RAM) {
+        // FIXME: do we need to do this EVERY tick?
+        let audio_controls = &ram.data[consts::IO::NR10 as usize .. consts::IO::NR10 as usize+23];
+        let mut buffer = self.buffer.write().unwrap();
+        buffer.copy_from_slice(&audio_controls);
+    }
 }
 
-struct SquareWave {
-    phase_inc: f32,
-    phase: f32,
-    volume: f32,
-}
 
-impl AudioCallback for SquareWave {
+impl AudioCallback for SoundSettings {
     type Channel = f32;
 
     fn callback(&mut self, out: &mut [f32]) {
