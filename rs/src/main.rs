@@ -74,7 +74,7 @@ impl Gameboy {
         let ram = ram::RAM::init(cart, args.debug_ram);
         let cpu = cpu::CPU::init(args.debug_cpu);
         let gpu = gpu::GPU::init(&sdl, args.rom.as_str(), args.headless, args.debug_gpu)?;
-        let apu = apu::APU::init(args.silent, args.debug_apu);
+        let apu = apu::APU::init(&sdl, args.silent, args.debug_apu)?;
         let buttons = buttons::Buttons::init(sdl)?;
         let clock = clock::Clock::init(args.profile, args.turbo, args.fps);
 

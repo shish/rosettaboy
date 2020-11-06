@@ -68,4 +68,3 @@ void Buttons::update_buttons() {
         this->cpu->ram->set(IO_JOYP, JOYP);
     }
 }
-
