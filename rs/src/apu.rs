@@ -39,36 +39,25 @@ macro_rules! LENGTH_COUNTER {
         $ch = $ch * (if $active { 1 } else { 0 });
     };
 }
-/*
-#define LENGTH_COUNTER(ch, len) \
-    if (ch##_dat->length_enable == 1) { \
-        if (this->ch##_length > 0) { \
-            this->ch##_length_timer = (this->ch##_length_timer + 1) % hz_to_samples(1, 256); \
-            if (this->ch##_length_timer == 0) this->ch##_length--; \
-            ch_control->ch##_active = true; \
-        } \
-        else { ch_control->ch##_active = false; } \
-    } \
-    else { ch_control->ch##_active = true; } \
-    ch = ch * (ch_control->ch##_active ? 1 : 0);
-*/
+
 macro_rules! ENVELOPE {
-    ( $ch:expr, $period:expr, $direction:expr, $timer:expr, $vol:expr ) => {{
-        if $period > 0 {
-            $timer = ($timer + 1) % hz_to_samples($period, 64);
-            if $timer == 0 {
-                if !$direction {
-                    if $vol > 0 {
-                        $vol -= 1;
+    ( $ch:expr, $ctrl:expr ) => {{
+        if $ctrl.envelope_period > 0 {
+            $ctrl.envelope_timer =
+                ($ctrl.envelope_timer + 1) % hz_to_samples($ctrl.envelope_period, 64);
+            if $ctrl.envelope_timer == 0 {
+                if !$ctrl.envelope_direction {
+                    if $ctrl.envelope_vol > 0 {
+                        $ctrl.envelope_vol -= 1;
                     }
                 } else {
-                    if $vol < 0x0F {
-                        $vol += 1;
+                    if $ctrl.envelope_vol < 0x0F {
+                        $ctrl.envelope_vol += 1;
                     }
                 }
             }
         }
-        $ch = $ch * $vol / 0x0F;
+        $ch = (($ch as u16 * $ctrl.envelope_vol as u16) / 0x0F) as u8;
     }};
 }
 
@@ -340,39 +329,14 @@ impl AudioCallback for SoundSettings {
     type Channel = u8; //f32;
     fn callback(&mut self, out: &mut [Self::Channel]) {
         self.update_regs();
-        /*
-        let mut n=0;
-        for x in out.iter_mut() {
-            if n % 2 == 0 {
-                *x = if self.lphase <= 0.5 { 0x20 } else { 0x00 };
-                self.lphase = (self.lphase + self.lphase_inc) % 1.0;
-
-            }
-            else {
-                *x = if self.rphase <= 0.5 { 0x00 } else { 0x00 };
-                self.rphase = (self.rphase + self.rphase_inc) % 1.0;
-
-            }
-            n += 1;
-        }
-        */
-
         let mut sample = 0;
-        let mut n2 = 0;
         for (n, x) in out.iter_mut().enumerate() {
             if n % 2 == 0 {
                 sample = self.get_next_sample();
-                if n < 20 && self.control.snd_enable {
-                    print!("{:04x} ", sample);
-                }
                 *x = (sample & 0xFF00 >> 8) as u8;
             } else {
                 *x = (sample & 0x00FF >> 0) as u8;
             }
-            n2 = n;
-        }
-        if self.control.snd_enable {
-            println!("- {}", n2);
         }
     }
 }
@@ -505,18 +469,18 @@ impl SoundSettings {
         let ch3 = self.get_ch3_sample();
         let ch4 = self.get_ch4_sample();
 
-        let s01 = ((ch1 >> 2) * self.control.ch1_to_s01
-            + (ch2 >> 2) * self.control.ch2_to_s01
-            + (ch3 >> 2) * self.control.ch3_to_s01
-            + (ch4 >> 2) * self.control.ch4_to_s01)
-            * self.control.s01_volume
-            / 4;
-        let s02 = ((ch1 >> 2) * self.control.ch1_to_s02
-            + (ch2 >> 2) * self.control.ch2_to_s02
-            + (ch3 >> 2) * self.control.ch3_to_s02
-            + (ch4 >> 2) * self.control.ch4_to_s02)
-            * self.control.s02_volume
-            / 4;
+        let s01 = (((ch1 as u32 >> 2) * self.control.ch1_to_s01 as u32 * 0
+            + (ch2 as u32 >> 2) * self.control.ch2_to_s01 as u32 * 0
+            + (ch3 as u32 >> 2) * self.control.ch3_to_s01 as u32 * 0
+            + (ch4 as u32 >> 2) * self.control.ch4_to_s01 as u32 * 1)
+            * self.control.s01_volume as u32
+            / 4) as u8;
+        let s02 = (((ch1 as u32 >> 2) * self.control.ch1_to_s02 as u32 * 0
+            + (ch2 as u32 >> 2) * self.control.ch2_to_s02 as u32 * 0
+            + (ch3 as u32 >> 2) * self.control.ch3_to_s02 as u32 * 0
+            + (ch4 as u32 >> 2) * self.control.ch4_to_s02 as u32 * 0)
+            * self.control.s02_volume as u32
+            / 4) as u8;
 
         return (s01 as u16) << 8 | s02 as u16; // s01 = right, s02 = left
     }
@@ -531,9 +495,9 @@ impl SoundSettings {
                 (self.ch1.sweep_timer + 1) % hz_to_samples(self.ch1.sweep_period, 128);
             if self.ch1.sweep_timer == 0 {
                 if self.ch1.sweep_negate {
-                    self.ch1.sweep -= 1;
+                    self.ch1.sweep = self.ch1.sweep.overflowing_sub(1).0;
                 } else {
-                    self.ch1.sweep += 1;
+                    self.ch1.sweep = self.ch1.sweep.overflowing_add(1).0;
                 };
             }
         }
@@ -564,13 +528,7 @@ impl SoundSettings {
         );
 
         // Envelope
-        ENVELOPE!(
-            ch1,
-            self.ch1.envelope_period,
-            self.ch1.envelope_direction,
-            self.ch1.envelope_timer,
-            self.ch1.envelope_vol
-        );
+        ENVELOPE!(ch1, self.ch1);
 
         // Reset handler
         if self.ch1.reset {
@@ -618,13 +576,7 @@ impl SoundSettings {
         );
 
         // Envelope
-        ENVELOPE!(
-            ch2,
-            self.ch2.envelope_period,
-            self.ch2.envelope_direction,
-            self.ch2.envelope_timer,
-            self.ch2.envelope_vol
-        );
+        ENVELOPE!(ch2, self.ch2);
 
         // Reset handler
         if self.ch2.reset {
@@ -740,13 +692,7 @@ impl SoundSettings {
         );
 
         // Envelope
-        ENVELOPE!(
-            ch4,
-            self.ch4.envelope_period,
-            self.ch4.envelope_direction,
-            self.ch4.envelope_timer,
-            self.ch4.envelope_vol
-        );
+        ENVELOPE!(ch4, self.ch4);
 
         // Reset handler
         if self.ch4.reset {
