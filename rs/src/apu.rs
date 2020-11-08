@@ -9,11 +9,11 @@ const BIT_1: u16 = 0b00000010;
 const BIT_6: u16 = 0b00100000;
 const WAVE_LEN: u8 = 32;
 const HZ: u16 = 44100;
-const DUTY: [[u8; 7]; 4] = [
-    [0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 1, 1, 1],
-    [0, 1, 1, 1, 1, 1, 0],
+const DUTY: [[u8; 8]; 4] = [
+    [0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 0],
 ];
 
 macro_rules! LENGTH_COUNTER {
@@ -363,7 +363,7 @@ impl AudioCallback for SoundSettings {
             if n % 2 == 0 {
                 sample = self.get_next_sample();
                 if n < 20 && self.control.snd_enable {
-                    print!("{:#04x}", sample);
+                    print!("{:04x} ", sample);
                 }
                 *x = (sample & 0xFF00 >> 8) as u8;
             } else {
@@ -372,7 +372,7 @@ impl AudioCallback for SoundSettings {
             n2 = n;
         }
         if self.control.snd_enable {
-            println!(" - {}", n2);
+            println!("- {}", n2);
         }
     }
 }
@@ -386,110 +386,110 @@ impl SoundSettings {
 
         ///////////////////////////////////////////////////////////////
         // NR10
-        self.ch1.sweep_shift  = (buffer[0] & 0b11100000) >> 5; // 3  // 0 = stop envelope
-        self.ch1.sweep_negate = (buffer[0] & 0b00010000) >> 4 == 1; // ? -1 : 1
-        self.ch1.sweep_period = (buffer[0] & 0b00001110) >> 1; // 3  // inc or dec each n/128Hz = (n*44100)/128smp = n*344smp
+        self.ch1.sweep_shift  = (buffer[0] & 0b00000111) >> 0; // 3  // 0 = stop envelope
+        self.ch1.sweep_negate = (buffer[0] & 0b00001000) >> 3 == 1; // ? -1 : 1
+        self.ch1.sweep_period = (buffer[0] & 0b01110000) >> 4; // 3  // inc or dec each n/128Hz = (n*44100)/128smp = n*344smp
 
         // NR11
-        self.ch1.length_load  = (buffer[1] & 0b11111100) >> 2; // 6  // (64-n) * (1/256) seconds
-        self.ch1.duty         = (buffer[1] & 0b00000011) >> 0; // 2  // {12.5, 25, 50, 75}%
+        self.ch1.length_load  = (buffer[1] & 0b00111111) >> 0; // 6  // (64-n) * (1/256) seconds
+        self.ch1.duty         = (buffer[1] & 0b11000000) >> 6; // 2  // {12.5, 25, 50, 75}%
 
         // NR12
-        self.ch1.envelope_period    = (buffer[2] & 0b11100000) >> 5; // 3  // 1 step = n * (1/64) seconds
-        self.ch1.envelope_direction = (buffer[2] & 0b00010000) >> 4 == 1;
-        self.ch1.envelope_vol_load  = (buffer[2] & 0b00001111) >> 0; // 4
+        self.ch1.envelope_period    = (buffer[2] & 0b00000111) >> 0; // 3  // 1 step = n * (1/64) seconds
+        self.ch1.envelope_direction = (buffer[2] & 0b00001000) >> 3 == 1;
+        self.ch1.envelope_vol_load  = (buffer[2] & 0b11110000) >> 4; // 4
 
         // NR13
         self.ch1.frequency_lsb = buffer[3]; // 8
 
         // NR14
-        self.ch1.frequency_msb = (buffer[4] & 0b11100000) >> 5; // 3
-        self.ch1.length_enable = (buffer[4] & 0b00000010) >> 1 == 1;
-        self.ch1.reset         = (buffer[4] & 0b00000001) >> 0 == 1;
+        self.ch1.frequency_msb = (buffer[4] & 0b00000111) >> 0; // 3
+        self.ch1.length_enable = (buffer[4] & 0b01000000) >> 6 == 1;
+        self.ch1.reset         = (buffer[4] & 0b10000000) >> 7 == 1;
 
         ///////////////////////////////////////////////////////////////
         // NR20
         // buffer[5]
 
         // NR21
-        self.ch2.length_load = (buffer[6] & 0b11111100) >> 2; // 6  // (64-n) * (1/256) seconds
-        self.ch2.duty        = (buffer[6] & 0b00000011) >> 0; // 2  // {12.5, 25, 50, 75}%
+        self.ch2.length_load = (buffer[6] & 0b00111111) >> 0; // 6  // (64-n) * (1/256) seconds
+        self.ch2.duty        = (buffer[6] & 0b11000000) >> 6; // 2  // {12.5, 25, 50, 75}%
 
         // NR22
-        self.ch2.envelope_period    = (buffer[7] & 0b11100000) >> 5; // 3  // 1 step = n * (1/64) seconds
-        self.ch2.envelope_direction = (buffer[7] & 0b00010000) >> 4 == 1;
-        self.ch2.envelope_vol_load  = (buffer[7] & 0b00001111) >> 0; // 4
+        self.ch2.envelope_period    = (buffer[7] & 0b00000111) >> 0; // 3  // 1 step = n * (1/64) seconds
+        self.ch2.envelope_direction = (buffer[7] & 0b00001000) >> 3 == 1;
+        self.ch2.envelope_vol_load  = (buffer[7] & 0b11110000) >> 4; // 4
 
         // NR23
         self.ch2.frequency_lsb = buffer[8]; // 8
 
         // NR24
-        self.ch2.frequency_msb = (buffer[9] & 0b11100000) >> 5; // 3
-        self.ch2.length_enable = (buffer[9] & 0b00000010) >> 1 == 1;
-        self.ch2.reset         = (buffer[9] & 0b00000001) >> 0 == 1;
+        self.ch2.frequency_msb = (buffer[9] & 0b00000111) >> 0; // 3
+        self.ch2.length_enable = (buffer[9] & 0b01000000) >> 6 == 1;
+        self.ch2.reset         = (buffer[9] & 0b10000000) >> 7 == 1;
 
         ///////////////////////////////////////////////////////////////
         // NR30
-        self.ch3.enabled = (buffer[10] & 0b00000001) >> 0 == 1;
+        self.ch3.enabled = (buffer[10] & 0b10000000) >> 7 == 1;
 
         // NR31
         self.ch3.length_load = buffer[11]; // (256-n) * (1/256) seconds
 
         // NR32
-        self.ch3.volume = (buffer[12] & 0b00000110) >> 1; // {0,100,50,25}%
+        self.ch3.volume = (buffer[12] & 0b01100000) >> 5; // {0,100,50,25}%
 
         // NR33
         self.ch3.frequency_lsb = buffer[13]; // 8
 
         // NR34
-        self.ch3.frequency_msb = (buffer[14] & 0b11100000) >> 5; // 3
-        self.ch3.length_enable = (buffer[14] & 0b00000010) >> 1 == 1;
-        self.ch3.reset         = (buffer[14] & 0b00000001) >> 0 == 1;
+        self.ch3.frequency_msb = (buffer[14] & 0b00000111) >> 0; // 3
+        self.ch3.length_enable = (buffer[14] & 0b01000000) >> 6 == 1;
+        self.ch3.reset         = (buffer[14] & 0b10000000) >> 7 == 1;
 
         ///////////////////////////////////////////////////////////////
         // NR40
         // buffer[15]
 
         // NR41
-        self.ch4.length_load = (buffer[16] & 0b11111100) >> 2; // 6  // (64-n) * (1/256) seconds
+        self.ch4.length_load = (buffer[16] & 0b00111111) >> 0; // 6  // (64-n) * (1/256) seconds
 
         // NR42
-        self.ch4.envelope_period    = (buffer[17] & 0b11100000) >> 5; // 3  // 1 step = n * (1/64) seconds
-        self.ch4.envelope_direction = (buffer[17] & 0b00010000) >> 4 == 1;
-        self.ch4.envelope_vol_load  = (buffer[17] & 0b00001111) >> 0; // 4
+        self.ch4.envelope_period    = (buffer[17] & 0b00000111) >> 0; // 3  // 1 step = n * (1/64) seconds
+        self.ch4.envelope_direction = (buffer[17] & 0b00001000) >> 3 == 1;
+        self.ch4.envelope_vol_load  = (buffer[17] & 0b11110000) >> 4; // 4
 
         // NR43
-        self.ch4.divisor_code = (buffer[18] & 0b11100000) >> 5; // 3  // 1 step = n * (1/64) seconds
-        self.ch4.lfsr_mode    = (buffer[18] & 0b00010000) >> 4 == 1;
-        self.ch4.clock_shift  = (buffer[18] & 0b00001111) >> 0; // 4
+        self.ch4.divisor_code = (buffer[18] & 0b00000111) >> 0; // 3  // 1 step = n * (1/64) seconds
+        self.ch4.lfsr_mode    = (buffer[18] & 0b00001000) >> 3 == 1;
+        self.ch4.clock_shift  = (buffer[18] & 0b11110000) >> 4; // 4
 
         // NR44
-        self.ch4.length_enable = (buffer[19] & 0b00000010) >> 1 == 1;
-        self.ch4.reset         = (buffer[19] & 0b00000001) >> 0 == 1;
+        self.ch4.length_enable = (buffer[19] & 0b01000000) >> 6 == 1;
+        self.ch4.reset         = (buffer[19] & 0b10000000) >> 7 == 1;
 
         ///////////////////////////////////////////////////////////////
         // NR50
-        self.control.s01_volume        = (buffer[20] & 0b11100000) >> 5;
-        self.control.enable_vin_to_s01 = (buffer[20] & 0b00010000) >> 4 == 1;
-        self.control.s02_volume        = (buffer[20] & 0b00001110) >> 1;
-        self.control.enable_vin_to_s02 = (buffer[20] & 0b00000001) >> 0 == 1;
+        self.control.s01_volume        = (buffer[20] & 0b00000111) >> 0;
+        self.control.enable_vin_to_s01 = (buffer[20] & 0b00001000) >> 3 == 1;
+        self.control.s02_volume        = (buffer[20] & 0b01110000) >> 4;
+        self.control.enable_vin_to_s02 = (buffer[20] & 0b10000000) >> 7 == 1;
 
         // NR51
-        self.control.ch1_to_s01 = (buffer[21] & 0b10000000) >> 7;
-        self.control.ch2_to_s01 = (buffer[21] & 0b01000000) >> 6;
-        self.control.ch3_to_s01 = (buffer[21] & 0b00100000) >> 5;
-        self.control.ch4_to_s01 = (buffer[21] & 0b00010000) >> 4;
-        self.control.ch1_to_s02 = (buffer[21] & 0b00001000) >> 3;
-        self.control.ch2_to_s02 = (buffer[21] & 0b00000100) >> 2;
-        self.control.ch3_to_s02 = (buffer[21] & 0b00000010) >> 1;
-        self.control.ch4_to_s02 = (buffer[21] & 0b00000001) >> 0;
+        self.control.ch1_to_s01 = (buffer[21] & 0b00000001) >> 0;
+        self.control.ch2_to_s01 = (buffer[21] & 0b00000010) >> 1;
+        self.control.ch3_to_s01 = (buffer[21] & 0b00000100) >> 2;
+        self.control.ch4_to_s01 = (buffer[21] & 0b00001000) >> 3;
+        self.control.ch1_to_s02 = (buffer[21] & 0b00010000) >> 4;
+        self.control.ch2_to_s02 = (buffer[21] & 0b00100000) >> 5;
+        self.control.ch3_to_s02 = (buffer[21] & 0b01000000) >> 6;
+        self.control.ch4_to_s02 = (buffer[21] & 0b10000000) >> 7;
 
         // NR52
-        self.control.ch1_active = (buffer[22] & 0b10000000) >> 7 == 1;
-        self.control.ch2_active = (buffer[22] & 0b01000000) >> 6 == 1;
-        self.control.ch3_active = (buffer[22] & 0b00100000) >> 5 == 1;
-        self.control.ch4_active = (buffer[22] & 0b00010000) >> 4 == 1;
-        self.control.snd_enable = (buffer[22] & 0b00000001) >> 0 == 1;
+        self.control.ch1_active = (buffer[22] & 0b00000001) >> 0 == 1;
+        self.control.ch2_active = (buffer[22] & 0b00000010) >> 1 == 1;
+        self.control.ch3_active = (buffer[22] & 0b00000100) >> 2 == 1;
+        self.control.ch4_active = (buffer[22] & 0b00001000) >> 3 == 1;
+        self.control.snd_enable = (buffer[22] & 0b10000000) >> 7 == 1;
     }
 
     fn get_next_sample(&mut self) -> u16 {
