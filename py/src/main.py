@@ -42,10 +42,10 @@ def main(argv: List[str]) -> int:
 
     try:
         cart = Cart(args.rom)
-        buttons = Buttons(headless=args.headless)
         cpu = CPU(cart, debug=args.debug_cpu)
-        clock = Clock(args.profile, args.turbo, args.fps)
         gpu = GPU(cpu, debug=args.debug_gpu, headless=args.headless)
+        buttons = Buttons(cpu, headless=args.headless)
+        clock = Clock(args.profile, args.turbo, args.fps)
 
         while True:
             cpu.tick()

@@ -1,10 +1,12 @@
 import pygame
 import pygame.locals
-
+from consts import Interrupt
 
 class Buttons:
-    def __init__(self, headless=False):
+    def __init__(self, cpu, headless=False):
+        self.cpu = cpu
         self.headless = headless
+        self.need_interrupt = False
 
         self.cycle = 0
         self.up = False
@@ -19,6 +21,10 @@ class Buttons:
     def tick(self) -> bool:
         self.cycle += 1
         self.update_buttons()
+        if self.need_interrupt:
+            self.cpu.stop = False
+            self.cpu.interrupt(Interrupt.JOYPAD)
+            self.need_interrupt = False
         if self.cycle % 17556 == 20:
             return self.handle_inputs()
         else:
@@ -36,39 +42,42 @@ class Buttons:
             if event.type == pygame.QUIT:
                 return False
             elif event.type == pygame.KEYDOWN:
+                self.need_interrupt = True
                 if event.key == pygame.locals.K_ESCAPE:
                     return False
-                if event.key == pygame.locals.K_z:
+                elif event.key == pygame.locals.K_z:
                     self.b = True
-                if event.key == pygame.locals.K_x:
+                elif event.key == pygame.locals.K_x:
                     self.a = True
-                if event.key == pygame.locals.K_RETURN:
+                elif event.key == pygame.locals.K_RETURN:
                     self.start = True
-                if event.key == pygame.locals.K_SPACE:
+                elif event.key == pygame.locals.K_SPACE:
                     self.select = True
-                if event.key == pygame.locals.K_UP:
+                elif event.key == pygame.locals.K_UP:
                     self.up = True
-                if event.key == pygame.locals.K_DOWN:
+                elif event.key == pygame.locals.K_DOWN:
                     self.down = True
-                if event.key == pygame.locals.K_LEFT:
+                elif event.key == pygame.locals.K_LEFT:
                     self.left = True
-                if event.key == pygame.locals.K_RIGHT:
+                elif event.key == pygame.locals.K_RIGHT:
                     self.right = True
+                else:
+                    self.need_interrupt = False
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.locals.K_z:
                     self.b = False
-                if event.key == pygame.locals.K_x:
+                elif event.key == pygame.locals.K_x:
                     self.a = False
-                if event.key == pygame.locals.K_RETURN:
+                elif event.key == pygame.locals.K_RETURN:
                     self.start = False
-                if event.key == pygame.locals.K_SPACE:
+                elif event.key == pygame.locals.K_SPACE:
                     self.select = False
-                if event.key == pygame.locals.K_UP:
+                elif event.key == pygame.locals.K_UP:
                     self.up = False
-                if event.key == pygame.locals.K_DOWN:
+                elif event.key == pygame.locals.K_DOWN:
                     self.down = False
-                if event.key == pygame.locals.K_LEFT:
+                elif event.key == pygame.locals.K_LEFT:
                     self.left = False
-                if event.key == pygame.locals.K_RIGHT:
+                elif event.key == pygame.locals.K_RIGHT:
                     self.right = False
         return True
