@@ -7,9 +7,17 @@
 
 class Buttons {
 private:
-    const u8 *pressed = nullptr;
     u32 cycle = 0;
+    bool need_interrupt = false;
     CPU *cpu = nullptr;
+    bool up = false;
+    bool down = false;
+    bool left = false;
+    bool right = false;
+    bool a = false;
+    bool b = false;
+    bool start = false;
+    bool select = false;
 
 public:
     Buttons(CPU *cpu);
