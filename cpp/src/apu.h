@@ -5,64 +5,6 @@
 
 static int WAVE_LEN = 32;
 
-struct ch_control_t {
-    // NR50
-    unsigned char s01_volume:3;
-    unsigned char enable_vin_to_s01:1;
-    unsigned char s02_volume:3;
-    unsigned char enable_vin_to_s02:1;
-
-    // NR51
-    unsigned char ch1_to_s01:1;
-    unsigned char ch2_to_s01:1;
-    unsigned char ch3_to_s01:1;
-    unsigned char ch4_to_s01:1;
-    unsigned char ch1_to_s02:1;
-    unsigned char ch2_to_s02:1;
-    unsigned char ch3_to_s02:1;
-    unsigned char ch4_to_s02:1;
-
-    // NR52
-    unsigned char ch1_active:1;
-    unsigned char ch2_active:1;
-    unsigned char ch3_active:1;
-    unsigned char ch4_active:1;
-    unsigned char empty:3;
-    unsigned char snd_enable:1;
-};
-
-class APU {
-private:
-    bool debug = false;
-    int ch1_freq_timer=0, ch2_freq_timer=0, ch3_freq_timer=0, ch4_freq_timer=0;
-    int ch1_envelope_vol=0, ch2_envelope_vol=0, ch4_envelope_vol=0;
-    int ch1_sweep_timer=0, ch1_shadow_freq=0;
-    int ch1_envelope_timer=0, ch2_envelope_timer=0, ch4_envelope_timer=0;
-    int ch1_length_timer=0, ch2_length_timer=0, ch3_length_timer=0, ch4_length_timer=0;
-    int ch1_length=0, ch2_length=0, ch3_length=0, ch4_length=0;
-    u8 ch1_sweep = 0;
-    u8 ch1_duty_pos = 0;
-    u8 ch2_duty_pos = 0;
-    u8 ch3_sample = 0;
-    u16 ch4_lfsr = 0xFFFF;
-public:
-    CPU *cpu = nullptr;
-    int sample_n = 0;
-
-public:
-    APU(CPU *cpu, bool debug);
-    ~APU();
-    u16 get_next_sample();
-
-private:
-    u8 get_ch1_sample(ch_control_t * ch_control);
-    u8 get_ch2_sample(ch_control_t * ch_control);
-    u8 get_ch3_sample(ch_control_t * ch_control);
-    u8 get_ch4_sample(ch_control_t * ch_control);
-};
-
-void audio_callback(void*, Uint8*, int);
-
 struct ch1_dat_t {
     // NR10
     // The change of frequency (NR13,NR14) at each shift is calculated by the
@@ -161,5 +103,63 @@ struct ch4_dat_t {
     unsigned int length_enable:1;
     unsigned int reset:1;
 };
+
+struct ch_control_t {
+    // NR50
+    unsigned char s01_volume:3;
+    unsigned char enable_vin_to_s01:1;
+    unsigned char s02_volume:3;
+    unsigned char enable_vin_to_s02:1;
+
+    // NR51
+    unsigned char ch1_to_s01:1;
+    unsigned char ch2_to_s01:1;
+    unsigned char ch3_to_s01:1;
+    unsigned char ch4_to_s01:1;
+    unsigned char ch1_to_s02:1;
+    unsigned char ch2_to_s02:1;
+    unsigned char ch3_to_s02:1;
+    unsigned char ch4_to_s02:1;
+
+    // NR52
+    unsigned char ch1_active:1;
+    unsigned char ch2_active:1;
+    unsigned char ch3_active:1;
+    unsigned char ch4_active:1;
+    unsigned char empty:3;
+    unsigned char snd_enable:1;
+};
+
+class APU {
+private:
+    bool debug = false;
+    int ch1_freq_timer=0, ch2_freq_timer=0, ch3_freq_timer=0, ch4_freq_timer=0;
+    int ch1_envelope_vol=0, ch2_envelope_vol=0, ch4_envelope_vol=0;
+    int ch1_sweep_timer=0, ch1_shadow_freq=0;
+    int ch1_envelope_timer=0, ch2_envelope_timer=0, ch4_envelope_timer=0;
+    int ch1_length_timer=0, ch2_length_timer=0, ch3_length_timer=0, ch4_length_timer=0;
+    int ch1_length=0, ch2_length=0, ch3_length=0, ch4_length=0;
+    u8 ch1_sweep = 0;
+    u8 ch1_duty_pos = 0;
+    u8 ch2_duty_pos = 0;
+    u8 ch3_sample = 0;
+    u16 ch4_lfsr = 0xFFFF;
+public:
+    CPU *cpu = nullptr;
+    int sample_n = 0;
+
+public:
+    APU(CPU *cpu, bool debug);
+    ~APU();
+    u16 get_next_sample();
+
+private:
+    u8 get_ch1_sample(ch_control_t *ch_control, ch1_dat_t *ch_dat);
+    u8 get_ch2_sample(ch_control_t *ch_control, ch2_dat_t *ch_dat);
+    u8 get_ch3_sample(ch_control_t *ch_control, ch3_dat_t *ch_dat);
+    u8 get_ch4_sample(ch_control_t *ch_control, ch4_dat_t *ch_dat);
+};
+
+void audio_callback(void*, Uint8*, int);
 
 #endif //SPIGOT_APU_H

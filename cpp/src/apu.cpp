@@ -74,10 +74,11 @@ u16 APU::get_next_sample() {
         return 0;
     }
 
-    u8 ch1 = this->get_ch1_sample(ch_control);
-    u8 ch2 = this->get_ch2_sample(ch_control);
-    u8 ch3 = this->get_ch3_sample(ch_control);
-    u8 ch4 = this->get_ch4_sample(ch_control);
+    u8 *ram = this->cpu->ram->data;
+    u8 ch1 = this->get_ch1_sample(ch_control, (ch1_dat_t*)&ram[IO_NR10]);
+    u8 ch2 = this->get_ch2_sample(ch_control, (ch2_dat_t*)&ram[IO_NR20]);
+    u8 ch3 = this->get_ch3_sample(ch_control, (ch3_dat_t*)&ram[IO_NR30]);
+    u8 ch4 = this->get_ch4_sample(ch_control, (ch4_dat_t*)&ram[IO_NR40]);
 
     //=================================================================
     // Mixer
@@ -97,10 +98,9 @@ u16 APU::get_next_sample() {
     return s01 << 8 | s02; // s01 = right, s02 = left
 }
 
-u8 APU::get_ch1_sample(ch_control_t *ch_control) {
+u8 APU::get_ch1_sample(ch_control_t *ch_control, ch1_dat_t *ch1_dat) {
     //=================================================================
     // Square 1: Sweep -> Timer -> Duty -> Length Counter -> Envelope -> Mixer
-    ch1_dat_t *ch1_dat = (ch1_dat_t*)&this->cpu->ram->data[IO_NR10];
 
     // Sweep
     if(ch1_dat->sweep_period) {
@@ -146,10 +146,9 @@ u8 APU::get_ch1_sample(ch_control_t *ch_control) {
     return ch1;
 }
 
-u8 APU::get_ch2_sample(ch_control_t *ch_control) {
+u8 APU::get_ch2_sample(ch_control_t *ch_control, ch2_dat_t *ch2_dat) {
     //=================================================================
     // Square 2:          Timer -> Duty -> Length Counter -> Envelope -> Mixer
-    ch2_dat_t *ch2_dat = (ch2_dat_t*)&this->cpu->ram->data[IO_NR20];
 
     // Timer
     u16 ch2_freq = 131072 / (2048 - ((ch2_dat->frequency_msb << 8) | ch2_dat->frequency_lsb));
@@ -180,10 +179,9 @@ u8 APU::get_ch2_sample(ch_control_t *ch_control) {
     return ch2;
 }
 
-u8 APU::get_ch3_sample(ch_control_t *ch_control) {
+u8 APU::get_ch3_sample(ch_control_t *ch_control, ch3_dat_t *ch3_dat) {
     //=================================================================
     // Wave:              Timer -> Wave -> Length Counter -> Volume -> Mixer
-    ch3_dat_t *ch3_dat = (ch3_dat_t*)&this->cpu->ram->data[IO_NR30];
 
     // Timer
     u16 ch3_freq = 65536 / (2048 - ((ch3_dat->frequency_msb << 8) | ch3_dat->frequency_lsb));
@@ -228,10 +226,9 @@ u8 APU::get_ch3_sample(ch_control_t *ch_control) {
     return ch3;
 }
 
-u8 APU::get_ch4_sample(ch_control_t *ch_control) {
+u8 APU::get_ch4_sample(ch_control_t *ch_control, ch4_dat_t *ch4_dat) {
     //=================================================================
     // Noise:             Timer -> LFSR -> Length Counter -> Envelope -> Mixer
-    ch4_dat_t *ch4_dat = (ch4_dat_t*)&this->cpu->ram->data[IO_NR40];
 
     // Timer
     int ch4_div = 0;
