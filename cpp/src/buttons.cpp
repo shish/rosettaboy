@@ -69,19 +69,19 @@ void Buttons::update_buttons() {
     // Since the hardware uses 0 for pressed and 1 for
     // released, let's invert on read and write to keep
     // our logic sensible....
-    u8 JOYP = this->cpu->ram->get(IO_JOYP);
-    JOYP |= 0x0F;  // clear all buttons (0=pressed, 1=released)
-    if(!(JOYP & JOYP_SELECT_DPAD)) {  // 0=select
-        if(this->up) JOYP &= ~JOYP_UP;
-        if(this->down) JOYP &= ~JOYP_DOWN;
-        if(this->left) JOYP &= ~JOYP_LEFT;
-        if(this->right) JOYP &= ~JOYP_RIGHT;
+    u8 JOYP = ~this->cpu->ram->get(IO_JOYP);
+    JOYP &= 0xF0;
+    if(JOYP & JOYP_SELECT_DPAD) {
+        if(this->up) JOYP |= JOYP_UP;
+        if(this->down) JOYP |= JOYP_DOWN;
+        if(this->left) JOYP |= JOYP_LEFT;
+        if(this->right) JOYP |= JOYP_RIGHT;
     }
-    if(!(JOYP & JOYP_SELECT_BUTTONS)) {  // 0=select
-        if(this->b) JOYP &= ~JOYP_B;
-        if(this->a) JOYP &= ~JOYP_A;
-        if(this->start) JOYP &= ~JOYP_START;
-        if(this->select) JOYP &= ~JOYP_SELECT;
+    if(JOYP & JOYP_SELECT_BUTTONS) {
+        if(this->b) JOYP |= JOYP_B;
+        if(this->a) JOYP |= JOYP_A;
+        if(this->start) JOYP |= JOYP_START;
+        if(this->select) JOYP |= JOYP_SELECT;
     }
-    this->cpu->ram->set(IO_JOYP, JOYP);
+    this->cpu->ram->set(IO_JOYP, ~JOYP);
 }
