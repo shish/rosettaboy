@@ -68,7 +68,6 @@ u16 APU::get_next_sample() {
 
     ch_control_t *ch_control = (ch_control_t *) &this->cpu->ram->data[IO_NR50];
 
-    sample_n = (sample_n + 1) % HZ;
     if (!ch_control->snd_enable) {
         // TODO: wipe all registers
         return 0;

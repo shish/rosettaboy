@@ -146,7 +146,6 @@ private:
     u16 ch4_lfsr = 0xFFFF;
 public:
     CPU *cpu = nullptr;
-    int sample_n = 0;
 
 public:
     APU(CPU *cpu, bool debug);
