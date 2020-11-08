@@ -701,7 +701,6 @@ pub enum IO {
     NR51 = 0xFF25,
     NR52 = 0xFF26,
     */
-
     LCDC = 0xFF40,
     STAT = 0xFF41,
     SCY = 0xFF42, // SCROLL_Y
