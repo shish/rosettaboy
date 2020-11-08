@@ -10,28 +10,28 @@ struct ch1_dat_t {
     // The change of frequency (NR13,NR14) at each shift is calculated by the
     // following formula where X(0) is initial freq & X(t-1) is last freq:
     // X(t) = X(t-1) +/- X(t-1)/2^n
-    unsigned char sweep_shift:3;  // 0 = stop envelope
-    unsigned char sweep_negate:1;  // ? -1 : 1
-    unsigned char sweep_period:3;  // inc or dec each n/128Hz = (n*44100)/128smp = n*344smp
-    unsigned char empty1:1;
+    unsigned int sweep_shift:3;  // 0 = stop envelope
+    unsigned int sweep_negate:1;  // ? -1 : 1
+    unsigned int sweep_period:3;  // inc or dec each n/128Hz = (n*44100)/128smp = n*344smp
+    unsigned int empty1:1;
 
     // NR11
-    unsigned char length_load:6;  // (64-n) * (1/256) seconds
-    unsigned char duty:2;  // {12.5, 25, 50, 75}%
+    unsigned int length_load:6;  // (64-n) * (1/256) seconds
+    unsigned int duty:2;  // {12.5, 25, 50, 75}%
 
     // NR12
-    unsigned char envelope_period:3;  // 1 step = n * (1/64) seconds
-    unsigned char envelope_direction:1;
-    unsigned char envelope_vol_load:4;
+    unsigned int envelope_period:3;  // 1 step = n * (1/64) seconds
+    unsigned int envelope_direction:1;
+    unsigned int envelope_vol_load:4;
 
     // NR13
-    unsigned char frequency_lsb:8;
+    unsigned int frequency_lsb:8;
 
     // NR14
-    unsigned char frequency_msb:3;
-    unsigned char empty2:3;
-    unsigned char length_enable:1;
-    unsigned char reset:1;
+    unsigned int frequency_msb:3;
+    unsigned int empty2:3;
+    unsigned int length_enable:1;
+    unsigned int reset:1;
 };
 
 struct ch2_dat_t {
@@ -106,28 +106,28 @@ struct ch4_dat_t {
 
 struct ch_control_t {
     // NR50
-    unsigned char s01_volume:3;
-    unsigned char enable_vin_to_s01:1;
-    unsigned char s02_volume:3;
-    unsigned char enable_vin_to_s02:1;
+    unsigned int s01_volume:3;
+    unsigned int enable_vin_to_s01:1;
+    unsigned int s02_volume:3;
+    unsigned int enable_vin_to_s02:1;
 
     // NR51
-    unsigned char ch1_to_s01:1;
-    unsigned char ch2_to_s01:1;
-    unsigned char ch3_to_s01:1;
-    unsigned char ch4_to_s01:1;
-    unsigned char ch1_to_s02:1;
-    unsigned char ch2_to_s02:1;
-    unsigned char ch3_to_s02:1;
-    unsigned char ch4_to_s02:1;
+    unsigned int ch1_to_s01:1;
+    unsigned int ch2_to_s01:1;
+    unsigned int ch3_to_s01:1;
+    unsigned int ch4_to_s01:1;
+    unsigned int ch1_to_s02:1;
+    unsigned int ch2_to_s02:1;
+    unsigned int ch3_to_s02:1;
+    unsigned int ch4_to_s02:1;
 
     // NR52
-    unsigned char ch1_active:1;
-    unsigned char ch2_active:1;
-    unsigned char ch3_active:1;
-    unsigned char ch4_active:1;
-    unsigned char empty:3;
-    unsigned char snd_enable:1;
+    unsigned int ch1_active:1;
+    unsigned int ch2_active:1;
+    unsigned int ch3_active:1;
+    unsigned int ch4_active:1;
+    unsigned int empty:3;
+    unsigned int snd_enable:1;
 };
 
 class APU {
