@@ -8,6 +8,7 @@ use sdl2::rect::{Point, Rect};
 
 //const WIDTH: u16 = 256;
 //const HEIGHT: u8 = 240;
+const SCALE: u32 = 2;
 const RED: Color = Color {
     r: 0x64,
     g: 0x00,
@@ -65,15 +66,16 @@ impl GPU {
         let canvas = if !headless {
             let video_subsystem = sdl.video()?;
             let window = video_subsystem
-                .window(&format!("RosettaBoy - {}", title)[..], w, h)
+                .window(&format!("RosettaBoy - {}", title)[..], w * SCALE, h * SCALE)
                 .position_centered()
                 .build()
                 .map_err(|e| e.to_string())?;
-            let canvas = window
+            let mut canvas = window
                 .into_canvas()
                 .software()
                 .build()
                 .map_err(|e| e.to_string())?;
+            canvas.set_scale(SCALE as f32, SCALE as f32)?;
             Some(canvas)
         } else {
             None
