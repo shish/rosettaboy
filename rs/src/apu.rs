@@ -469,16 +469,16 @@ impl SoundSettings {
         let ch3 = self.get_ch3_sample();
         let ch4 = self.get_ch4_sample();
 
-        let s01 = (((ch1 as u32 >> 2) * self.control.ch1_to_s01 as u32 * 0
-            + (ch2 as u32 >> 2) * self.control.ch2_to_s01 as u32 * 0
-            + (ch3 as u32 >> 2) * self.control.ch3_to_s01 as u32 * 0
-            + (ch4 as u32 >> 2) * self.control.ch4_to_s01 as u32 * 1)
+        let s01 = (((ch1 as u32 >> 2) * self.control.ch1_to_s01 as u32
+            + (ch2 as u32 >> 2) * self.control.ch2_to_s01 as u32
+            + (ch3 as u32 >> 2) * self.control.ch3_to_s01 as u32
+            + (ch4 as u32 >> 2) * self.control.ch4_to_s01 as u32)
             * self.control.s01_volume as u32
             / 4) as u8;
-        let s02 = (((ch1 as u32 >> 2) * self.control.ch1_to_s02 as u32 * 0
-            + (ch2 as u32 >> 2) * self.control.ch2_to_s02 as u32 * 0
-            + (ch3 as u32 >> 2) * self.control.ch3_to_s02 as u32 * 0
-            + (ch4 as u32 >> 2) * self.control.ch4_to_s02 as u32 * 0)
+        let s02 = (((ch1 as u32 >> 2) * self.control.ch1_to_s02 as u32
+            + (ch2 as u32 >> 2) * self.control.ch2_to_s02 as u32
+            + (ch3 as u32 >> 2) * self.control.ch3_to_s02 as u32
+            + (ch4 as u32 >> 2) * self.control.ch4_to_s02 as u32)
             * self.control.s02_volume as u32
             / 4) as u8;
 
