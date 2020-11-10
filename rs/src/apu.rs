@@ -1,8 +1,7 @@
 extern crate sdl2;
 use crate::consts;
 use crate::ram;
-use sdl2::audio::{AudioCallback, AudioDevice, AudioSpecDesired};
-use std::sync::{Arc, RwLock};
+use sdl2::audio::{AudioQueue, AudioSpecDesired};
 
 const BIT_0: u16 = 0b00000001;
 const BIT_1: u16 = 0b00000010;
@@ -17,11 +16,6 @@ const DUTY: [[u8; 8]; 4] = [
 ];
 
 macro_rules! LENGTH_COUNTER {
-    // ch1,
-    // self.control.ch1_active,
-    // self.ch1.length_enable,
-    // self.ch1.length,
-    // self.ch1.length_timer,
     ( $ch:expr, $active:expr, $length_enable:expr, $length:expr, $length_timer:expr) => {
         if $length_enable {
             if $length > 0 {
@@ -46,6 +40,7 @@ macro_rules! ENVELOPE {
             $ctrl.envelope_timer =
                 ($ctrl.envelope_timer + 1) % hz_to_samples($ctrl.envelope_period, 64);
             if $ctrl.envelope_timer == 0 {
+                // println!("{} {}", $ctrl.envelope_direction, $ctrl.envelope_vol);
                 if !$ctrl.envelope_direction {
                     if $ctrl.envelope_vol > 0 {
                         $ctrl.envelope_vol -= 1;
@@ -61,6 +56,25 @@ macro_rules! ENVELOPE {
     }};
 }
 
+fn envelope(ctrl: &mut Ch1Control) -> u16 {
+    if ctrl.envelope_period > 0 {
+        ctrl.envelope_timer = (ctrl.envelope_timer + 1) % hz_to_samples(ctrl.envelope_period, 64);
+        if ctrl.envelope_timer == 0 {
+            // println!("{} {}", ctrl.envelope_direction, ctrl.envelope_vol);
+            if !ctrl.envelope_direction {
+                if ctrl.envelope_vol > 0 {
+                    ctrl.envelope_vol -= 1;
+                }
+            } else {
+                if ctrl.envelope_vol < 0x0F {
+                    ctrl.envelope_vol += 1;
+                }
+            }
+        }
+    }
+    return ctrl.envelope_vol as u16;
+}
+
 fn hz_to_samples(n: u8, hz: u16) -> usize {
     if hz == 0 {
         HZ as usize
@@ -71,20 +85,23 @@ fn hz_to_samples(n: u8, hz: u16) -> usize {
     }
 }
 
+#[derive(Default)]
 pub struct APU {
-    _device: Option<AudioDevice<SoundSettings>>, // need a reference to avoid deallocation
+    device: Option<AudioQueue<u8>>, // need a reference to avoid deallocation
     _debug: bool,
-    control_buffer: Arc<RwLock<[u8; 23]>>,
-    samples_buffer: Arc<RwLock<[u8; 16]>>,
     cycle: usize,
+
+    ch1: Ch1Control,
+    ch2: Ch2Control,
+    ch3: Ch3Control,
+    ch4: Ch4Control,
+    control: Control,
+    samples: [u8; 16],
 }
 
 impl APU {
     pub fn init(sdl: &sdl2::Sdl, silent: bool, debug: bool) -> Result<APU, String> {
-        let buffer = Arc::new(RwLock::new([0; 23]));
-        let sample_buffer = Arc::new(RwLock::new([0; 16]));
-
-        let _device = if !silent {
+        let device = if !silent {
             let audio = sdl.audio()?;
             let spec = AudioSpecDesired {
                 freq: Some(HZ as i32),
@@ -92,243 +109,45 @@ impl APU {
                 // generate audio for one frame at a time, 735 samples per frame
                 samples: Some((HZ / 60) as u16),
             };
-            let device = audio.open_playback(None, &spec, |spec| {
-                // Show obtained AudioSpec
-                println!("{:?}", spec);
-
-                // initialize the audio callback
-                let mut ss = SoundSettings::default();
-                ss.control_buffer = buffer.clone();
-                ss.ch4.lfsr = 0xFFFF;
-
-                ss.lphase_inc = 440.0 / spec.freq as f32;
-                ss.lphase = 0.0;
-                ss.rphase_inc = 220.0 / spec.freq as f32;
-                ss.rphase = 0.0;
-
-                ss
-            })?;
+            let device = audio.open_queue::<u8, _>(None, &spec)?;
             device.resume();
             Some(device)
         } else {
             None
         };
 
-        Ok(APU {
-            _device,
-            _debug: debug,
-            control_buffer: buffer,
-            samples_buffer: sample_buffer,
-            cycle: 0,
-        })
+        let mut apu = APU::default();
+        apu.device = device;
+        apu._debug = debug;
+        apu.ch4.lfsr = 0xFFFF;
+        Ok(apu)
     }
 
-    pub fn tick(&mut self, ram: &ram::RAM) {
+    pub fn tick(&mut self, ram: &mut ram::RAM) {
         self.cycle += 1;
 
         // Ideally this would be in sync every tick, but
         // once per frame should be sufficient...?
         if self.cycle % 17556 == 20 {
-            let audio_controls =
-                &ram.data[consts::IO::NR10 as usize..consts::IO::NR10 as usize + 23];
-            let mut control_buffer = self.control_buffer.write().unwrap();
-            control_buffer.copy_from_slice(&audio_controls);
+            let out = self.render_frame_audio(ram);
 
-            let audio_samples = &ram.data[0xFF30..0xFF40];
-            let mut samples_buffer = self.samples_buffer.write().unwrap();
-            samples_buffer.copy_from_slice(&audio_samples);
+            if let Some(device) = &self.device {
+                println!("size = {}", device.size());
+                if device.size() <= ((HZ / 60) * 2) as u32 {
+                    device.queue(&out);
+                    device.queue(&out);
+                }
+                device.queue(&out);
+            }
         }
     }
-}
 
-#[derive(Default)]
-struct Ch1Control {
-    // NR10
-    // The change of frequency (NR13,NR14) at each shift is calculated by the
-    // following formula where X(0) is initial freq & X(t-1) is last freq:
-    // X(t) = X(t-1) +/- X(t-1)/2^n
-    sweep_shift: u8,    // 3  // 0 = stop envelope
-    sweep_negate: bool, // ? -1 : 1
-    sweep_period: u8,   // 3  // inc or dec each n/128Hz = (n*44100)/128smp = n*344smp
-    // empty1: bool,
+    fn render_frame_audio(&mut self, ram: &mut ram::RAM) -> [u8; (HZ / 60) as usize] {
+        let audio_controls =
+            &mut ram.data[consts::IO::NR10 as usize..consts::IO::NR10 as usize + 23];
+        let mut out = [0; (HZ / 60) as usize];
 
-    // NR11
-    length_load: u8, // 6  // (64-n) * (1/256) seconds
-    duty: u8,        // 2  // {12.5, 25, 50, 75}%
-
-    // NR12
-    envelope_period: u8, // 3  // 1 step = n * (1/64) seconds
-    envelope_direction: bool,
-    envelope_vol_load: u8, // 4
-
-    // NR13
-    frequency_lsb: u8, // 8
-
-    // NR14
-    frequency_msb: u8, // 3
-    // empty2: u8,  // 3
-    length_enable: bool,
-    reset: bool,
-
-    // Internal state
-    duty_pos: u8,
-    envelope_timer: usize,
-    envelope_vol: u8,
-    freq_timer: usize,
-    length: u8,
-    length_timer: usize,
-    shadow_freq: u16,
-    sweep: u8,
-    sweep_timer: usize,
-}
-
-#[derive(Default)]
-struct Ch2Control {
-    // NR20
-    // empty1: u8,  // 8
-
-    // NR21
-    length_load: u8, // 6  // (64-n) * (1/256) seconds
-    duty: u8,        // 2  // {12.5, 25, 50, 75}%
-
-    // NR22
-    envelope_period: u8, // 3  // 1 step = n * (1/64) seconds
-    envelope_direction: bool,
-    envelope_vol_load: u8, // 4
-
-    // NR23
-    frequency_lsb: u8, // 8
-
-    // NR24
-    frequency_msb: u8, // 3
-    // empty2: u8,  // 3
-    length_enable: bool,
-    reset: bool,
-
-    // Internal State
-    duty_pos: u8,
-    envelope_timer: usize,
-    envelope_vol: u8,
-    freq_timer: usize,
-    length: u8,
-    length_timer: usize,
-}
-
-#[derive(Default)]
-struct Ch3Control {
-    // NR30
-    // empty1: u8,  // 7;
-    enabled: bool,
-
-    // NR31
-    length_load: u8, // 8  // (256-n) * (1/256) seconds
-
-    // NR32
-    // empty3: u8,  // 5;
-    volume: u8, // 2  // {0,100,50,25}%
-    // empty2: bool,
-
-    // NR33
-    frequency_lsb: u8, // 8
-
-    // NR34
-    frequency_msb: u8, // 3
-    // empty4: u8,  // 3
-    length_enable: bool,
-    reset: bool,
-
-    // Internal state
-    freq_timer: usize,
-    length: u8,
-    length_timer: usize,
-    sample: u8,
-}
-
-#[derive(Default)]
-struct Ch4Control {
-    // NR40
-    // empty1: u8,  // 8
-
-    // NR41
-    length_load: u8, // 6  // (64-n) * (1/256) seconds
-    // empty2: u8,  // 2
-
-    // NR42
-    envelope_period: u8, // 3  // 1 step = n * (1/64) seconds
-    envelope_direction: bool,
-    envelope_vol_load: u8, // 4
-
-    // NR43
-    divisor_code: u8, // 3
-    lfsr_mode: bool,
-    clock_shift: u8, // 4
-
-    // NR44
-    // empty3: u8,  // 6
-    length_enable: bool,
-    reset: bool,
-
-    // Internal state
-    envelope_timer: usize,
-    envelope_vol: u8,
-    freq_timer: usize,
-    length: u8,
-    length_timer: usize,
-    lfsr: u16, // = 0xFFFF;
-}
-
-#[derive(Default)]
-struct Control {
-    // NR50
-    s01_volume: u8, // 3
-    enable_vin_to_s01: bool,
-    s02_volume: u8, // 3
-    enable_vin_to_s02: bool,
-
-    // NR51
-    ch1_to_s01: u8, // 1
-    ch2_to_s01: u8, // 1
-    ch3_to_s01: u8, // 1
-    ch4_to_s01: u8, // 1
-    ch1_to_s02: u8, // 1
-    ch2_to_s02: u8, // 1
-    ch3_to_s02: u8, // 1
-    ch4_to_s02: u8, // 1
-
-    // NR52
-    ch1_active: bool,
-    ch2_active: bool,
-    ch3_active: bool,
-    ch4_active: bool,
-    // empty: u8,  // 3
-    snd_enable: bool,
-}
-
-#[derive(Default)]
-struct SoundSettings {
-    // settings as raw bytes
-    control_buffer: Arc<RwLock<[u8; 23]>>,
-    samples_buffer: Arc<RwLock<[u8; 16]>>,
-    samples: [u8; 16],
-
-    // settings parsed
-    ch1: Ch1Control,
-    ch2: Ch2Control,
-    ch3: Ch3Control,
-    ch4: Ch4Control,
-    control: Control,
-
-    // temporary state
-    lphase_inc: f32,
-    lphase: f32,
-    rphase_inc: f32,
-    rphase: f32,
-}
-
-impl AudioCallback for SoundSettings {
-    type Channel = u8; //f32;
-    fn callback(&mut self, out: &mut [Self::Channel]) {
-        self.update_regs();
+        self.ram_to_regs(audio_controls);
         let mut sample = 0;
         for (n, x) in out.iter_mut().enumerate() {
             if n % 2 == 0 {
@@ -338,16 +157,12 @@ impl AudioCallback for SoundSettings {
                 *x = (sample & 0x00FF >> 0) as u8;
             }
         }
+        self.regs_to_ram(audio_controls);
+        out
     }
-}
 
-impl SoundSettings {
     #[rustfmt::skip]
-    fn update_regs(&mut self) {
-        let buffer = self.control_buffer.read().unwrap();
-        let samples_buffer = self.samples_buffer.read().unwrap();
-        self.samples.copy_from_slice(&samples_buffer[..]);
-
+    fn ram_to_regs(&mut self, buffer: &[u8]) {
         ///////////////////////////////////////////////////////////////
         // NR10
         self.ch1.sweep_shift  = (buffer[0] & 0b00000111) >> 0; // 3  // 0 = stop envelope
@@ -456,6 +271,125 @@ impl SoundSettings {
         self.control.snd_enable = (buffer[22] & 0b10000000) >> 7 == 1;
     }
 
+    #[rustfmt::skip]
+    fn regs_to_ram(&mut self, buffer: &mut [u8]) {
+        ///////////////////////////////////////////////////////////////
+        // NR10
+        buffer[0] =
+        (self.ch1.sweep_shift          << 0 & 0b00000111) | // 3  // 0 = stop envelope
+        ((self.ch1.sweep_negate as u8) << 3 & 0b00001000) | // ? -1 : 1
+        (self.ch1.sweep_period         << 4 & 0b01110000) ; // 3  // inc or dec each n/128Hz = (n*44100)/128smp = n*344smp
+
+        // NR11
+        buffer[1] =
+        (self.ch1.length_load  << 0 & 0b00111111) | // 6  // (64-n) * (1/256) seconds
+        (self.ch1.duty         << 6 & 0b11000000) ; // 2  // {12.5, 25, 50, 75}%
+
+        // NR12
+        buffer[2] =
+        (self.ch1.envelope_period            << 0 & 0b00000111) | // 3  // 1 step = n * (1/64) seconds
+        ((self.ch1.envelope_direction as u8) << 3 & 0b00001000) |
+        (self.ch1.envelope_vol_load          << 4 & 0b11110000) ; // 4
+
+        // NR13
+        buffer[3] = self.ch1.frequency_lsb; // 8
+
+        // NR14
+        buffer[4] =
+        (self.ch1.frequency_msb         << 0 & 0b00000111) | // 3
+        ((self.ch1.length_enable as u8) << 6 & 0b01000000) |
+        ((self.ch1.reset as u8)         << 7 & 0b10000000) ;
+
+        ///////////////////////////////////////////////////////////////
+        // NR20
+        // buffer[5]
+
+        buffer[6] = 
+        // NR21
+        (self.ch2.length_load << 0 & 0b00111111) | // 6  // (64-n) * (1/256) seconds
+        (self.ch2.duty        << 6 & 0b11000000) ; // 2  // {12.5, 25, 50, 75}%
+
+        // NR22
+        buffer[7] =
+        (self.ch2.envelope_period            << 0 & 0b00000111) | // 3  // 1 step = n * (1/64) seconds
+        ((self.ch2.envelope_direction as u8) << 3 & 0b00001000) |
+        (self.ch2.envelope_vol_load          << 4 & 0b11110000) ; // 4
+
+        // NR23
+        buffer[8] = self.ch2.frequency_lsb; // 8
+
+        // NR24
+        buffer[9] =
+        (self.ch2.frequency_msb         << 0 & 0b00000111) | // 3
+        ((self.ch2.length_enable as u8) << 6 & 0b01000000) |
+        ((self.ch2.reset as u8)         << 7 & 0b10000000) ;
+
+        ///////////////////////////////////////////////////////////////
+        // NR30
+        /*
+        self.ch3.enabled = (buffer[10] & 0b10000000) >> 7 == 1;
+
+        // NR31
+        self.ch3.length_load = buffer[11]; // (256-n) * (1/256) seconds
+
+        // NR32
+        self.ch3.volume = (buffer[12] & 0b01100000) >> 5; // {0,100,50,25}%
+
+        // NR33
+        self.ch3.frequency_lsb = buffer[13]; // 8
+
+        // NR34
+        self.ch3.frequency_msb = (buffer[14] & 0b00000111) >> 0; // 3
+        self.ch3.length_enable = (buffer[14] & 0b01000000) >> 6 == 1;
+        self.ch3.reset         = (buffer[14] & 0b10000000) >> 7 == 1;
+
+        ///////////////////////////////////////////////////////////////
+        // NR40
+        // buffer[15]
+
+        // NR41
+        self.ch4.length_load = (buffer[16] & 0b00111111) >> 0; // 6  // (64-n) * (1/256) seconds
+
+        // NR42
+        self.ch4.envelope_period    = (buffer[17] & 0b00000111) >> 0; // 3  // 1 step = n * (1/64) seconds
+        self.ch4.envelope_direction = (buffer[17] & 0b00001000) >> 3 == 1;
+        self.ch4.envelope_vol_load  = (buffer[17] & 0b11110000) >> 4; // 4
+
+        // NR43
+        self.ch4.divisor_code = (buffer[18] & 0b00000111) >> 0; // 3  // 1 step = n * (1/64) seconds
+        self.ch4.lfsr_mode    = (buffer[18] & 0b00001000) >> 3 == 1;
+        self.ch4.clock_shift  = (buffer[18] & 0b11110000) >> 4; // 4
+
+        // NR44
+        self.ch4.length_enable = (buffer[19] & 0b01000000) >> 6 == 1;
+        self.ch4.reset         = (buffer[19] & 0b10000000) >> 7 == 1;
+
+        ///////////////////////////////////////////////////////////////
+        // NR50
+        self.control.s01_volume        = (buffer[20] & 0b00000111) >> 0;
+        self.control.enable_vin_to_s01 = (buffer[20] & 0b00001000) >> 3 == 1;
+        self.control.s02_volume        = (buffer[20] & 0b01110000) >> 4;
+        self.control.enable_vin_to_s02 = (buffer[20] & 0b10000000) >> 7 == 1;
+
+        // NR51
+        self.control.ch1_to_s01 = (buffer[21] & 0b00000001) >> 0;
+        self.control.ch2_to_s01 = (buffer[21] & 0b00000010) >> 1;
+        self.control.ch3_to_s01 = (buffer[21] & 0b00000100) >> 2;
+        self.control.ch4_to_s01 = (buffer[21] & 0b00001000) >> 3;
+        self.control.ch1_to_s02 = (buffer[21] & 0b00010000) >> 4;
+        self.control.ch2_to_s02 = (buffer[21] & 0b00100000) >> 5;
+        self.control.ch3_to_s02 = (buffer[21] & 0b01000000) >> 6;
+        self.control.ch4_to_s02 = (buffer[21] & 0b10000000) >> 7;
+
+        // NR52
+        self.control.ch1_active = (buffer[22] & 0b00000001) >> 0 == 1;
+        self.control.ch2_active = (buffer[22] & 0b00000010) >> 1 == 1;
+        self.control.ch3_active = (buffer[22] & 0b00000100) >> 2 == 1;
+        self.control.ch4_active = (buffer[22] & 0b00001000) >> 3 == 1;
+        self.control.snd_enable = (buffer[22] & 0b10000000) >> 7 == 1;
+        */
+    }
+
     fn get_next_sample(&mut self) -> u16 {
         // sample_n = (sample_n + 1) % HZ;
 
@@ -528,11 +462,12 @@ impl SoundSettings {
         );
 
         // Envelope
-        ENVELOPE!(ch1, self.ch1);
+        //ENVELOPE!(ch1, self.ch1);
+        ch1 = ((ch1 as u16 * envelope(&mut self.ch1)) / 0x0F) as u8;
 
         // Reset handler
         if self.ch1.reset {
-            self.ch1.reset = false;
+            self.ch1.reset = false; // BUG: this fixes our copy of reset, but not the source...
             self.ch1.length = if self.ch1.length_load > 0 {
                 self.ch1.length_load
             } else {
@@ -711,4 +646,167 @@ impl SoundSettings {
 
         return ch4;
     }
+}
+
+#[derive(Default)]
+struct Ch1Control {
+    // NR10
+    // The change of frequency (NR13,NR14) at each shift is calculated by the
+    // following formula where X(0) is initial freq & X(t-1) is last freq:
+    // X(t) = X(t-1) +/- X(t-1)/2^n
+    sweep_shift: u8,    // 3  // 0 = stop envelope
+    sweep_negate: bool, // ? -1 : 1
+    sweep_period: u8,   // 3  // inc or dec each n/128Hz = (n*44100)/128smp = n*344smp
+    // empty1: bool,
+
+    // NR11
+    length_load: u8, // 6  // (64-n) * (1/256) seconds
+    duty: u8,        // 2  // {12.5, 25, 50, 75}%
+
+    // NR12
+    envelope_period: u8, // 3  // 1 step = n * (1/64) seconds
+    envelope_direction: bool,
+    envelope_vol_load: u8, // 4
+
+    // NR13
+    frequency_lsb: u8, // 8
+
+    // NR14
+    frequency_msb: u8, // 3
+    // empty2: u8,  // 3
+    length_enable: bool,
+    reset: bool,
+
+    // Internal state
+    duty_pos: u8,
+    envelope_timer: usize,
+    envelope_vol: u8,
+    freq_timer: usize,
+    length: u8,
+    length_timer: usize,
+    shadow_freq: u16,
+    sweep: u8,
+    sweep_timer: usize,
+}
+
+#[derive(Default)]
+struct Ch2Control {
+    // NR20
+    // empty1: u8,  // 8
+
+    // NR21
+    length_load: u8, // 6  // (64-n) * (1/256) seconds
+    duty: u8,        // 2  // {12.5, 25, 50, 75}%
+
+    // NR22
+    envelope_period: u8, // 3  // 1 step = n * (1/64) seconds
+    envelope_direction: bool,
+    envelope_vol_load: u8, // 4
+
+    // NR23
+    frequency_lsb: u8, // 8
+
+    // NR24
+    frequency_msb: u8, // 3
+    // empty2: u8,  // 3
+    length_enable: bool,
+    reset: bool,
+
+    // Internal State
+    duty_pos: u8,
+    envelope_timer: usize,
+    envelope_vol: u8,
+    freq_timer: usize,
+    length: u8,
+    length_timer: usize,
+}
+
+#[derive(Default)]
+struct Ch3Control {
+    // NR30
+    // empty1: u8,  // 7;
+    enabled: bool,
+
+    // NR31
+    length_load: u8, // 8  // (256-n) * (1/256) seconds
+
+    // NR32
+    // empty3: u8,  // 5;
+    volume: u8, // 2  // {0,100,50,25}%
+    // empty2: bool,
+
+    // NR33
+    frequency_lsb: u8, // 8
+
+    // NR34
+    frequency_msb: u8, // 3
+    // empty4: u8,  // 3
+    length_enable: bool,
+    reset: bool,
+
+    // Internal state
+    freq_timer: usize,
+    length: u8,
+    length_timer: usize,
+    sample: u8,
+}
+
+#[derive(Default)]
+struct Ch4Control {
+    // NR40
+    // empty1: u8,  // 8
+
+    // NR41
+    length_load: u8, // 6  // (64-n) * (1/256) seconds
+    // empty2: u8,  // 2
+
+    // NR42
+    envelope_period: u8, // 3  // 1 step = n * (1/64) seconds
+    envelope_direction: bool,
+    envelope_vol_load: u8, // 4
+
+    // NR43
+    divisor_code: u8, // 3
+    lfsr_mode: bool,
+    clock_shift: u8, // 4
+
+    // NR44
+    // empty3: u8,  // 6
+    length_enable: bool,
+    reset: bool,
+
+    // Internal state
+    envelope_timer: usize,
+    envelope_vol: u8,
+    freq_timer: usize,
+    length: u8,
+    length_timer: usize,
+    lfsr: u16, // = 0xFFFF;
+}
+
+#[derive(Default)]
+struct Control {
+    // NR50
+    s01_volume: u8, // 3
+    enable_vin_to_s01: bool,
+    s02_volume: u8, // 3
+    enable_vin_to_s02: bool,
+
+    // NR51
+    ch1_to_s01: u8, // 1
+    ch2_to_s01: u8, // 1
+    ch3_to_s01: u8, // 1
+    ch4_to_s01: u8, // 1
+    ch1_to_s02: u8, // 1
+    ch2_to_s02: u8, // 1
+    ch3_to_s02: u8, // 1
+    ch4_to_s02: u8, // 1
+
+    // NR52
+    ch1_active: bool,
+    ch2_active: bool,
+    ch3_active: bool,
+    ch4_active: bool,
+    // empty: u8,  // 3
+    snd_enable: bool,
 }

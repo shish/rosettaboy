@@ -95,7 +95,7 @@ impl Gameboy {
             self.gpu.tick(&mut self.ram, &mut self.cpu)?;
             self.buttons.tick(&mut self.ram, &mut self.cpu)?;
             self.clock.tick()?;
-            self.apu.tick(&self.ram);
+            self.apu.tick(&mut self.ram);
         }
     }
 }
