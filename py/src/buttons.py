@@ -1,6 +1,6 @@
 import pygame
 import pygame.locals
-from consts import Interrupt
+from .consts import Interrupt
 
 class Buttons:
     def __init__(self, cpu, headless=False):
