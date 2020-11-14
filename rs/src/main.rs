@@ -3,6 +3,7 @@ extern crate sdl2;
 
 #[macro_use]
 extern crate bitflags;
+#[macro_use] extern crate packed_struct_codegen;
 
 mod apu;
 mod buttons;
