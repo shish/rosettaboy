@@ -10,16 +10,16 @@ u8 duty[4][8] = {
     {0,1,1,1,1,1,1,0},
 };
 
-static int hz_to_samples(int n, int hz) {
+static int hz_to_samples(int hz) {
     if(hz == 0) return HZ;
     if(hz > HZ) return 1;
-    return (n*HZ)/hz;
+    return HZ/hz;
 }
 
-#define LENGTH_COUNTER(ch, len) \
+#define LENGTH_COUNTER(ch) \
     if (ch##_dat->length_enable == 1) { \
         if (this->ch##_length > 0) { \
-            this->ch##_length_timer = (this->ch##_length_timer + 1) % hz_to_samples(1, 256); \
+            this->ch##_length_timer = (this->ch##_length_timer + 1) % hz_to_samples(256); \
             if (this->ch##_length_timer == 0) this->ch##_length--; \
             ch_control->ch##_active = true; \
         } \
@@ -31,7 +31,7 @@ static int hz_to_samples(int n, int hz) {
 #define ENVELOPE(ch) \
     if (ch##_dat->envelope_period) { \
         this->ch##_envelope_timer = \
-            (this->ch##_envelope_timer + 1) % hz_to_samples(ch##_dat->envelope_period, 64); \
+            (this->ch##_envelope_timer + 1) % (ch##_dat->envelope_period * hz_to_samples(64)); \
         if (this->ch##_envelope_timer == 0) { \
             if (ch##_dat->envelope_direction == 0) { \
                 if (ch##_envelope_vol > 0) ch##_envelope_vol--; } \
@@ -103,7 +103,7 @@ u8 APU::get_ch1_sample(ch_control_t *ch_control, ch1_dat_t *ch1_dat) {
 
     // Sweep
     if(ch1_dat->sweep_period) {
-        this->ch1_sweep_timer = (this->ch1_sweep_timer + 1) % hz_to_samples(ch1_dat->sweep_period, 128);
+        this->ch1_sweep_timer = (this->ch1_sweep_timer + 1) % (ch1_dat->sweep_period * hz_to_samples(128));
         if(this->ch1_sweep_timer == 0) {
             u8 sweep_adj = ch1_dat->sweep_negate ? -1 : 1;
             this->ch1_sweep += sweep_adj;
@@ -115,7 +115,7 @@ u8 APU::get_ch1_sample(ch_control_t *ch_control, ch1_dat_t *ch1_dat) {
     u16 ch1_freq = 131072 / (2048 - ((ch1_dat->frequency_msb << 8) | ch1_dat->frequency_lsb));
     // x8 to get through the whole 8-bit cycle every HZ
     // "ch1_freq = 850" = A = 440Hz. Approx ch1_freq/2 = target hz.
-    this->ch1_freq_timer = (this->ch1_freq_timer + 1) % hz_to_samples(1, (ch1_freq * 8) / 2);
+    this->ch1_freq_timer = (this->ch1_freq_timer + 1) % hz_to_samples(ch1_freq * 8);
 
     // Duty
     if(this->ch1_freq_timer == 0) {
@@ -124,7 +124,7 @@ u8 APU::get_ch1_sample(ch_control_t *ch_control, ch1_dat_t *ch1_dat) {
     u8 ch1 = duty[ch1_dat->duty][this->ch1_duty_pos] * 0xFF;
 
     // Length Counter
-    LENGTH_COUNTER(ch1, 63);
+    LENGTH_COUNTER(ch1);
 
     // Envelope
     ENVELOPE(ch1);
@@ -151,7 +151,7 @@ u8 APU::get_ch2_sample(ch_control_t *ch_control, ch2_dat_t *ch2_dat) {
 
     // Timer
     u16 ch2_freq = 131072 / (2048 - ((ch2_dat->frequency_msb << 8) | ch2_dat->frequency_lsb));
-    this->ch2_freq_timer = (this->ch2_freq_timer + 1) % hz_to_samples(1, (ch2_freq * 8) / 2);
+    this->ch2_freq_timer = (this->ch2_freq_timer + 1) % hz_to_samples(ch2_freq * 8);
 
     // Duty
     if(ch2_freq_timer == 0) {
@@ -160,7 +160,7 @@ u8 APU::get_ch2_sample(ch_control_t *ch_control, ch2_dat_t *ch2_dat) {
     u8 ch2 = duty[ch2_dat->duty][this->ch2_duty_pos] * 0xFF;
 
     // Length Counter
-    LENGTH_COUNTER(ch2, 63);
+    LENGTH_COUNTER(ch2);
 
     // Envelope
     ENVELOPE(ch2);
@@ -184,7 +184,7 @@ u8 APU::get_ch3_sample(ch_control_t *ch_control, ch3_dat_t *ch3_dat) {
 
     // Timer
     u16 ch3_freq = 65536 / (2048 - ((ch3_dat->frequency_msb << 8) | ch3_dat->frequency_lsb));
-    this->ch3_freq_timer = (this->ch3_freq_timer + 1) % hz_to_samples(1, ch3_freq * 8);
+    this->ch3_freq_timer = (this->ch3_freq_timer + 1) % hz_to_samples(ch3_freq * 8);
     // do we want one 4-bit sample, or 32 4-bit samples to appear $freq times per sec?
     // assuming here that we want the whole waveform N times/sec
     if(this->ch3_freq_timer == 0) {
@@ -208,7 +208,7 @@ u8 APU::get_ch3_sample(ch_control_t *ch_control, ch3_dat_t *ch3_dat) {
     }
 
     // Length Counter
-    LENGTH_COUNTER(ch3, 255);
+    LENGTH_COUNTER(ch3);
 
     // Volume
     if(ch3_dat->volume == 0) ch3 = 0;
@@ -253,7 +253,7 @@ u8 APU::get_ch4_sample(ch_control_t *ch_control, ch4_dat_t *ch4_dat) {
     u8 ch4 = 0xFF - ((ch4_lfsr & BIT_0) * 0xFF); // bit0, inverted
 
     // Length Counter
-    LENGTH_COUNTER(ch4, 63);
+    LENGTH_COUNTER(ch4);
 
     // Envelope
     ENVELOPE(ch4);
