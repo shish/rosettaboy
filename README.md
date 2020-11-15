@@ -25,12 +25,13 @@ Completeness
 | gblargh's CPU test suite           |  &check;  |  &check;  |  &check;  |
 | silent / headless                  |  &check;  |  &check;  |  &check;  |
 | scaled output                      |  &check;  |  &check;  |  &cross;  |
-| max fps (goal=60; debug/release)   |  15       |  400/2000 |  140/2700 |
+| debug build fps                    |  15       |  400      |  140      |
+| release build fps                  |  15       |  2000     |  2700     |
 | CPU logging                        |  &check;  |  &check;  |  &check;  |
 | keyboard input                     |  &cross;  |  &check;  |  &check;  |
 | gamepad input                      |  &cross;  |  &cross;  |  &check;  |
 | turbo button                       |  &cross;  |  &check;  |  &cross;  |
-| audio                              |  &cross;  |  off-key  |  &cross;  |
+| audio                              |  &cross;  |  off-key  |  glitchy  |
 | memory mapping                     |  &cross;  |  &check;  |  &check;  |
 | scanline rendering                 |  &cross;  |  &cross;  |  &check;  |
 | bank swapping                      |  &cross;  |  ?        |  ?        |
