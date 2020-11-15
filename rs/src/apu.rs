@@ -20,12 +20,12 @@ const DUTY: [[u8; 8]; 4] = [
 ];
 
 macro_rules! LENGTH_COUNTER {
-    ( $ch:expr, $active:expr, $length_enable:expr, $length:expr, $length_timer:expr) => {
-        if $length_enable {
-            if $length > 0 {
-                $length_timer = ($length_timer + 1) % hz_to_samples(1, 256);
-                if $length_timer == 0 {
-                    $length -= 1;
+    ( $ch:expr, $active:expr, $ctrl:expr, $st:expr) => {
+        if $ctrl.length_enable {
+            if $st.length > 0 {
+                $st.length_timer = ($st.length_timer + 1) % hz_to_samples(256);
+                if $st.length_timer == 0 {
+                    $st.length -= 1;
                 }
                 $active = true;
             } else {
@@ -42,9 +42,8 @@ macro_rules! ENVELOPE {
     ( $ch:expr, $ctrl:expr, $st:expr ) => {{
         if $ctrl.envelope_period > 0 {
             $st.envelope_timer =
-                ($st.envelope_timer + 1) % hz_to_samples($ctrl.envelope_period, 64);
+                ($st.envelope_timer + 1) % ($ctrl.envelope_period as usize * hz_to_samples(64));
             if $st.envelope_timer == 0 {
-                // println!("{} {}", $ctrl.envelope_direction, $ctrl.envelope_vol);
                 if !$ctrl.envelope_direction {
                     if $st.envelope_vol > 0 {
                         $st.envelope_vol -= 1;
@@ -62,9 +61,8 @@ macro_rules! ENVELOPE {
 
 fn envelope(ctrl: &mut Ch1Control, st: &mut Ch1State) -> u16 {
     if ctrl.envelope_period > 0 {
-        st.envelope_timer = (st.envelope_timer + 1) % hz_to_samples(ctrl.envelope_period, 64);
+        st.envelope_timer = (st.envelope_timer + 1) % (ctrl.envelope_period as usize * hz_to_samples(64));
         if st.envelope_timer == 0 {
-            // println!("{} {}", ctrl.envelope_direction, ctrl.envelope_vol);
             if !ctrl.envelope_direction {
                 if st.envelope_vol > 0 {
                     st.envelope_vol -= 1;
@@ -79,13 +77,13 @@ fn envelope(ctrl: &mut Ch1Control, st: &mut Ch1State) -> u16 {
     return st.envelope_vol as u16;
 }
 
-fn hz_to_samples(n: u8, hz: u16) -> usize {
+fn hz_to_samples(hz: u16) -> usize {
     if hz == 0 {
         HZ as usize
     } else if hz > HZ {
         1
     } else {
-        ((n as usize * HZ as usize) / hz as usize) as usize
+        (HZ/hz) as usize
     }
 }
 
@@ -115,7 +113,7 @@ impl APU {
                 freq: Some(HZ as i32),
                 channels: Some(2),
                 // generate audio for one frame at a time, 735 samples per frame
-                samples: Some((HZ / 60) as u16),
+                samples: Some((HZ/60) as u16),
             };
             let device = audio.open_queue::<u8, _>(None, &spec)?;
             device.resume();
@@ -140,7 +138,7 @@ impl APU {
             let out = self.render_frame_audio(ram);
 
             if let Some(device) = &self.device {
-                println!("size = {}", device.size());
+                // println!("size = {}", device.size());
                 if device.size() <= ((HZ / 60) * 2) as u32 {
                     device.queue(&out);
                     device.queue(&out);
@@ -160,9 +158,9 @@ impl APU {
         for (n, x) in out.iter_mut().enumerate() {
             if n % 2 == 0 {
                 sample = self.get_next_sample();
-                *x = (sample & 0xFF00 >> 8) as u8;
+                *x = ((sample & 0xFF00) >> 8) as u8;
             } else {
-                *x = (sample & 0x00FF >> 0) as u8;
+                *x = ((sample & 0x00FF) >> 0) as u8;
             }
         }
         self.regs_to_ram(audio_controls);
@@ -238,7 +236,7 @@ impl APU {
             * self.control.s02_volume.to_primitive() as u32
             / 4) as u8;
 
-        return (s01 as u16) << 8 | s02 as u16; // s01 = right, s02 = left
+        return ((s01 as u16) << 8) | s02 as u16; // s01 = right, s02 = left
     }
 
     fn get_ch1_sample(&mut self) -> u8 {
@@ -248,7 +246,7 @@ impl APU {
         // Sweep
         if self.ch1.sweep_period > 0 {
             self.ch1s.sweep_timer =
-                (self.ch1s.sweep_timer + 1) % hz_to_samples(self.ch1.sweep_period, 128);
+                (self.ch1s.sweep_timer + 1) % (self.ch1.sweep_period as usize * hz_to_samples(128));
             if self.ch1s.sweep_timer == 0 {
                 if self.ch1.sweep_negate {
                     self.ch1s.sweep = self.ch1s.sweep.overflowing_sub(1).0;
@@ -266,7 +264,7 @@ impl APU {
         // x8 to get through the whole 8-bit cycle every HZ
         // "ch1_freq = 850" = A = 440Hz. Approx ch1_freq/2 = target hz.
         self.ch1s.freq_timer =
-            (self.ch1s.freq_timer + 1) % hz_to_samples(1, ((ch1_freq * 8) / 2) as u16);
+            (self.ch1s.freq_timer + 1) % hz_to_samples(((ch1_freq * 8) / 2) as u16);
 
         // Duty
         if self.ch1s.freq_timer == 0 {
@@ -278,9 +276,8 @@ impl APU {
         LENGTH_COUNTER!(
             ch1,
             self.control.ch1_active,
-            self.ch1.length_enable,
-            self.ch1s.length,
-            self.ch1s.length_timer // len=63
+            self.ch1,
+            self.ch1s
         );
 
         // Envelope
@@ -289,7 +286,7 @@ impl APU {
 
         // Reset handler
         if self.ch1.reset {
-            self.ch1.reset = false; // BUG: this fixes our copy of reset, but not the source...
+            self.ch1.reset = false;
             self.ch1s.length = if self.ch1.length_load > 0 {
                 self.ch1.length_load
             } else {
@@ -315,7 +312,7 @@ impl APU {
         let ch2_freq = (131072
             / (2048 - (((self.ch2.frequency_msb as u32) << 8) | self.ch2.frequency_lsb as u32)))
             as u16;
-        self.ch2s.freq_timer = (self.ch2s.freq_timer + 1) % hz_to_samples(1, (ch2_freq * 8) / 2);
+        self.ch2s.freq_timer = (self.ch2s.freq_timer + 1) % hz_to_samples((ch2_freq * 8) / 2);
 
         // Duty
         if self.ch2s.freq_timer == 0 {
@@ -327,9 +324,8 @@ impl APU {
         LENGTH_COUNTER!(
             ch2,
             self.control.ch2_active,
-            self.ch2.length_enable,
-            self.ch2s.length,
-            self.ch2s.length_timer // len=63
+            self.ch2,
+            self.ch2s
         );
 
         // Envelope
@@ -360,7 +356,7 @@ impl APU {
         let ch3_freq = (65536
             / (2048 - (((self.ch3.frequency_msb as u32) << 8) | self.ch3.frequency_lsb as u32)))
             as u16;
-        self.ch3s.freq_timer = (self.ch3s.freq_timer + 1) % hz_to_samples(1, ch3_freq * 8);
+        self.ch3s.freq_timer = (self.ch3s.freq_timer + 1) % hz_to_samples(ch3_freq * 8);
         // do we want one 4-bit sample, or 32 4-bit samples to appear $freq times per sec?
         // assuming here that we want the whole waveform N times/sec
         if self.ch3s.freq_timer == 0 {
@@ -383,9 +379,8 @@ impl APU {
         LENGTH_COUNTER!(
             ch3,
             self.control.ch3_active,
-            self.ch3.length_enable,
-            self.ch3s.length,
-            self.ch3s.length_timer // len=255
+            self.ch3,
+            self.ch3s
         );
 
         // Volume
@@ -443,9 +438,8 @@ impl APU {
         LENGTH_COUNTER!(
             ch4,
             self.control.ch4_active,
-            self.ch4.length_enable,
-            self.ch4s.length,
-            self.ch4s.length_timer // len=63
+            self.ch4,
+            self.ch4s
         );
 
         // Envelope
