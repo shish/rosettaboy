@@ -470,7 +470,7 @@ impl APU {
     }
 }
 
-#[derive(Default, PackedStruct)]
+#[derive(Default, Debug, PackedStruct)]
 #[packed_struct(bit_numbering="msb0")]
 pub struct Ch1Control {
     // NR10
@@ -513,7 +513,7 @@ pub struct Ch1Control {
     frequency_msb: u8, // 3
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct Ch1State {
     duty_pos: u8,
     envelope_timer: usize,
@@ -526,7 +526,7 @@ struct Ch1State {
     sweep_timer: usize,
 }
 
-#[derive(Default, PackedStruct)]
+#[derive(Default, Debug, PackedStruct)]
 #[packed_struct(bit_numbering="msb0")]
 pub struct Ch2Control {
     // NR20
@@ -561,7 +561,7 @@ pub struct Ch2Control {
     frequency_msb: u8, // 3
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct Ch2State {
     duty_pos: u8,
     envelope_timer: usize,
@@ -571,7 +571,7 @@ struct Ch2State {
     length_timer: usize,
 }
 
-#[derive(Default, PackedStruct)]
+#[derive(Default, Debug, PackedStruct)]
 #[packed_struct(bit_numbering="msb0")]
 pub struct Ch3Control {
     // NR30
@@ -603,7 +603,7 @@ pub struct Ch3Control {
     frequency_msb: u8, // 3
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct Ch3State {
     freq_timer: usize,
     length: u8,
@@ -611,7 +611,7 @@ struct Ch3State {
     sample: u8,
 }
 
-#[derive(Default, PackedStruct)]
+#[derive(Default, Debug, PackedStruct)]
 #[packed_struct(bit_numbering="msb0")]
 pub struct Ch4Control {
     // NR40
@@ -646,7 +646,7 @@ pub struct Ch4Control {
     // #[packed_field(bits="34:39")]
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Ch4State {
     // Internal state
     envelope_timer: usize,
@@ -657,7 +657,7 @@ pub struct Ch4State {
     lfsr: u16, // = 0xFFFF;
 }
 
-#[derive(Default, PackedStruct)]
+#[derive(Default, Debug, PackedStruct)]
 #[packed_struct(bit_numbering="msb0")]
 pub struct Control {
     // NR50
