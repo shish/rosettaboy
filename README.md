@@ -24,7 +24,7 @@ Completeness
 | -------                            | -------   | ---       | ----      |
 | gblargh's CPU test suite           |  &check;  |  &check;  |  &check;  |
 | silent / headless                  |  &check;  |  &check;  |  &check;  |
-| scaled output                      |  &check;  |  &check;  |  &cross;  |
+| scaled output                      |  &check;  |  &check;  |  &check;  |
 | debug build fps                    |  15       |  400      |  140      |
 | release build fps                  |  15       |  2000     |  2700     |
 | CPU logging                        |  &check;  |  &check;  |  &check;  |

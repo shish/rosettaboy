@@ -37,10 +37,10 @@ class GPU:
         self.obp0 = self.colors
         self.obp1 = self.colors
 
-        self.clock = 0
+        self.cycle = 0
 
     def tick(self) -> bool:
-        self.clock += 1
+        self.cycle += 1
 
         # CPU STOP stops all LCD activity until a button is pressed
         if self.cpu.stop:
@@ -54,8 +54,8 @@ class GPU:
             if not self.debug:
                 return True
 
-        lx = self.clock % 114
-        ly = (self.clock // 114) % 154
+        lx = self.cycle % 114
+        ly = (self.cycle // 114) % 154
         self.cpu.ram[IO_LY] = ly
 
         # LYC compare & interrupt
@@ -113,22 +113,9 @@ class GPU:
     def draw_lcd(self):
         self.update_palettes()
 
-        SCROLL_Y = self.cpu.ram[0xFF42]
-        SCROLL_X = self.cpu.ram[0xFF43]
-        WND_Y = self.cpu.ram[0xFF4A]
-        WND_X = self.cpu.ram[0xFF4B]
-        LCDC = self.cpu.ram[0xFF40]
+        LCDC = self.cpu.ram[IO_LCDC]
 
-        LCDC_ENABLED = 0b10000000
-        LCDC_WINDOW_MAP = 0b01000000
-        LCDC_WINDOW_ENABLED = 0b00100000
-        LCDC_DATA_SRC = 0b00010000
-        LCDC_BG_MAP = 0b00001000
-        LCDC_OBJ_SIZE = 0b00000100
-        LCDC_OBJ_ENABLED = 0b00000010
-        LCDC_BG_WIN_ENABLED = 0b00000001
-
-        # print("SCROLL ", SCROLL_X, SCROLL_Y)
+        self.buffer.fill(self.bgp[0])
 
         # for some reason when using tile map 1, tiles are 0..255,
         # when using tile map 0, tiles are -128..127; also, they overlap
@@ -148,7 +135,10 @@ class GPU:
             table = TILE_DATA_TABLE_0
             tile_offset = 0xFF
 
-        self.buffer.fill(self.bgp[0])
+        SCROLL_Y = self.cpu.ram[IO_SCY]
+        SCROLL_X = self.cpu.ram[IO_SCX]
+        WND_Y = self.cpu.ram[IO_WY]
+        WND_X = self.cpu.ram[IO_WX]
 
         # Display only valid area
         if self._game_only:

@@ -11,7 +11,7 @@ const BIT_0: u16 = 0b00000001;
 const BIT_1: u16 = 0b00000010;
 const BIT_6: u16 = 0b00100000;
 const WAVE_LEN: u8 = 32;
-const HZ: u16 = 44100;
+const HZ: u16 = 48000;
 const DUTY: [[u8; 8]; 4] = [
     [0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 1],

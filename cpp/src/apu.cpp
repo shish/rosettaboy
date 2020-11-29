@@ -2,12 +2,12 @@
 
 #include "apu.h"
 
-u32 HZ = 44100;
+u32 HZ = 48000; // 44100;
 u8 duty[4][8] = {
-    {0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,1},
-    {1,0,0,0,0,1,1,1},
-    {0,1,1,1,1,1,1,0},
+    {1,0,0,0,0,0,0,0},
+    {1,1,0,0,0,0,0,0},
+    {1,1,1,1,0,0,0,0},
+    {1,1,1,1,1,1,0,0},
 };
 
 static int hz_to_samples(int hz) {
@@ -111,10 +111,10 @@ u8 APU::get_ch1_sample(ch_control_t *ch_control, ch1_dat_t *ch1_dat) {
     }
 
     // Timer
-    // 1651 -> 331Hz
+    // 1651 -> 330Hz
     u16 ch1_freq = 131072 / (2048 - ((ch1_dat->frequency_msb << 8) | ch1_dat->frequency_lsb));
     // x8 to get through the whole 8-bit cycle every HZ
-    // "ch1_freq = 850" = A = 440Hz. Approx ch1_freq/2 = target hz.
+    // "ch1_freq = 1750" = A = 440Hz.
     this->ch1_freq_timer = (this->ch1_freq_timer + 1) % hz_to_samples(ch1_freq * 8);
 
     // Duty
