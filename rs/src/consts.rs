@@ -781,11 +781,11 @@ bitflags! {
 }
 
 pub enum InterruptHandler {
-    VblankHandler = 0x40,
-    LcdHandler = 0x48,
-    TimerHandler = 0x50,
-    SerialHandler = 0x58,
-    JoypadHandler = 0x60,
+    VBlank = 0x40,
+    Lcd = 0x48,
+    Timer = 0x50,
+    Serial = 0x58,
+    Joypad = 0x60,
 }
 impl Address for InterruptHandler {
     fn to_u16(self) -> u16 {

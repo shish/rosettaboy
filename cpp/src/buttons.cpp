@@ -11,7 +11,7 @@ bool Buttons::tick() {
     this->update_buttons();
     if (this->need_interrupt) {
         this->cpu->stop = false;
-        this->cpu->interrupt(INT_JOYPAD);
+        this->cpu->interrupt(Interrupt::JOYPAD);
         this->need_interrupt = false;
     }
     if (this->cycle % 17556 == 20) {
@@ -69,19 +69,19 @@ void Buttons::update_buttons() {
     // Since the hardware uses 0 for pressed and 1 for
     // released, let's invert on read and write to keep
     // our logic sensible....
-    u8 JOYP = ~this->cpu->ram->get(IO_JOYP);
+    u8 JOYP = ~this->cpu->ram->get(IO::JOYP);
     JOYP &= 0xF0;
-    if(JOYP & JOYP_SELECT_DPAD) {
-        if(this->up) JOYP |= JOYP_UP;
-        if(this->down) JOYP |= JOYP_DOWN;
-        if(this->left) JOYP |= JOYP_LEFT;
-        if(this->right) JOYP |= JOYP_RIGHT;
+    if(JOYP & Joypad::MODE_DPAD) {
+        if(this->up) JOYP |= Joypad::UP;
+        if(this->down) JOYP |= Joypad::DOWN;
+        if(this->left) JOYP |= Joypad::LEFT;
+        if(this->right) JOYP |= Joypad::RIGHT;
     }
-    if(JOYP & JOYP_SELECT_BUTTONS) {
-        if(this->b) JOYP |= JOYP_B;
-        if(this->a) JOYP |= JOYP_A;
-        if(this->start) JOYP |= JOYP_START;
-        if(this->select) JOYP |= JOYP_SELECT;
+    if(JOYP & Joypad::MODE_BUTTONS) {
+        if(this->b) JOYP |= Joypad::B;
+        if(this->a) JOYP |= Joypad::A;
+        if(this->start) JOYP |= Joypad::START;
+        if(this->select) JOYP |= Joypad::SELECT;
     }
-    this->cpu->ram->set(IO_JOYP, ~JOYP);
+    this->cpu->ram->set(IO::JOYP, ~JOYP);
 }

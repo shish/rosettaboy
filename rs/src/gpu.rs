@@ -1,5 +1,5 @@
 extern crate sdl2;
-use crate::consts;
+use crate::consts::{LCDC, IO, Stat, Interrupt, Mem};
 use crate::cpu;
 use crate::ram;
 
@@ -110,11 +110,11 @@ impl GPU {
         }
 
         // Check if LCD enabled at all
-        let lcdc = consts::LCDC::from_bits(ram.get(consts::IO::LCDC)).unwrap();
-        if !lcdc.contains(consts::LCDC::ENABLED) {
+        let lcdc = LCDC::from_bits(ram.get(IO::LCDC)).unwrap();
+        if !lcdc.contains(LCDC::ENABLED) {
             // When LCD is re-enabled, LY is 0
             // Does it become 0 as soon as disabled??
-            ram.set(consts::IO::LY, 0);
+            ram.set(IO::LY, 0);
             if !self.debug {
                 return Ok(());
             }
@@ -122,33 +122,33 @@ impl GPU {
 
         let lx = self.cycle % 114;
         let ly = (self.cycle / 114) % 154;
-        ram.set(consts::IO::LY, ly as u8);
+        ram.set(IO::LY, ly as u8);
 
-        let stat = consts::Stat::from_bits(ram.get(consts::IO::STAT)).unwrap();
+        let stat = Stat::from_bits(ram.get(IO::STAT)).unwrap();
 
         // LYC compare & interrupt
-        if ram.get(consts::IO::LY) == ram.get(consts::IO::LYC) {
-            if stat.contains(consts::Stat::LCY_INTERRUPT) {
-                cpu.interrupt(ram, consts::Interrupt::STAT);
+        if ram.get(IO::LY) == ram.get(IO::LYC) {
+            if stat.contains(Stat::LCY_INTERRUPT) {
+                cpu.interrupt(ram, Interrupt::STAT);
             }
-            ram._or(consts::IO::STAT, consts::Stat::LCY_EQUAL.bits());
+            ram._or(IO::STAT, Stat::LCY_EQUAL.bits());
         } else {
-            ram._and(consts::IO::STAT, !consts::Stat::LCY_EQUAL.bits());
+            ram._and(IO::STAT, !Stat::LCY_EQUAL.bits());
         }
 
         // Set `ram[STAT].bit{0,1}` to `OAM / Drawing / HBlank / VBlank`
         if lx == 0 && ly < 144 {
             ram.set(
-                consts::IO::STAT,
-                ((stat & !consts::Stat::MODE_BITS) | consts::Stat::OAM).bits(),
+                IO::STAT,
+                ((stat & !Stat::MODE_BITS) | Stat::OAM).bits(),
             );
-            if stat.contains(consts::Stat::OAM_INTERRUPT) {
-                cpu.interrupt(ram, consts::Interrupt::STAT);
+            if stat.contains(Stat::OAM_INTERRUPT) {
+                cpu.interrupt(ram, Interrupt::STAT);
             }
         } else if lx == 20 && ly < 144 {
             ram.set(
-                consts::IO::STAT,
-                ((stat & !consts::Stat::MODE_BITS) | consts::Stat::DRAWING).bits(),
+                IO::STAT,
+                ((stat & !Stat::MODE_BITS) | Stat::DRAWING).bits(),
             );
             if ly == 0 {
                 // TODO: how often should we update palettes?
@@ -171,40 +171,40 @@ impl GPU {
             }
         } else if lx == 63 && ly < 144 {
             ram.set(
-                consts::IO::STAT,
-                ((stat & !consts::Stat::MODE_BITS) | consts::Stat::HBLANK).bits(),
+                IO::STAT,
+                ((stat & !Stat::MODE_BITS) | Stat::HBLANK).bits(),
             );
-            if stat.contains(consts::Stat::HBLANK_INTERRUPT) {
-                cpu.interrupt(ram, consts::Interrupt::STAT);
+            if stat.contains(Stat::HBLANK_INTERRUPT) {
+                cpu.interrupt(ram, Interrupt::STAT);
             }
         } else if lx == 0 && ly == 144 {
             ram.set(
-                consts::IO::STAT,
-                ((stat & !consts::Stat::MODE_BITS) | consts::Stat::VBLANK).bits(),
+                IO::STAT,
+                ((stat & !Stat::MODE_BITS) | Stat::VBLANK).bits(),
             );
-            if stat.contains(consts::Stat::VBLANK_INTERRUPT) {
-                cpu.interrupt(ram, consts::Interrupt::STAT);
+            if stat.contains(Stat::VBLANK_INTERRUPT) {
+                cpu.interrupt(ram, Interrupt::STAT);
             }
-            cpu.interrupt(ram, consts::Interrupt::VBLANK);
+            cpu.interrupt(ram, Interrupt::VBLANK);
         }
 
         return Ok(());
     }
 
     fn update_palettes(&mut self, ram: &ram::RAM) {
-        let raw_bgp = ram.get(consts::IO::BGP);
+        let raw_bgp = ram.get(IO::BGP);
         self.bgp[0] = self.colors[((raw_bgp >> 0) & 0x3) as usize];
         self.bgp[1] = self.colors[((raw_bgp >> 2) & 0x3) as usize];
         self.bgp[2] = self.colors[((raw_bgp >> 4) & 0x3) as usize];
         self.bgp[3] = self.colors[((raw_bgp >> 6) & 0x3) as usize];
 
-        let raw_obp0 = ram.get(consts::IO::OBP0);
+        let raw_obp0 = ram.get(IO::OBP0);
         self.obp0[0] = self.colors[((raw_obp0 >> 0) & 0x3) as usize];
         self.obp0[1] = self.colors[((raw_obp0 >> 2) & 0x3) as usize];
         self.obp0[2] = self.colors[((raw_obp0 >> 4) & 0x3) as usize];
         self.obp0[3] = self.colors[((raw_obp0 >> 6) & 0x3) as usize];
 
-        let raw_obp1 = ram.get(consts::IO::OBP1);
+        let raw_obp1 = ram.get(IO::OBP1);
         self.obp1[0] = self.colors[((raw_obp1 >> 0) & 0x3) as usize];
         self.obp1[1] = self.colors[((raw_obp1 >> 2) & 0x3) as usize];
         self.obp1[2] = self.colors[((raw_obp1 >> 4) & 0x3) as usize];
@@ -212,7 +212,7 @@ impl GPU {
     }
 
     fn draw_debug(&mut self, ram: &mut ram::RAM) -> Result<(), String> {
-        let lcdc = consts::LCDC::from_bits(ram.get(consts::IO::LCDC)).unwrap();
+        let lcdc = LCDC::from_bits(ram.get(IO::LCDC)).unwrap();
 
         // Tile data
         let tile_display_width = 32;
@@ -225,7 +225,7 @@ impl GPU {
         }
 
         // Background scroll border
-        if lcdc.contains(consts::LCDC::BG_WIN_ENABLED) {
+        if lcdc.contains(LCDC::BG_WIN_ENABLED) {
             let rect = Rect::new(0, 0, 160, 144);
             if let Some(canvas) = &mut self.canvas {
                 canvas.set_draw_color(RED);
@@ -234,9 +234,9 @@ impl GPU {
         }
 
         // Window tiles
-        if lcdc.contains(consts::LCDC::WINDOW_ENABLED) {
-            let wnd_y = ram.get(consts::IO::WY);
-            let wnd_x = ram.get(consts::IO::WX);
+        if lcdc.contains(LCDC::WINDOW_ENABLED) {
+            let wnd_y = ram.get(IO::WY);
+            let wnd_x = ram.get(IO::WX);
             let rect = Rect::new(wnd_x as i32 - 7, wnd_y as i32, 160, 144);
             if let Some(canvas) = &mut self.canvas {
                 canvas.set_draw_color(BLUE);
@@ -248,17 +248,17 @@ impl GPU {
     }
 
     fn draw_line(&mut self, ram: &mut ram::RAM, ly: i32) {
-        let lcdc = consts::LCDC::from_bits(ram.get(consts::IO::LCDC)).unwrap();
+        let lcdc = LCDC::from_bits(ram.get(IO::LCDC)).unwrap();
 
         // Background tiles
-        if lcdc.contains(consts::LCDC::BG_WIN_ENABLED) {
-            let scroll_y = ram.get(consts::IO::SCY) as i32;
-            let scroll_x = ram.get(consts::IO::SCX) as i32;
-            let tile_offset = !lcdc.contains(consts::LCDC::DATA_SRC);
-            let background_map = if lcdc.contains(consts::LCDC::BG_MAP) {
-                consts::Mem::Map1
+        if lcdc.contains(LCDC::BG_WIN_ENABLED) {
+            let scroll_y = ram.get(IO::SCY) as i32;
+            let scroll_x = ram.get(IO::SCX) as i32;
+            let tile_offset = !lcdc.contains(LCDC::DATA_SRC);
+            let background_map = if lcdc.contains(LCDC::BG_MAP) {
+                Mem::Map1
             } else {
-                consts::Mem::Map0
+                Mem::Map0
             } as u16;
 
             if self.debug {
@@ -290,14 +290,14 @@ impl GPU {
         }
 
         // Window tiles
-        if lcdc.contains(consts::LCDC::WINDOW_ENABLED) {
-            let wnd_y = ram.get(consts::IO::WY);
-            let wnd_x = ram.get(consts::IO::WX);
-            let tile_offset = !lcdc.contains(consts::LCDC::DATA_SRC);
-            let window_map = if lcdc.contains(consts::LCDC::WINDOW_MAP) {
-                consts::Mem::Map1
+        if lcdc.contains(LCDC::WINDOW_ENABLED) {
+            let wnd_y = ram.get(IO::WY);
+            let wnd_x = ram.get(IO::WX);
+            let tile_offset = !lcdc.contains(LCDC::DATA_SRC);
+            let window_map = if lcdc.contains(LCDC::WINDOW_MAP) {
+                Mem::Map1
             } else {
-                consts::Mem::Map0
+                Mem::Map0
             } as u16;
 
             // blank out the background
@@ -325,8 +325,8 @@ impl GPU {
         }
 
         // Sprites
-        if lcdc.contains(consts::LCDC::OBJ_ENABLED) {
-            let dbl = lcdc.contains(consts::LCDC::OBJ_SIZE);
+        if lcdc.contains(LCDC::OBJ_ENABLED) {
+            let dbl = lcdc.contains(LCDC::OBJ_SIZE);
 
             // TODO: sorted by x
             // let sprites: [Sprite; 40] = [];
@@ -334,11 +334,11 @@ impl GPU {
             // for sprite in sprites.iter() {
             for n in 0..40 {
                 let sprite = Sprite {
-                    y: ram.get(consts::Mem::OamBase as u16 + 4 * n + 0),
-                    x: ram.get(consts::Mem::OamBase as u16 + 4 * n + 1),
-                    tile_id: ram.get(consts::Mem::OamBase as u16 + 4 * n + 2),
+                    y: ram.get(Mem::OamBase as u16 + 4 * n + 0),
+                    x: ram.get(Mem::OamBase as u16 + 4 * n + 1),
+                    tile_id: ram.get(Mem::OamBase as u16 + 4 * n + 2),
                     flags: SpriteFlags::from_bits_truncate(
-                        ram.get(consts::Mem::OamBase as u16 + 4 * n + 3),
+                        ram.get(Mem::OamBase as u16 + 4 * n + 3),
                     ),
                 };
                 if sprite.is_live() {
@@ -409,7 +409,7 @@ impl GPU {
         flip_y: bool,
         y: i32,
     ) {
-        let addr = (consts::Mem::TileData as i32 + tile_id as i32 * 16 + y * 2) as u16;
+        let addr = (Mem::TileData as i32 + tile_id as i32 * 16 + y * 2) as u16;
         let low_byte = ram.get(addr);
         let high_byte = ram.get(addr + 1);
         for x in 0..8 {

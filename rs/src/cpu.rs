@@ -257,23 +257,23 @@ impl CPU {
             // TODO: one more cycle to store new PC
             if queued_interrupts.contains(consts::Interrupt::VBLANK) {
                 self.push(self.pc, ram);
-                self.pc = consts::InterruptHandler::VblankHandler as u16;
+                self.pc = consts::InterruptHandler::VBlank as u16;
                 ram._and(consts::IO::IF, !consts::Interrupt::VBLANK.bits());
             } else if queued_interrupts.contains(consts::Interrupt::STAT) {
                 self.push(self.pc, ram);
-                self.pc = consts::InterruptHandler::LcdHandler as u16;
+                self.pc = consts::InterruptHandler::Lcd as u16;
                 ram._and(consts::IO::IF, !consts::Interrupt::STAT.bits());
             } else if queued_interrupts.contains(consts::Interrupt::TIMER) {
                 self.push(self.pc, ram);
-                self.pc = consts::InterruptHandler::TimerHandler as u16;
+                self.pc = consts::InterruptHandler::Timer as u16;
                 ram._and(consts::IO::IF, !consts::Interrupt::TIMER.bits());
             } else if queued_interrupts.contains(consts::Interrupt::SERIAL) {
                 self.push(self.pc, ram);
-                self.pc = consts::InterruptHandler::SerialHandler as u16;
+                self.pc = consts::InterruptHandler::Serial as u16;
                 ram._and(consts::IO::IF, !consts::Interrupt::SERIAL.bits());
             } else if queued_interrupts.contains(consts::Interrupt::JOYPAD) {
                 self.push(self.pc, ram);
-                self.pc = consts::InterruptHandler::JoypadHandler as u16;
+                self.pc = consts::InterruptHandler::Joypad as u16;
                 ram._and(consts::IO::IF, !consts::Interrupt::JOYPAD.bits());
             }
         }

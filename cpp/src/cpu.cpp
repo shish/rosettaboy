@@ -56,8 +56,8 @@ u8 CPU::set_reg(int n, u8 val) {
 }
 
 void CPU::dump_regs() {
-    u8 IE = this->ram->get(IO_IE);
-    u8 IF = this->ram->get(IO_IF);
+    u8 IE = this->ram->get(IO::IE);
+    u8 IF = this->ram->get(IO::IF);
     char z = 'z' ^ ((this->F >> 7) & 1) << 5;
     char n = 'n' ^ ((this->F >> 6) & 1) << 5;
     char h = 'h' ^ ((this->F >> 5) & 1) << 5;
@@ -95,8 +95,8 @@ void CPU::dump_regs() {
  * handler for this interrupt is enabled (and interrupts in general
  * are enabled), then the interrupt handler will be called.
  */
-void CPU::interrupt(Interrupt i) {
-    this->ram->_or(IO_IF, i);
+void CPU::interrupt(Interrupt::Interrupt i) {
+    this->ram->_or(IO::IF, i);
     this->halt = false;  // interrupts interrupt HALT state
 }
 
@@ -111,17 +111,17 @@ bool CPU::tick() {
 }
 
 /**
- * If there is a non-zero value in ram[IO_DMA], eg 0x42, then
+ * If there is a non-zero value in ram[IO::DMA], eg 0x42, then
  * we should copy memory from eg 0x4200 to OAM space.
  */
 void CPU::tick_dma() {
     // TODO: DMA should take 26 cycles, during which main RAM is inaccessible
-    if(this->ram->get(IO_DMA)) {
-        u16 dma_src = this->ram->get(IO_DMA) << 8;
+    if(this->ram->get(IO::DMA)) {
+        u16 dma_src = this->ram->get(IO::DMA) << 8;
         for(int i=0; i<0xA0; i++) {
-            this->ram->set(OAM_BASE + i, this->ram->get(dma_src + i));
+            this->ram->set(Mem::OAM_BASE + i, this->ram->get(dma_src + i));
         }
-        this->ram->set(IO_DMA, 0x00);
+        this->ram->set(IO::DMA, 0x00);
     }
 }
 
@@ -132,19 +132,19 @@ void CPU::tick_dma() {
 bool CPU::tick_clock() {
     cycle++;
 
-    // TODO: writing any value to IO_DIV should reset it to 0x00
+    // TODO: writing any value to IO::DIV should reset it to 0x00
     // increment at 16384Hz (each 64 cycles?)
-    if(cycle % 64 == 0) this->ram->_inc(IO_DIV);
+    if(cycle % 64 == 0) this->ram->_inc(IO::DIV);
 
-    if(this->ram->get(IO_TAC) & BIT_2) {  // timer enable
+    if(this->ram->get(IO::TAC) & BIT_2) {  // timer enable
         u16 speeds[] = {256, 4, 16, 64};  // increment per X cycles
-        u16 speed = speeds[this->ram->get(IO_TAC) & 0x03];
+        u16 speed = speeds[this->ram->get(IO::TAC) & 0x03];
         if(cycle % speed == 0) {
-            if(this->ram->get(IO_TIMA) == 0xFF) {
-                this->ram->set(IO_TIMA, this->ram->get(IO_TMA));  // if timer overflows, load base
-                this->interrupt(INT_TIMER);
+            if(this->ram->get(IO::TIMA) == 0xFF) {
+                this->ram->set(IO::TIMA, this->ram->get(IO::TMA));  // if timer overflows, load base
+                this->interrupt(Interrupt::TIMER);
             }
-            this->ram->_inc(IO_TIMA);
+            this->ram->_inc(IO::TIMA);
         }
     }
     return true;
@@ -156,37 +156,37 @@ bool CPU::tick_clock() {
  * clear the flag and call the handler for the first of them.
  */
 bool CPU::tick_interrupts() {
-    u8 queued_interrupts = this->ram->get(IO_IE) & this->ram->get(IO_IF);
+    u8 queued_interrupts = this->ram->get(IO::IE) & this->ram->get(IO::IF);
     if(this->interrupts && queued_interrupts) {
-        if(debug) printf("Handling interrupts: %02X & %02X\n", this->ram->get(IO_IE), this->ram->get(IO_IF));
+        if(debug) printf("Handling interrupts: %02X & %02X\n", this->ram->get(IO::IE), this->ram->get(IO::IF));
         this->interrupts = false;  // no nested interrupts, RETI will re-enable
         // TODO: wait two cycles
         // TODO: push16(PC) should also take two cycles
         // TODO: one more cycle to store new PC
-        if(queued_interrupts & INT_VBLANK) {
+        if(queued_interrupts & Interrupt::VBLANK) {
             this->push(this->PC);
-            this->PC = INT_VBLANK_HANDLER;
-            this->ram->_and(IO_IF, ~INT_VBLANK);
+            this->PC = InterruptHandler::VBLANK;
+            this->ram->_and(IO::IF, ~Interrupt::VBLANK);
         }
-        else if(queued_interrupts & INT_STAT) {
+        else if(queued_interrupts & Interrupt::STAT) {
             this->push(this->PC);
-            this->PC = INT_LCD_HANDLER;
-            this->ram->_and(IO_IF, ~INT_STAT);
+            this->PC = InterruptHandler::LCD;
+            this->ram->_and(IO::IF, ~Interrupt::STAT);
         }
-        else if(queued_interrupts & INT_TIMER) {
+        else if(queued_interrupts & Interrupt::TIMER) {
             this->push(this->PC);
-            this->PC = INT_TIMER_HANDLER;
-            this->ram->_and(IO_IF, ~INT_TIMER);
+            this->PC = InterruptHandler::TIMER;
+            this->ram->_and(IO::IF, ~Interrupt::TIMER);
         }
-        else if(queued_interrupts & INT_SERIAL) {
+        else if(queued_interrupts & Interrupt::SERIAL) {
             this->push(this->PC);
-            this->PC = INT_SERIAL_HANDLER;
-            this->ram->_and(IO_IF, ~INT_SERIAL);
+            this->PC = InterruptHandler::SERIAL;
+            this->ram->_and(IO::IF, ~Interrupt::SERIAL);
         }
-        else if(queued_interrupts & INT_JOYPAD) {
+        else if(queued_interrupts & Interrupt::JOYPAD) {
             this->push(this->PC);
-            this->PC = INT_JOYPAD_HANDLER;
-            this->ram->_and(IO_IF, ~INT_JOYPAD);
+            this->PC = InterruptHandler::JOYPAD;
+            this->ram->_and(IO::IF, ~Interrupt::JOYPAD);
         }
     }
     return true;

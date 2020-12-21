@@ -12,13 +12,12 @@ typedef short 				i16;
 typedef int                 i32;
 
 
-static u16 VRAM_BASE = 0x8000;
-static u16 TILE_DATA = 0x8000;
-static u16 BACKGROUND_MAP_0 = 0x9800;
-static u16 BACKGROUND_MAP_1 = 0x9C00;
-static u16 WINDOW_MAP_0 = 0x9800;
-static u16 WINDOW_MAP_1 = 0x9C00;
-static u16 OAM_BASE = 0xFE00;
+namespace Mem {
+    const u16 TILE_DATA = 0x8000;
+    const u16 MAP_0 = 0x9800;
+    const u16 MAP_1 = 0x9C00;
+    const u16 OAM_BASE = 0xFE00;
+}
 
 
 // It's too easy to make a subtle typo when
@@ -78,7 +77,7 @@ enum OldLicensee {
     KONAMI = 0xA4,
 };
 
-static u8 OP_CYCLES[] = {
+const u8 OP_CYCLES[] = {
     1,3,2,2,1,1,2,1,5,2,2,2,1,1,2,1,
     0,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1,
     2,3,2,2,1,1,2,1,2,2,2,2,1,1,2,1,
@@ -97,7 +96,7 @@ static u8 OP_CYCLES[] = {
     3,3,2,1,0,4,2,4,3,2,4,1,0,0,2,4
 };
 
-static u8 OP_CB_CYCLES[] = {
+const u8 OP_CB_CYCLES[] = {
     2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
     2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
     2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
@@ -116,7 +115,7 @@ static u8 OP_CB_CYCLES[] = {
     2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2
 };
 
-static u8 OP_ARG_TYPES[] = {
+const u8 OP_ARG_TYPES[] = {
     //1 2 3 4 5 6 7 8 9 A B C D E F
     0,2,0,0,0,0,1,0,2,0,0,0,0,0,1,0, // 0
     1,2,0,0,0,0,1,0,3,0,0,0,0,0,1,0, // 1
@@ -136,10 +135,10 @@ static u8 OP_ARG_TYPES[] = {
     1,0,0,0,0,0,1,0,3,0,2,0,0,0,1,0, // F
 };
 
-static u8 OP_ARG_BYTES[] = {0,1,2,1};
+const u8 OP_ARG_BYTES[] = {0,1,2,1};
 
 
-static std::string OP_NAMES[] = {
+const std::string OP_NAMES[] = {
     "NOP", "LD BC,$%04X", "LD [BC],A", "INC BC", "INC B", "DEC B", "LD B,$%02X", "RCLA", "LD [$%04X],SP",
     "ADD HL,BC", "LD A,[BC]", "DEC BC", "INC C", "DEC C", "LD C,$%02X", "RRCA", "STOP", "LD DE,$%04X",
     "LD [DE],A", "INC DE", "INC D", "DEC D", "LD D,$%02X", "RLA", "JR %+d", "ADD HL,DE", "LD A,[DE]",
@@ -174,7 +173,7 @@ static std::string OP_NAMES[] = {
     "LD HL,SP%+d", "LD SP,HL", "LD A,[$%04X]", "EI", "ERR FC", "ERR FD", "CP $%02X", "RST 38"
 };
 
-static std::string CB_OP_NAMES[] = {
+const std::string CB_OP_NAMES[] = {
     "RLC B", "RLC C", "RLC D", "RLC E", "RLC H", "RLC L", "RLC [HL]", "RLC A",
     "RRC B", "RRC C", "RRC D", "RRC E", "RRC H", "RRC L", "RRC [HL]", "RRC A",
     "RL B", "RL C", "RL D", "RL E", "RL H", "RL L", "RL [HL]", "RL A",
@@ -209,119 +208,118 @@ static std::string CB_OP_NAMES[] = {
     "SET 7,B", "SET 7,C", "SET 7,D", "SET 7,E", "SET 7,H", "SET 7,L", "SET 7,[HL]", "SET 7,A"
 };
 
-enum IOMem {
-    IO_JOYP = 0xFF00,
+namespace IO {
+    const u16 JOYP = 0xFF00;
     
-    IO_SB = 0xFF01, // Serial Data
-    IO_SC = 0xFF02, // Serial Control
+    const u16 SB = 0xFF01; // Serial Data
+    const u16 SC = 0xFF02; // Serial Control
 
-    IO_DIV = 0xFF04,
-    IO_TIMA = 0xFF05,
-    IO_TMA = 0xFF06,
-    IO_TAC = 0xFF07,
+    const u16 DIV = 0xFF04;
+    const u16 TIMA = 0xFF05;
+    const u16 TMA = 0xFF06;
+    const u16 TAC = 0xFF07;
 
-    IO_IF = 0xFF0F,
+    const u16 IF = 0xFF0F;
 
-    IO_NR10 = 0xFF10,
-    IO_NR11 = 0xFF11,
-    IO_NR12 = 0xFF12,
-    IO_NR13 = 0xFF13,
-    IO_NR14 = 0xFF14,
+    const u16 NR10 = 0xFF10;
+    const u16 NR11 = 0xFF11;
+    const u16 NR12 = 0xFF12;
+    const u16 NR13 = 0xFF13;
+    const u16 NR14 = 0xFF14;
 
-    IO_NR20 = 0xFF15,
-    IO_NR21 = 0xFF16,
-    IO_NR22 = 0xFF17,
-    IO_NR23 = 0xFF18,
-    IO_NR24 = 0xFF19,
+    const u16 NR20 = 0xFF15;
+    const u16 NR21 = 0xFF16;
+    const u16 NR22 = 0xFF17;
+    const u16 NR23 = 0xFF18;
+    const u16 NR24 = 0xFF19;
 
-    IO_NR30 = 0xFF1A,
-    IO_NR31 = 0xFF1B,
-    IO_NR32 = 0xFF1C,
-    IO_NR33 = 0xFF1D,
-    IO_NR34 = 0xFF1E,
+    const u16 NR30 = 0xFF1A;
+    const u16 NR31 = 0xFF1B;
+    const u16 NR32 = 0xFF1C;
+    const u16 NR33 = 0xFF1D;
+    const u16 NR34 = 0xFF1E;
 
-    IO_NR40 = 0xFF1F,
-    IO_NR41 = 0xFF20,
-    IO_NR42 = 0xFF21,
-    IO_NR43 = 0xFF22,
-    IO_NR44 = 0xFF23,
+    const u16 NR40 = 0xFF1F;
+    const u16 NR41 = 0xFF20;
+    const u16 NR42 = 0xFF21;
+    const u16 NR43 = 0xFF22;
+    const u16 NR44 = 0xFF23;
 
-    IO_NR50 = 0xFF24,
-    IO_NR51 = 0xFF25,
-    IO_NR52 = 0xFF26,
+    const u16 NR50 = 0xFF24;
+    const u16 NR51 = 0xFF25;
+    const u16 NR52 = 0xFF26;
 
-    IO_LCDC = 0xFF40,
-    IO_STAT = 0xFF41,
-    IO_SCY = 0xFF42,  // SCROLL_Y
-    IO_SCX = 0xFF43,  // SCROLL_X
-    IO_LY = 0xFF44,  // LY aka currently drawn line, 0-153, >144 = vblank
-    IO_LYC = 0xFF45,
-    IO_DMA = 0xFF46,
-    IO_BGP = 0xFF47,
-    IO_OBP0 = 0xFF48,
-    IO_OBP1 = 0xFF49,
-    IO_WY = 0xFF4A,
-    IO_WX = 0xFF4B,
+    const u16 LCDC = 0xFF40;
+    const u16 STAT = 0xFF41;
+    const u16 SCY = 0xFF42;  // SCROLL_Y
+    const u16 SCX = 0xFF43;  // SCROLL_X
+    const u16 LY = 0xFF44;  // LY aka currently drawn line, 0-153, >144 = vblank
+    const u16 LYC = 0xFF45;
+    const u16 DMA = 0xFF46;
+    const u16 BGP = 0xFF47;
+    const u16 OBP0 = 0xFF48;
+    const u16 OBP1 = 0xFF49;
+    const u16 WY = 0xFF4A;
+    const u16 WX = 0xFF4B;
 
-    IO_BOOT = 0xFF50,
+    const u16 BOOT = 0xFF50;
 
-    IO_IE = 0xFFFF,
+    const u16 IE = 0xFFFF;
+}
+
+namespace LCDC {
+    const u8 ENABLED = BIT_7;
+    const u8 WINDOW_MAP = BIT_6;
+    const u8 WINDOW_ENABLED = BIT_5;
+    const u8 DATA_SRC = BIT_4;
+    const u8 BG_MAP = BIT_3;
+    const u8 OBJ_SIZE = BIT_2;
+    const u8 OBJ_ENABLED = BIT_1;
+    const u8 BG_WIN_ENABLED = BIT_0;
+}
+
+namespace Stat {
+    const u8 LYC_INTERRUPT = BIT_6;
+    const u8 OAM_INTERRUPT = BIT_5;
+    const u8 VBLANK_INTERRUPT = BIT_4;
+    const u8 HBLANK_INTERRUPT = BIT_3;
+    const u8 LCY_EQUAL = BIT_2;
+    const u8 MODE_BITS = BIT_1 | BIT_0;
+    const u8 HBLANK = 0x00;
+    const u8 VBLANK = 0x01;
+    const u8 OAM = 0x02;
+    const u8 DRAWING = 0x03;
 };
 
-enum LCDCFlag {
-    LCDC_ENABLED = BIT_7,
-    LCDC_WINDOW_MAP = BIT_6,
-    LCDC_WINDOW_ENABLED = BIT_5,
-    LCDC_DATA_SRC = BIT_4,
-    LCDC_BG_MAP = BIT_3,
-    LCDC_OBJ_SIZE = BIT_2,
-    LCDC_OBJ_ENABLED = BIT_1,
-    LCDC_BG_WIN_ENABLED = BIT_0,
-};
+namespace Interrupt {
+    enum Interrupt {
+        VBLANK = BIT_0,
+        STAT = BIT_1,
+        TIMER = BIT_2,
+        SERIAL = BIT_3,
+        JOYPAD = BIT_4,
+    };
+}
 
-enum STATFlag {
-    STAT_LYC_INTERRUPT = BIT_6,
-    STAT_OAM_INTERRUPT = BIT_5,
-    STAT_VBLANK_INTERRUPT = BIT_4,
-    STAT_HBLANK_INTERRUPT = BIT_3,
-    STAT_LCY_EQUAL = BIT_2,
-    STAT_MODE = BIT_1 | BIT_0,
-};
+namespace Joypad {
+    const u8 MODE_BUTTONS = BIT_5;
+    const u8 MODE_DPAD = BIT_4;
+    const u8 DOWN = BIT_3;
+    const u8 START = BIT_3;
+    const u8 UP = BIT_2;
+    const u8 SELECT = BIT_2;
+    const u8 LEFT = BIT_1;
+    const u8 B = BIT_1;
+    const u8 RIGHT = BIT_0;
+    const u8 A = BIT_0;
+}
 
-enum STATMode {
-    STAT_MODE_HBLANK = 0x00,
-    STAT_MODE_VBLANK = 0x01,
-    STAT_MODE_OAM = 0x02,
-    STAT_MODE_DRAWING = 0x03,
-};
-
-enum Interrupt {
-    INT_VBLANK = BIT_0,
-    INT_STAT = BIT_1,
-    INT_TIMER = BIT_2,
-    INT_SERIAL = BIT_3,
-    INT_JOYPAD = BIT_4,
-};
-
-enum JOYPFlag {
-    JOYP_SELECT_BUTTONS = BIT_5,
-    JOYP_SELECT_DPAD = BIT_4,
-    JOYP_DOWN = BIT_3,
-    JOYP_START = BIT_3,
-    JOYP_UP = BIT_2,
-    JOYP_SELECT = BIT_2,
-    JOYP_LEFT = BIT_1,
-    JOYP_B = BIT_1,
-    JOYP_RIGHT = BIT_0,
-    JOYP_A = BIT_0,
-};
-
-enum InterruptHandler {
-    INT_VBLANK_HANDLER = 0x40,
-    INT_LCD_HANDLER = 0x48,
-    INT_TIMER_HANDLER = 0x50,
-    INT_SERIAL_HANDLER = 0x58,
-    INT_JOYPAD_HANDLER = 0x60,
+namespace InterruptHandler {
+    const u16 VBLANK = 0x40;
+    const u16 LCD = 0x48;
+    const u16 TIMER = 0x50;
+    const u16 SERIAL = 0x58;
+    const u16 JOYPAD = 0x60;
 };
 
 #endif //SPIGOT_CONSTS_H

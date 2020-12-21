@@ -68,7 +68,7 @@ public:
 public:
     CPU(RAM *ram, bool debug);
     bool tick();
-    void interrupt(Interrupt i);
+    void interrupt(Interrupt::Interrupt i);
     void dump_regs();
 
 private:
