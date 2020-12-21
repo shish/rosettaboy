@@ -28,8 +28,8 @@ private:
     SDL_Window *window;
     SDL_Surface *buffer;
     SDL_Renderer *renderer;
-    u32 colors[4];
-    u32 bgp[4], obp0[4], obp1[4];
+    SDL_Color colors[4];
+    SDL_Color bgp[4], obp0[4], obp1[4];
     int cycle;
     CPU *cpu;
 
@@ -39,9 +39,24 @@ public:
     bool tick();
 
 private:
-    bool draw_lcd();
     void update_palettes();
-    void paint_tile(SDL_Surface *surf, i16 tile_id, SDL_Point *offset, u32 *palette, bool flip_x, bool flip_y);
+    bool draw_debug();
+    void draw_line(i32 ly);
+    void paint_tile(
+        i16 tile_id,
+        SDL_Point *offset,
+        SDL_Color *palette,
+        bool flip_x,
+        bool flip_y);
+    void paint_tile_line(
+        i16 tile_id,
+        SDL_Point *offset,
+        SDL_Color *palette,
+        bool flip_x,
+        bool flip_y,
+        i32 y);
 };
+
+SDL_Color gen_hue(u8 n);
 
 #endif //SPIGOT_GPU_H

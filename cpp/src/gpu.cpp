@@ -25,8 +25,8 @@ GPU::GPU(CPU *cpu, bool headless, bool debug) {
     // Window
     int w=160, h=144;
     if(this->debug) {
-        w = 512;
-        h = 256;
+        w = 520;
+        h = 144;
     }
     if(!headless) {
         SDL_InitSubSystem(SDL_INIT_VIDEO);
@@ -43,10 +43,10 @@ GPU::GPU(CPU *cpu, bool headless, bool debug) {
     this->renderer = SDL_CreateSoftwareRenderer(this->buffer);
 
     // Colors
-    this->colors[0] = SDL_MapRGB(this->buffer->format, 0x9B, 0xBC, 0x0F);
-    this->colors[1] = SDL_MapRGB(this->buffer->format, 0x8B, 0xAC, 0x0F);
-    this->colors[2] = SDL_MapRGB(this->buffer->format, 0x30, 0x62, 0x30);
-    this->colors[3] = SDL_MapRGB(this->buffer->format, 0x0F, 0x38, 0x0F);
+    this->colors[0] = {.r=0x9B, .g=0xBC, .b=0x0F, .a=0xFF};
+    this->colors[1] = {.r=0x8B, .g=0xAC, .b=0x0F, .a=0xFF};
+    this->colors[2] = {.r=0x30, .g=0x62, .b=0x30, .a=0xFF};
+    this->colors[3] = {.r=0x0F, .g=0x38, .b=0x0F, .a=0xFF};
     //printf("SDL_Init failed: %s\n", SDL_GetError());
 };
 
@@ -65,17 +65,19 @@ bool GPU::tick() {
     }
 
     // Check if LCD enabled at all
-    u8 LCDC = this->cpu->ram->get(IO_LCDC);
-    if (!(LCDC & LCDC_ENABLED)) {
+    u8 lcdc = this->cpu->ram->get(IO_LCDC);
+    if (!(lcdc & LCDC_ENABLED)) {
         // When LCD is re-enabled, LY is 0
         // Does it become 0 as soon as disabled??
         this->cpu->ram->set(IO_LY, 0);
-        if(!debug) return true;
+        if(!debug) {
+            return true;
+        }
     }
 
-    u8 LX = cycle % 114;
-    u8 LY = (cycle / 114) % 154;
-    this->cpu->ram->set(IO_LY, LY);
+    u8 lx = cycle % 114;
+    u8 ly = (cycle / 114) % 154;
+    this->cpu->ram->set(IO_LY, ly);
 
     // LYC compare & interrupt
     if(this->cpu->ram->get(IO_LY) == cpu->ram->get(IO_LYC)) {
@@ -89,27 +91,42 @@ bool GPU::tick() {
     }
 
     // Set mode
-    if(LX == 0 && LY < 144) {
+    if(lx == 0 && ly < 144) {
         this->cpu->ram->set(IO_STAT, (this->cpu->ram->get(IO_STAT) & ~STAT_MODE) | STAT_MODE_OAM);
         if(this->cpu->ram->get(IO_STAT) & STAT_OAM_INTERRUPT) {
             this->cpu->interrupt(INT_STAT);
         }
     }
-    else if(LX == 20 && LY < 144) {
+    else if(lx == 20 && ly < 144) {
         this->cpu->ram->set(IO_STAT, (this->cpu->ram->get(IO_STAT) & ~STAT_MODE) | STAT_MODE_DRAWING);
-        // TODO: really we should draw one line of pixels for each LY,
-        // rather than the whole screen at LY == 0
-        if(LY == 0) {
-            if (!this->draw_lcd()) return false;
+        if(ly == 0) {
+            // TODO: how often should we update palettes?
+            // Should every pixel reference them directly?
+            this->update_palettes();
+            // TODO: do we need to clear if we write every pixel?
+            auto c = bgp[0];
+            SDL_SetRenderDrawColor(this->renderer, c.r, c.g, c.b, c.a);
+            SDL_RenderClear(this->renderer);
+        }
+        this->draw_line(ly);
+        if(ly == 143) {
+            if (this->debug) {
+                this->draw_debug();
+            }
+            if(this->window) {
+                SDL_Surface *window_surface = SDL_GetWindowSurface(window);
+                SDL_BlitScaled(this->buffer, nullptr, window_surface, nullptr);
+                SDL_UpdateWindowSurface(window);
+            }
         }
     }
-    else if(LX == 63 && LY < 144) {
+    else if(lx == 63 && ly < 144) {
         this->cpu->ram->set(IO_STAT, (this->cpu->ram->get(IO_STAT) & ~STAT_MODE) | STAT_MODE_HBLANK);
         if(this->cpu->ram->get(IO_STAT) & STAT_HBLANK_INTERRUPT) {
             this->cpu->interrupt(INT_STAT);
         }
     }
-    else if(LX == 0 && LY == 144) {
+    else if(lx == 0 && ly == 144) {
         this->cpu->ram->set(IO_STAT, (this->cpu->ram->get(IO_STAT) & ~STAT_MODE) | STAT_MODE_VBLANK);
         if(this->cpu->ram->get(IO_STAT) & STAT_VBLANK_INTERRUPT) {
             this->cpu->interrupt(INT_STAT);
@@ -140,148 +157,224 @@ void GPU::update_palettes() {
     obp1[3] = this->colors[(raw_obp1 >> 6) & 0x3];
 }
 
-bool GPU::draw_lcd() {
-    this->update_palettes();
-
+bool GPU::draw_debug() {
     u8 LCDC = this->cpu->ram->get(IO_LCDC);
 
-    SDL_FillRect(this->buffer, nullptr, bgp[0]);
-
     // Tile data
-    if(debug) {
-        int tile_display_width = 32;
-        for(u16 tile_id=0; tile_id < 384; tile_id++) {
-            SDL_Point xy = {
-                .x = 256 + (tile_id % tile_display_width) * 8,
-                .y = (tile_id / tile_display_width) * 8,
-            };
-            this->paint_tile(this->buffer, tile_id, &xy, bgp, false, false);
-        }
+    u8 tile_display_width = 32;
+    for(int tile_id=0; tile_id<384; tile_id++) {
+        SDL_Point xy = {
+            .x = 256 + (tile_id % tile_display_width) * 8,
+            .y = (tile_id / tile_display_width) * 8,
+        };
+        this->paint_tile(tile_id, &xy, this->bgp, false, false);
     }
 
-    // Background tiles
-    if (LCDC & LCDC_BG_WIN_ENABLED || debug) {
-        u8 SCROLL_Y = this->cpu->ram->get(IO_SCY);
-        u8 SCROLL_X = this->cpu->ram->get(IO_SCX);
-        bool tile_offset = !(LCDC & LCDC_DATA_SRC);
-        u16 background_map = (LCDC & LCDC_BG_MAP) ? BACKGROUND_MAP_1 : BACKGROUND_MAP_0;
+    // Background scroll border
+    if(LCDC & LCDC_BG_WIN_ENABLED) {
+        SDL_Rect rect = {.x=0, .y=0, .w=160, .h=144};
+        SDL_SetRenderDrawColor(this->renderer, 255, 0, 0, 0xFF);
+        SDL_RenderDrawRect(this->renderer, &rect);
+    }
 
-        for (int tile_y = SCROLL_Y/8; tile_y < (debug ? 32 : 19) + SCROLL_Y/8; tile_y++) {
-            for (int tile_x = SCROLL_X/8; tile_x < (debug ? 32 : 21) + SCROLL_X/8; tile_x++) {
-                u16 tile_id = this->cpu->ram->get(background_map + (tile_y % 32) * 32 + (tile_x % 32));
-                if (tile_offset && tile_id < 0x80) tile_id += 0x100;
-                SDL_Point xy = {
-                    .x = ((tile_x * 8 - SCROLL_X) + 8) % 256 - 8,
-                    .y = ((tile_y * 8 - SCROLL_Y) + 8) % 256 - 8,
-                };
-                this->paint_tile(this->buffer, tile_id, &xy, bgp, false, false);
-            }
+    // Window tiles
+    if(LCDC & LCDC_WINDOW_ENABLED) {
+        u8 wnd_y = this->cpu->ram->get(IO_WY);
+        u8 wnd_x = this->cpu->ram->get(IO_WX);
+        SDL_Rect rect = {.x=wnd_x-7, .y=wnd_y, .w=160, .h=144};
+        SDL_SetRenderDrawColor(this->renderer, 0, 0, 255, 0xFF);
+        SDL_RenderDrawRect(this->renderer, &rect);
+    }
+
+    return true;
+}
+
+void GPU::draw_line(i32 ly) {
+    auto lcdc = this->cpu->ram->get(IO_LCDC);
+
+    // Background tiles
+    if(lcdc & LCDC_BG_WIN_ENABLED) {
+        auto scroll_y = this->cpu->ram->get(IO_SCY);
+        auto scroll_x = this->cpu->ram->get(IO_SCX);
+        auto tile_offset = !(lcdc & LCDC_DATA_SRC);
+        auto background_map = lcdc & LCDC_BG_MAP ?
+            BACKGROUND_MAP_1 :
+            BACKGROUND_MAP_0 ;
+
+        if (this->debug) {
+            SDL_Point xy = {.x=256 - scroll_x, .y=ly};
+            SDL_SetRenderDrawColor(this->renderer, 255, 0, 0, 0xFF);
+            SDL_RenderDrawPoint(this->renderer, xy.x, xy.y);
         }
 
-        // Background scroll border
-        if(debug) {
-            SDL_Rect rect = {.x=0, .y=0, .w=160, .h=144};
-            SDL_SetRenderDrawColor(this->renderer, 64, 0, 0, 0xFF);
-            SDL_RenderDrawRect(this->renderer, &rect);
-            SDL_RenderDrawLine(this->renderer, 256-SCROLL_X, 0, 256-SCROLL_X, 256);
-            SDL_RenderDrawLine(this->renderer, 0, 256-SCROLL_Y, 256, 256-SCROLL_Y);
+        auto y_in_bgmap = (ly - scroll_y) & 0xFF; // % 256
+        auto tile_y = y_in_bgmap / 8;
+        auto tile_sub_y = y_in_bgmap % 8;
+
+        for(int tile_x = scroll_x / 8; tile_x < scroll_x / 8 + 21; tile_x++) {
+            auto tile_id = this->cpu->ram->get(background_map + (tile_y % 32) * 32 + (tile_x % 32));
+            if(tile_offset && tile_id < 0x80) {
+                tile_id += 0x100;
+            }
+            SDL_Point xy = {
+                .x = ((tile_x * 8 - scroll_x) + 8) % 256 - 8,
+                .y = ((tile_y * 8 - scroll_y) + 8) % 256 - 8,
+            };
+            this->paint_tile_line(tile_id, &xy, this->bgp, false, false, tile_sub_y);
         }
     }
 
     // Window tiles
-    if (LCDC & LCDC_WINDOW_ENABLED) {
-        u8 WND_Y = this->cpu->ram->get(IO_WY);
-        u8 WND_X = this->cpu->ram->get(IO_WX);
-        bool tile_offset = !(LCDC & LCDC_DATA_SRC);
-        u16 window_map = (LCDC & LCDC_WINDOW_MAP) ? WINDOW_MAP_1 : WINDOW_MAP_0;
+    if(lcdc & LCDC_WINDOW_ENABLED) {
+        auto wnd_y = this->cpu->ram->get(IO_WY);
+        auto wnd_x = this->cpu->ram->get(IO_WX);
+        auto tile_offset = !(lcdc & LCDC_DATA_SRC);
+        auto window_map = lcdc & LCDC_WINDOW_MAP ?
+            WINDOW_MAP_1 :
+            WINDOW_MAP_0 ;
 
         // blank out the background
-        SDL_Rect rect = {.x=WND_X - 7, .y=WND_Y, .w=160, .h=144};
-        SDL_FillRect(this->buffer, &rect, bgp[0]);
+        SDL_Rect rect = {
+            .x = wnd_x - 7,
+            .y = wnd_y,
+            .w = 160,
+            .h = 144,
+        };
+        auto c = this->bgp[0];
+        SDL_SetRenderDrawColor(this->renderer, c.r, c.g, c.b, c.a);
+        SDL_RenderFillRect(this->renderer, &rect);
 
-        for (int tile_y = 0; tile_y < 18; tile_y++) {
-            for (int tile_x = 0; tile_x < 20; tile_x++) {
-                u16 tile_id = this->cpu->ram->get(window_map + tile_y * 32 + tile_x);
-                if (tile_offset && tile_id < 0x80) tile_id += 0x100;
-                SDL_Point xy = {
-                    .x = tile_x * 8 + WND_X - 7,
-                    .y = tile_y * 8 + WND_Y,
-                };
-                this->paint_tile(this->buffer, tile_id, &xy, bgp, false, false);
+        auto y_in_bgmap = ly - wnd_y;
+        auto tile_y = y_in_bgmap / 8;
+        auto tile_sub_y = y_in_bgmap % 8;
+
+        for(int tile_x=0; tile_x<20; tile_x++) {
+            auto tile_id = this->cpu->ram->get(window_map + tile_y * 32 + tile_x);
+            if(tile_offset && tile_id < 0x80) {
+                tile_id += 0x100;
             }
-        }
-
-        if(debug) {
-            SDL_SetRenderDrawColor(this->renderer, 0, 64, 0, 0xFF);
-            SDL_RenderDrawRect(this->renderer, &rect);
+            SDL_Point xy = {
+                .x = tile_x * 8 + wnd_x - 7,
+                .y = tile_y * 8 + wnd_y,
+            };
+            this->paint_tile_line(tile_id, &xy, this->bgp, false, false, tile_sub_y);
         }
     }
 
     // Sprites
-    if (LCDC & LCDC_OBJ_ENABLED) {
-        bool dbl = (bool)(LCDC & LCDC_OBJ_SIZE);
+    if(lcdc & LCDC_OBJ_ENABLED) {
+        auto dbl = lcdc & LCDC_OBJ_SIZE;
 
         // TODO: sorted by x
-        Sprite sprites[40];
-        memcpy(sprites, &this->cpu->ram->data[OAM_BASE], 40 * sizeof(Sprite));
-        for(auto sprite: sprites) {
+        // auto sprites: [Sprite; 40] = [];
+        // memcpy(sprites, &ram.data[OAM_BASE], 40 * sizeof(Sprite));
+        // for sprite in sprites.iter() {
+        for(int n=0; n<40; n++) {
+            Sprite sprite = {
+                .y = this->cpu->ram->get(OAM_BASE + 4 * n + 0),
+                .x = this->cpu->ram->get(OAM_BASE + 4 * n + 1),
+                .tile_id = this->cpu->ram->get(OAM_BASE + 4 * n + 2),
+                .flags = this->cpu->ram->get(OAM_BASE + 4 * n + 3),
+            };
             if(sprite.is_live()) {
-                u32 *palette = sprite.palette ? obp1 : obp0;
+                auto palette = sprite.palette ?
+                    this->obp1 :
+                    this->obp0 ;
                 //printf("Drawing sprite %d (from %04X) at %d,%d\n", tile_id, OAM_BASE + (sprite_id * 4) + 0, x, y);
                 SDL_Point xy = {
                     .x = sprite.x - 8,
                     .y = sprite.y - 16,
                 };
-                this->paint_tile(this->buffer, sprite.tile_id, &xy, palette, sprite.x_flip, sprite.y_flip);
+                this->paint_tile(
+                    sprite.tile_id,
+                    &xy,
+                    palette,
+                    sprite.x_flip,
+                    sprite.y_flip
+                );
 
                 if(dbl) {
                     xy.y = sprite.y - 8;
-                    this->paint_tile(this->buffer, sprite.tile_id+1, &xy, palette, sprite.x_flip, sprite.y_flip);
-                }
-            }
-        }
-        // lines go over the top of sprites, so can't put them into the same loop
-        if(debug) {
-            for(auto sprite: sprites) {
-                if(sprite.is_live()) {
-                    int x1 = sprite.x - 8;
-                    int y1 = sprite.y - 16;
-                    int x2 = 256 + (sprite.tile_id % 32) * 8;
-                    int y2 = (sprite.tile_id / 32) * 8;
-                    SDL_SetRenderDrawColor(this->renderer, 0, 0, 64, 0xFF);
-                    SDL_RenderDrawLine(renderer, x1 + 4, y1 + 4, x2 + 4, y2 + 4);
+                    this->paint_tile(
+                        sprite.tile_id + 1,
+                        &xy,
+                        palette,
+                        sprite.x_flip,
+                        sprite.y_flip
+                    );
                 }
             }
         }
     }
-
-    if(this->window) {
-        SDL_Surface *window_surface = SDL_GetWindowSurface(window);
-        SDL_BlitScaled(this->buffer, nullptr, window_surface, nullptr);
-        SDL_UpdateWindowSurface(window);
-    }
-    return true;
 }
 
-void GPU::paint_tile(SDL_Surface *surf, i16 tile_id, SDL_Point *offset, u32 *palette, bool flip_x, bool flip_y) {
-    //SDL_FillRect(surf, nullptr, SDL_MapRGBA(this->buffer->format, 0, 0, 0, 0));
-    for (int y=0; y<8; y++) {
-        u8 low_byte = this->cpu->ram->get(TILE_DATA + tile_id * 16 + y * 2);
-        u8 high_byte = this->cpu->ram->get(TILE_DATA + tile_id * 16 + (y * 2) + 1);
-        for (int x = 0; x < 8; x++) {
-            u8 low_bit = (low_byte >> (7 - x)) & (u8)0x1;
-            u8 high_bit = (high_byte >> (7 - x)) & (u8)0x1;
-            u8 px = (high_bit << 1) | low_bit;
-            // pallette #0 = transparent, so don't draw anything
-            if(px) {
-                SDL_Rect rect = {
-                    .x=offset->x + (flip_x ? 7-x : x),
-                    .y=offset->y + (flip_y ? 7-y : y),
-                    .w=1, .h=1
-                };
-                SDL_FillRect(surf, &rect, palette[px]);
-            }
+void GPU::paint_tile(
+    i16 tile_id,
+    SDL_Point *offset,
+    SDL_Color *palette,
+    bool flip_x,
+    bool flip_y
+) {
+    for(int y=0; y<8; y++) {
+        this->paint_tile_line(tile_id, offset, palette, flip_x, flip_y, y);
+    }
+
+    if(this->debug) {
+        SDL_Rect rect = {
+            .x = offset->x,
+            .y = offset->y,
+            .w = 8,
+            .h = 8,
+        };
+        auto c = gen_hue(tile_id);
+        SDL_SetRenderDrawColor(this->renderer, c.r, c.g, c.b, c.a);
+        SDL_RenderDrawRect(this->renderer, &rect);
+    }
+}
+
+void GPU::paint_tile_line(
+    i16 tile_id,
+    SDL_Point *offset,
+    SDL_Color *palette,
+    bool flip_x,
+    bool flip_y,
+    i32 y
+) {
+    u16 addr = (TILE_DATA + tile_id * 16 + y * 2);
+    u8 low_byte = this->cpu->ram->get(addr);
+    u8 high_byte = this->cpu->ram->get(addr + 1);
+    for(int x=0; x<8; x++) {
+        u8 low_bit = (low_byte >> (7 - x)) & 0x01;
+        u8 high_bit = (high_byte >> (7 - x)) & 0x01;
+        u8 px = (high_bit << 1) | low_bit;
+        // pallette #0 = transparent, so don't draw anything
+        if(px > 0) {
+            SDL_Point xy = {
+                .x = offset->x + (flip_x ? 7 - x : x),
+                .y = offset->y + (flip_y ? 7 - y : y),
+            };
+            auto c = palette[px];
+            SDL_SetRenderDrawColor(this->renderer, c.r, c.g, c.b, c.a);
+            SDL_RenderDrawPoint(this->renderer, xy.x, xy.y);
         }
+    }
+}
+
+
+SDL_Color gen_hue(u8 n) {
+    u8 region = n / 43;
+    u8 remainder = (n - (region * 43)) * 6;
+
+    u8 q = 255 - remainder;
+    u8 t = remainder;
+
+    switch(region) {
+        case 0: return {.r=255, .g=t, .b=0, .a=0xFF};
+        case 1: return {.r=q, .g=255, .b=0, .a=0xFF};
+        case 2: return {.r=0, .g=255, .b=t, .a=0xFF};
+        case 3: return {.r=0, .g=q, .b=255, .a=0xFF};
+        case 4: return {.r=t, .g=0, .b=255, .a=0xFF};
+        default: return {.r=255, .g=0, .b=q, .a=0xFF};
     }
 }
 
