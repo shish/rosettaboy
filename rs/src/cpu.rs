@@ -1,4 +1,4 @@
-use crate::consts;
+use crate::consts::*;
 use crate::ram;
 
 struct OpArg {
@@ -111,8 +111,8 @@ impl CPU {
      * handler for this interrupt is enabled (and interrupts in general
      * are enabled), then the interrupt handler will be called.
      */
-    pub fn interrupt(&mut self, ram: &mut ram::RAM, i: consts::Interrupt) {
-        ram._or(consts::IO::IF, i.bits());
+    pub fn interrupt(&mut self, ram: &mut ram::RAM, i: Interrupt) {
+        ram._or(IO::IF, i.bits());
         self.halt = false; // interrupts interrupt HALT state
     }
 
@@ -135,11 +135,11 @@ impl CPU {
         let mut op = ram.get(self.pc);
         let op_str = if op == 0xCB {
             op = ram.get(self.pc + 1);
-            consts::OP_CB_NAMES[op as usize].to_string()
+            OP_CB_NAMES[op as usize].to_string()
         } else {
-            let base = consts::OP_NAMES[op as usize].to_string();
-            let arg = self.load_op(ram, self.pc + 1, consts::OP_TYPES[op as usize]);
-            match consts::OP_TYPES[op as usize] {
+            let base = OP_NAMES[op as usize].to_string();
+            let arg = self.load_op(ram, self.pc + 1, OP_TYPES[op as usize]);
+            match OP_TYPES[op as usize] {
                 0 => base.to_string(),
                 1 => base.replace("n", format!("${:02X}", arg.u8).as_str()),
                 2 => base.replace("nn", format!("${:04X}", arg.u16).as_str()),
@@ -153,9 +153,9 @@ impl CPU {
         let c = if self.flag_c { 'C' } else { 'c' };
         let h = if self.flag_h { 'H' } else { 'h' };
 
-        let ien = consts::Interrupt::from_bits(ram.get(consts::IO::IE)).unwrap();
-        let ifl = consts::Interrupt::from_bits(ram.get(consts::IO::IF)).unwrap();
-        let flag = |i: consts::Interrupt, c: char| -> char {
+        let ien = Interrupt::from_bits(ram.get(IO::IE)).unwrap();
+        let ifl = Interrupt::from_bits(ram.get(IO::IF)).unwrap();
+        let flag = |i: Interrupt, c: char| -> char {
             if ien.contains(i) {
                 if ifl.contains(i) {
                     c.to_ascii_uppercase()
@@ -166,11 +166,11 @@ impl CPU {
                 '_'
             }
         };
-        let v = flag(consts::Interrupt::VBLANK, 'v');
-        let l = flag(consts::Interrupt::STAT, 'l');
-        let t = flag(consts::Interrupt::TIMER, 't');
-        let s = flag(consts::Interrupt::SERIAL, 's');
-        let j = flag(consts::Interrupt::JOYPAD, 'j');
+        let v = flag(Interrupt::VBLANK, 'v');
+        let l = flag(Interrupt::STAT, 'l');
+        let t = flag(Interrupt::TIMER, 't');
+        let s = flag(Interrupt::SERIAL, 's');
+        let j = flag(Interrupt::JOYPAD, 'j');
 
         // printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
         unsafe {
@@ -195,12 +195,12 @@ impl CPU {
      */
     fn tick_dma(&self, ram: &mut ram::RAM) {
         // TODO: DMA should take 26 cycles, during which main RAM is inaccessible
-        if ram.get(consts::IO::DMA) != 0 {
-            let dma_src: u16 = (ram.get(consts::IO::DMA) as u16) << 8;
+        if ram.get(IO::DMA) != 0 {
+            let dma_src: u16 = (ram.get(IO::DMA) as u16) << 8;
             for i in 0..0xA0 {
-                ram.set(consts::Mem::OamBase as u16 + i, ram.get(dma_src + i));
+                ram.set(Mem::OamBase as u16 + i, ram.get(dma_src + i));
             }
-            ram.set(consts::IO::DMA, 0x00);
+            ram.set(IO::DMA, 0x00);
         }
     }
 
@@ -214,19 +214,19 @@ impl CPU {
         // TODO: writing any value to IO::DIV should reset it to 0x00
         // increment at 16384Hz (each 64 cycles?)
         if self.cycle % 64 == 0 {
-            ram._inc(consts::IO::DIV);
+            ram._inc(IO::DIV);
         }
 
-        if ram.get(consts::IO::TAC) & 1 << 2 == 1 << 2 {
+        if ram.get(IO::TAC) & 1 << 2 == 1 << 2 {
             // timer enable
             let speeds: [u32; 4] = [256, 4, 16, 64]; // increment per X cycles
-            let speed = speeds[(ram.get(consts::IO::TAC) & 0x03) as usize];
+            let speed = speeds[(ram.get(IO::TAC) & 0x03) as usize];
             if self.cycle % speed == 0 {
-                if ram.get(consts::IO::TIMA) == 0xFF {
-                    ram.set(consts::IO::TIMA, ram.get(consts::IO::TMA)); // if timer overflows, load base
-                    self.interrupt(ram, consts::Interrupt::TIMER);
+                if ram.get(IO::TIMA) == 0xFF {
+                    ram.set(IO::TIMA, ram.get(IO::TMA)); // if timer overflows, load base
+                    self.interrupt(ram, Interrupt::TIMER);
                 }
-                ram._inc(consts::IO::TIMA);
+                ram._inc(IO::TIMA);
             }
         }
     }
@@ -237,15 +237,13 @@ impl CPU {
      * clear the flag and call the handler for the first of them.
      */
     fn tick_interrupts(&mut self, ram: &mut ram::RAM) {
-        let queued_interrupts =
-            consts::Interrupt::from_bits(ram.get(consts::IO::IE) & ram.get(consts::IO::IF))
-                .unwrap();
+        let queued_interrupts = Interrupt::from_bits(ram.get(IO::IE) & ram.get(IO::IF)).unwrap();
         if self.interrupts && !queued_interrupts.is_empty() {
             if self.debug {
                 println!(
                     "Handling interrupts: {:02X} & {:02X}",
-                    ram.get(consts::IO::IE),
-                    ram.get(consts::IO::IF)
+                    ram.get(IO::IE),
+                    ram.get(IO::IF)
                 );
             }
 
@@ -255,26 +253,26 @@ impl CPU {
             // TODO: wait two cycles
             // TODO: push16(PC) should also take two cycles
             // TODO: one more cycle to store new PC
-            if queued_interrupts.contains(consts::Interrupt::VBLANK) {
+            if queued_interrupts.contains(Interrupt::VBLANK) {
                 self.push(self.pc, ram);
-                self.pc = consts::InterruptHandler::VBlank as u16;
-                ram._and(consts::IO::IF, !consts::Interrupt::VBLANK.bits());
-            } else if queued_interrupts.contains(consts::Interrupt::STAT) {
+                self.pc = InterruptHandler::VBlank as u16;
+                ram._and(IO::IF, !Interrupt::VBLANK.bits());
+            } else if queued_interrupts.contains(Interrupt::STAT) {
                 self.push(self.pc, ram);
-                self.pc = consts::InterruptHandler::Lcd as u16;
-                ram._and(consts::IO::IF, !consts::Interrupt::STAT.bits());
-            } else if queued_interrupts.contains(consts::Interrupt::TIMER) {
+                self.pc = InterruptHandler::Lcd as u16;
+                ram._and(IO::IF, !Interrupt::STAT.bits());
+            } else if queued_interrupts.contains(Interrupt::TIMER) {
                 self.push(self.pc, ram);
-                self.pc = consts::InterruptHandler::Timer as u16;
-                ram._and(consts::IO::IF, !consts::Interrupt::TIMER.bits());
-            } else if queued_interrupts.contains(consts::Interrupt::SERIAL) {
+                self.pc = InterruptHandler::Timer as u16;
+                ram._and(IO::IF, !Interrupt::TIMER.bits());
+            } else if queued_interrupts.contains(Interrupt::SERIAL) {
                 self.push(self.pc, ram);
-                self.pc = consts::InterruptHandler::Serial as u16;
-                ram._and(consts::IO::IF, !consts::Interrupt::SERIAL.bits());
-            } else if queued_interrupts.contains(consts::Interrupt::JOYPAD) {
+                self.pc = InterruptHandler::Serial as u16;
+                ram._and(IO::IF, !Interrupt::SERIAL.bits());
+            } else if queued_interrupts.contains(Interrupt::JOYPAD) {
                 self.push(self.pc, ram);
-                self.pc = consts::InterruptHandler::Joypad as u16;
-                ram._and(consts::IO::IF, !consts::Interrupt::JOYPAD.bits());
+                self.pc = InterruptHandler::Joypad as u16;
+                ram._and(IO::IF, !Interrupt::JOYPAD.bits());
             }
         }
     }
@@ -302,24 +300,24 @@ impl CPU {
             let op = ram.get(self.pc);
             self.pc += 1;
             self.tick_cb(ram, op);
-            self.owed_cycles = consts::OP_CB_CYCLES[op as usize];
+            self.owed_cycles = OP_CB_CYCLES[op as usize];
         } else {
             self.tick_main(ram, op);
-            self.owed_cycles = consts::OP_CYCLES[op as usize];
+            self.owed_cycles = OP_CYCLES[op as usize];
         }
 
-        let mut f = consts::Flag::empty();
+        let mut f = Flag::empty();
         if self.flag_z {
-            f.insert(consts::Flag::Z)
+            f.insert(Flag::Z)
         }
         if self.flag_n {
-            f.insert(consts::Flag::N)
+            f.insert(Flag::N)
         }
         if self.flag_h {
-            f.insert(consts::Flag::H)
+            f.insert(Flag::H)
         }
         if self.flag_c {
-            f.insert(consts::Flag::C)
+            f.insert(Flag::C)
         }
         self.regs.r8.f = f.bits();
 
@@ -358,8 +356,8 @@ impl CPU {
 
     fn tick_main(&mut self, ram: &mut ram::RAM, op: u8) {
         let arg = {
-            let arg_type = consts::OP_TYPES[op as usize];
-            let arg_len = consts::OP_LENS[arg_type as usize];
+            let arg_type = OP_TYPES[op as usize];
+            let arg_len = OP_LENS[arg_type as usize];
             let arg = self.load_op(ram, self.pc, arg_type);
             self.pc += arg_len;
             arg
@@ -773,11 +771,11 @@ impl CPU {
                 }
                 0xF1 => {
                     self.regs.r16.af = self.pop(ram) & 0xFFF0;
-                    let f = consts::Flag::from_bits(self.regs.r8.f).unwrap();
-                    self.flag_z = f.contains(consts::Flag::Z);
-                    self.flag_n = f.contains(consts::Flag::N);
-                    self.flag_h = f.contains(consts::Flag::H);
-                    self.flag_c = f.contains(consts::Flag::C);
+                    let f = Flag::from_bits(self.regs.r8.f).unwrap();
+                    self.flag_z = f.contains(Flag::Z);
+                    self.flag_n = f.contains(Flag::N);
+                    self.flag_h = f.contains(Flag::H);
+                    self.flag_c = f.contains(Flag::C);
                 }
                 0xF2 => {
                     self.regs.r8.a = ram.get(0xFF00 + self.regs.r8.c as u16);

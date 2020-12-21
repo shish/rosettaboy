@@ -1,5 +1,5 @@
 extern crate sdl2;
-use crate::consts;
+use crate::consts::*;
 use crate::ram;
 use sdl2::audio::{AudioQueue, AudioSpecDesired};
 use std::convert::TryFrom;
@@ -150,8 +150,7 @@ impl APU {
     }
 
     fn render_frame_audio(&mut self, ram: &mut ram::RAM) -> [u8; (HZ / 60) as usize] {
-        let audio_controls =
-            &mut ram.data[consts::IO::NR10 as usize..consts::IO::NR10 as usize + 23];
+        let audio_controls = &mut ram.data[IO::NR10 as usize..IO::NR10 as usize + 23];
         let mut out = [0; (HZ / 60) as usize];
 
         self.ram_to_regs(audio_controls);

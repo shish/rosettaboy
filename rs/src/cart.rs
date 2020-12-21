@@ -1,4 +1,4 @@
-use crate::consts;
+use crate::consts::*;
 use std::convert::TryFrom;
 use std::fs::File;
 use std::io;
@@ -15,11 +15,11 @@ pub struct Cart {
     pub is_gbc: bool,
     pub licensee: u16,
     pub is_sgb: bool,
-    pub cart_type: consts::CartType,
+    pub cart_type: CartType,
     pub rom_size: u32,
     pub ram_size: u32,
-    pub destination: consts::Destination,
-    pub old_licensee: consts::OldLicensee,
+    pub destination: Destination,
+    pub old_licensee: OldLicensee,
     pub rom_version: u8,
     pub complement_check: u8,
     pub checksum: u16,
@@ -76,11 +76,11 @@ impl Cart {
         let is_gbc = data[0x143] == 0x80; // 0x80 = works on both, 0xC0 = colour only
         let licensee: u16 = (data[0x144] as u16) << 8 | (data[0x145] as u16);
         let is_sgb = data[0x146] == 0x03;
-        let cart_type = consts::CartType::try_from(data[0x147]).unwrap();
+        let cart_type = CartType::try_from(data[0x147]).unwrap();
         let rom_size = parse_rom_size(data[0x148]);
         let ram_size = parse_ram_size(data[0x149]);
-        let destination = consts::Destination::try_from(data[0x14A]).unwrap();
-        let old_licensee = consts::OldLicensee::try_from(data[0x14B]).unwrap();
+        let destination = Destination::try_from(data[0x14A]).unwrap();
+        let old_licensee = OldLicensee::try_from(data[0x14B]).unwrap();
         let rom_version = data[0x14C];
         let complement_check = data[0x14D];
         let checksum: u16 = (data[0x14E] as u16) << 8 | (data[0x14F] as u16);
@@ -101,7 +101,7 @@ impl Cart {
             panic!("Header checksum failed\n")
         }
 
-        //if cart_type != consts::CartType::RomOnly {
+        //if cart_type != CartType::RomOnly {
         //    panic!("Only RomOnly cartridges are supported, got {:?}", cart_type);
         //}
 

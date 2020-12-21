@@ -1,5 +1,5 @@
 use crate::cart;
-use crate::consts;
+use crate::consts::*;
 use std::io::Read;
 
 /**
@@ -88,7 +88,7 @@ impl RAM {
     }
 
     #[inline(always)]
-    pub fn set<T: consts::Address>(&mut self, addr: T, val: u8) {
+    pub fn set<T: Address>(&mut self, addr: T, val: u8) {
         let addr = addr.to_u16();
         match addr {
             0x0000..=0x1FFF => {
@@ -191,8 +191,8 @@ impl RAM {
             }
             0xFF00..=0xFF7F => {
                 // IO Registers
-                //if addr == consts::IO::SCX as u16 {
-                //    println!("LY = {}, SCX = {}", self.get(consts::IO::LY), val);
+                //if addr == IO::SCX as u16 {
+                //    println!("LY = {}, SCX = {}", self.get(IO::LY), val);
                 //}
             }
             0xFF80..=0xFFFE => {
@@ -207,12 +207,12 @@ impl RAM {
     }
 
     #[inline(always)]
-    pub fn get<T: consts::Address>(&self, addr: T) -> u8 {
+    pub fn get<T: Address>(&self, addr: T) -> u8 {
         let addr = addr.to_u16();
         match addr {
             0x0000..=0x3FFF => {
                 // ROM bank 0
-                if self.data[consts::IO::BOOT as usize] == 0 && addr < 0x0100 {
+                if self.data[IO::BOOT as usize] == 0 && addr < 0x0100 {
                     return self.boot[addr as usize];
                 }
                 return self.cart.data[addr as usize];
@@ -285,19 +285,19 @@ impl RAM {
     }
 
     #[inline(always)]
-    pub fn _and<T: consts::Address>(&mut self, addr: T, val: u8) {
+    pub fn _and<T: Address>(&mut self, addr: T, val: u8) {
         let addr = addr.to_u16();
         self.set(addr, self.get(addr) & val);
     }
 
     #[inline(always)]
-    pub fn _or<T: consts::Address>(&mut self, addr: T, val: u8) {
+    pub fn _or<T: Address>(&mut self, addr: T, val: u8) {
         let addr = addr.to_u16();
         self.set(addr, self.get(addr) | val);
     }
 
     #[inline(always)]
-    pub fn _inc<T: consts::Address>(&mut self, addr: T) {
+    pub fn _inc<T: Address>(&mut self, addr: T) {
         let addr = addr.to_u16();
         self.set(addr, self.get(addr).overflowing_add(1).0);
     }

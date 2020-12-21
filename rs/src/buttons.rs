@@ -1,5 +1,5 @@
 extern crate sdl2;
-use crate::consts;
+use crate::consts::*;
 use crate::cpu;
 use crate::ram;
 
@@ -70,7 +70,7 @@ impl Buttons {
             // FIXME: do we also need to interrupt on button release?
             // FIXME: do we also need to interrupt even when neither Dpad nor Buttons are selected?
             cpu.stop = false;
-            cpu.interrupt(ram, consts::Interrupt::JOYPAD);
+            cpu.interrupt(ram, Interrupt::JOYPAD);
             self.need_interrupt = false;
         }
         if self.cycle % 17556 == 20 {
@@ -168,36 +168,36 @@ impl Buttons {
      */
     #[inline(always)]
     fn update_buttons(&mut self, ram: &mut ram::RAM) {
-        let mut joyp = !consts::Joypad::from_bits_truncate(ram.get(consts::IO::JOYP as u16));
-        joyp.remove(consts::Joypad::BUTTON_BITS);
-        if joyp.contains(consts::Joypad::MODE_DPAD) {
+        let mut joyp = !Joypad::from_bits_truncate(ram.get(IO::JOYP as u16));
+        joyp.remove(Joypad::BUTTON_BITS);
+        if joyp.contains(Joypad::MODE_DPAD) {
             if self.up {
-                joyp.insert(consts::Joypad::UP);
+                joyp.insert(Joypad::UP);
             }
             if self.down {
-                joyp.insert(consts::Joypad::DOWN);
+                joyp.insert(Joypad::DOWN);
             }
             if self.left {
-                joyp.insert(consts::Joypad::LEFT);
+                joyp.insert(Joypad::LEFT);
             }
             if self.right {
-                joyp.insert(consts::Joypad::RIGHT);
+                joyp.insert(Joypad::RIGHT);
             }
         }
-        if joyp.contains(consts::Joypad::MODE_BUTTONS) {
+        if joyp.contains(Joypad::MODE_BUTTONS) {
             if self.b {
-                joyp.insert(consts::Joypad::B);
+                joyp.insert(Joypad::B);
             }
             if self.a {
-                joyp.insert(consts::Joypad::A);
+                joyp.insert(Joypad::A);
             }
             if self.start {
-                joyp.insert(consts::Joypad::START);
+                joyp.insert(Joypad::START);
             }
             if self.select {
-                joyp.insert(consts::Joypad::SELECT);
+                joyp.insert(Joypad::SELECT);
             }
         }
-        ram.set(consts::IO::JOYP, !joyp.bits());
+        ram.set(IO::JOYP, !joyp.bits());
     }
 }

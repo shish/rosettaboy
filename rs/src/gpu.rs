@@ -1,5 +1,5 @@
 extern crate sdl2;
-use crate::consts::{Interrupt, Mem, Stat, IO, LCDC};
+use crate::consts::*;
 use crate::cpu;
 use crate::ram;
 
