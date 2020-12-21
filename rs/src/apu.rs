@@ -61,7 +61,8 @@ macro_rules! ENVELOPE {
 
 fn envelope(ctrl: &mut Ch1Control, st: &mut Ch1State) -> u16 {
     if ctrl.envelope_period > 0 {
-        st.envelope_timer = (st.envelope_timer + 1) % (ctrl.envelope_period as usize * hz_to_samples(64));
+        st.envelope_timer =
+            (st.envelope_timer + 1) % (ctrl.envelope_period as usize * hz_to_samples(64));
         if st.envelope_timer == 0 {
             if !ctrl.envelope_direction {
                 if st.envelope_vol > 0 {
@@ -83,7 +84,7 @@ fn hz_to_samples(hz: u16) -> usize {
     } else if hz > HZ {
         1
     } else {
-        (HZ/hz) as usize
+        (HZ / hz) as usize
     }
 }
 
@@ -113,7 +114,7 @@ impl APU {
                 freq: Some(HZ as i32),
                 channels: Some(2),
                 // generate audio for one frame at a time, 735 samples per frame
-                samples: Some((HZ/60) as u16),
+                samples: Some((HZ / 60) as u16),
             };
             let device = audio.open_queue::<u8, _>(None, &spec)?;
             device.resume();
@@ -273,12 +274,7 @@ impl APU {
         let mut ch1 = DUTY[self.ch1.duty as usize][self.ch1s.duty_pos as usize] * 0xFF;
 
         // Length Counter
-        LENGTH_COUNTER!(
-            ch1,
-            self.control.ch1_active,
-            self.ch1,
-            self.ch1s
-        );
+        LENGTH_COUNTER!(ch1, self.control.ch1_active, self.ch1, self.ch1s);
 
         // Envelope
         //ENVELOPE!(ch1, self.ch1, self.ch1s);
@@ -296,7 +292,7 @@ impl APU {
             self.ch1s.freq_timer = 1; // frequency timer reloaded with period
             self.ch1s.envelope_timer = 1; // volume envelope timer is reloaded with period
             self.ch1s.envelope_vol = self.ch1.envelope_vol_load; // volume reloaded from NRx2
-                                                                // sweep does "several things"
+                                                                 // sweep does "several things"
             self.ch1s.sweep_timer = 1;
             self.ch1s.shadow_freq = ch1_freq as u16;
         }
@@ -321,12 +317,7 @@ impl APU {
         let mut ch2 = DUTY[self.ch2.duty as usize][self.ch2s.duty_pos as usize] * 0xFF;
 
         // Length Counter
-        LENGTH_COUNTER!(
-            ch2,
-            self.control.ch2_active,
-            self.ch2,
-            self.ch2s
-        );
+        LENGTH_COUNTER!(ch2, self.control.ch2_active, self.ch2, self.ch2s);
 
         // Envelope
         ENVELOPE!(ch2, self.ch2, self.ch2s);
@@ -376,12 +367,7 @@ impl APU {
         };
 
         // Length Counter
-        LENGTH_COUNTER!(
-            ch3,
-            self.control.ch3_active,
-            self.ch3,
-            self.ch3s
-        );
+        LENGTH_COUNTER!(ch3, self.control.ch3_active, self.ch3, self.ch3s);
 
         // Volume
         if self.ch3.volume == 0 {
@@ -435,12 +421,7 @@ impl APU {
         let mut ch4 = 0xFF - ((self.ch4s.lfsr & BIT_0) as u8 * 0xFF); // bit0, inverted
 
         // Length Counter
-        LENGTH_COUNTER!(
-            ch4,
-            self.control.ch4_active,
-            self.ch4,
-            self.ch4s
-        );
+        LENGTH_COUNTER!(ch4, self.control.ch4_active, self.ch4, self.ch4s);
 
         // Envelope
         ENVELOPE!(ch4, self.ch4, self.ch4s);
@@ -465,45 +446,45 @@ impl APU {
 }
 
 #[derive(Default, Debug, PackedStruct)]
-#[packed_struct(bit_numbering="msb0")]
+#[packed_struct(bit_numbering = "msb0")]
 pub struct Ch1Control {
     // NR10
     // The change of frequency (NR13,NR14) at each shift is calculated by the
     // following formula where X(0) is initial freq & X(t-1) is last freq:
     // X(t) = X(t-1) +/- X(t-1)/2^n
     // #[packed_field(bits="0")]
-    #[packed_field(bits="1:3")]
-    sweep_period: u8,   // 3  // inc or dec each n/128Hz = (n*44100)/128smp = n*344smp
-    #[packed_field(bits="4")]
+    #[packed_field(bits = "1:3")]
+    sweep_period: u8, // 3  // inc or dec each n/128Hz = (n*44100)/128smp = n*344smp
+    #[packed_field(bits = "4")]
     sweep_negate: bool, // ? -1 : 1
-    #[packed_field(bits="5:7")]
-    sweep_shift: u8,    // 3  // 0 = stop envelope
+    #[packed_field(bits = "5:7")]
+    sweep_shift: u8, // 3  // 0 = stop envelope
 
     // NR11
-    #[packed_field(bits="8:9")]
-    duty: u8,        // 2  // {12.5, 25, 50, 75}%
-    #[packed_field(bits="10:15")]
+    #[packed_field(bits = "8:9")]
+    duty: u8, // 2  // {12.5, 25, 50, 75}%
+    #[packed_field(bits = "10:15")]
     length_load: u8, // 6  // (64-n) * (1/256) seconds
 
     // NR12
-    #[packed_field(bits="16:19")]
+    #[packed_field(bits = "16:19")]
     envelope_vol_load: u8, // 4
-    #[packed_field(bits="20")]
+    #[packed_field(bits = "20")]
     envelope_direction: bool,
-    #[packed_field(bits="21:23")]
+    #[packed_field(bits = "21:23")]
     envelope_period: u8, // 3  // 1 step = n * (1/64) seconds
 
     // NR13
-    #[packed_field(bits="24:31")]
+    #[packed_field(bits = "24:31")]
     frequency_lsb: u8, // 8
 
     // NR14
-    #[packed_field(bits="32")]
+    #[packed_field(bits = "32")]
     reset: bool,
-    #[packed_field(bits="33")]
+    #[packed_field(bits = "33")]
     length_enable: bool,
     // #[packed_field(bits="34:36")]
-    #[packed_field(bits="37:39")]
+    #[packed_field(bits = "37:39")]
     frequency_msb: u8, // 3
 }
 
@@ -521,37 +502,37 @@ struct Ch1State {
 }
 
 #[derive(Default, Debug, PackedStruct)]
-#[packed_struct(bit_numbering="msb0")]
+#[packed_struct(bit_numbering = "msb0")]
 pub struct Ch2Control {
     // NR20
-    #[packed_field(bits="0:7")]
+    #[packed_field(bits = "0:7")]
     _reserved1: ReservedZeroes<packed_bits::Bits8>,
 
     // NR21
-    #[packed_field(bits="8:9")]
-    duty: u8,        // 2  // {12.5, 25, 50, 75}%
-    #[packed_field(bits="10:15")]
+    #[packed_field(bits = "8:9")]
+    duty: u8, // 2  // {12.5, 25, 50, 75}%
+    #[packed_field(bits = "10:15")]
     length_load: u8, // 6  // (64-n) * (1/256) seconds
 
     // NR22
-    #[packed_field(bits="16:19")]
+    #[packed_field(bits = "16:19")]
     envelope_vol_load: u8, // 4
-    #[packed_field(bits="20")]
+    #[packed_field(bits = "20")]
     envelope_direction: bool,
-    #[packed_field(bits="21:23")]
+    #[packed_field(bits = "21:23")]
     envelope_period: u8, // 3  // 1 step = n * (1/64) seconds
 
     // NR23
-    #[packed_field(bits="24:31")]
+    #[packed_field(bits = "24:31")]
     frequency_lsb: u8, // 8
 
     // NR24
-    #[packed_field(bits="32")]
+    #[packed_field(bits = "32")]
     reset: bool,
-    #[packed_field(bits="33")]
+    #[packed_field(bits = "33")]
     length_enable: bool,
     // #[packed_field(bits="34:36")]
-    #[packed_field(bits="37:39")]
+    #[packed_field(bits = "37:39")]
     frequency_msb: u8, // 3
 }
 
@@ -566,34 +547,34 @@ struct Ch2State {
 }
 
 #[derive(Default, Debug, PackedStruct)]
-#[packed_struct(bit_numbering="msb0")]
+#[packed_struct(bit_numbering = "msb0")]
 pub struct Ch3Control {
     // NR30
-    #[packed_field(bits="0")]
+    #[packed_field(bits = "0")]
     enabled: bool,
     // #[packed_field(bits="1:7")]
 
     // NR31
-    #[packed_field(bits="8:15")]
-    length_load: u8,  // (256-n) * (1/256) seconds
+    #[packed_field(bits = "8:15")]
+    length_load: u8, // (256-n) * (1/256) seconds
 
     // NR32
     // #[packed_field(bits="16")]
-    #[packed_field(bits="17:18")]
+    #[packed_field(bits = "17:18")]
     volume: u8, // 2  // {0,100,50,25}%
     // #[packed_field(bits="19:23")]
 
     // NR33
-    #[packed_field(bits="24:31")]
+    #[packed_field(bits = "24:31")]
     frequency_lsb: u8, // 8
 
     // NR34
-    #[packed_field(bits="32")]
+    #[packed_field(bits = "32")]
     reset: bool,
-    #[packed_field(bits="33")]
+    #[packed_field(bits = "33")]
     length_enable: bool,
     // #[packed_field(bits="34:36")]
-    #[packed_field(bits="37:39")]
+    #[packed_field(bits = "37:39")]
     frequency_msb: u8, // 3
 }
 
@@ -606,36 +587,36 @@ struct Ch3State {
 }
 
 #[derive(Default, Debug, PackedStruct)]
-#[packed_struct(bit_numbering="msb0")]
+#[packed_struct(bit_numbering = "msb0")]
 pub struct Ch4Control {
     // NR40
     // #[packed_field(bits="0:7")]
 
     // NR41
     // #[packed_field(bits="8:9")]
-    #[packed_field(bits="10:15")]
-    length_load: u8,  // (64-n) * (1/256) seconds
+    #[packed_field(bits = "10:15")]
+    length_load: u8, // (64-n) * (1/256) seconds
 
     // NR42
-    #[packed_field(bits="16:19")]
+    #[packed_field(bits = "16:19")]
     envelope_vol_load: u8,
-    #[packed_field(bits="20")]
+    #[packed_field(bits = "20")]
     envelope_direction: bool,
-    #[packed_field(bits="21:23")]
-    envelope_period: u8,  // 1 step = n * (1/64) seconds
+    #[packed_field(bits = "21:23")]
+    envelope_period: u8, // 1 step = n * (1/64) seconds
 
     // NR43
-    #[packed_field(bits="24:27")]
+    #[packed_field(bits = "24:27")]
     clock_shift: u8, // 4
-    #[packed_field(bits="28")]
+    #[packed_field(bits = "28")]
     lfsr_mode: bool,
-    #[packed_field(bits="29:31")]
+    #[packed_field(bits = "29:31")]
     divisor_code: u8, // 3
 
     // NR44
-    #[packed_field(bits="32")]
+    #[packed_field(bits = "32")]
     reset: bool,
-    #[packed_field(bits="33")]
+    #[packed_field(bits = "33")]
     length_enable: bool,
     // #[packed_field(bits="34:39")]
 }
@@ -652,46 +633,46 @@ pub struct Ch4State {
 }
 
 #[derive(Default, Debug, PackedStruct)]
-#[packed_struct(bit_numbering="msb0")]
+#[packed_struct(bit_numbering = "msb0")]
 pub struct Control {
     // NR50
-    #[packed_field(bits="0")]
+    #[packed_field(bits = "0")]
     enable_vin_to_s02: bool,
-    #[packed_field(bits="1:3")]
+    #[packed_field(bits = "1:3")]
     s02_volume: Integer<u8, packed_bits::Bits3>,
-    #[packed_field(bits="4")]
+    #[packed_field(bits = "4")]
     enable_vin_to_s01: bool,
-    #[packed_field(bits="5:7")]
+    #[packed_field(bits = "5:7")]
     s01_volume: Integer<u8, packed_bits::Bits3>,
 
     // NR51
-    #[packed_field(bits="8")]
+    #[packed_field(bits = "8")]
     ch4_to_s02: u8,
-    #[packed_field(bits="9")]
+    #[packed_field(bits = "9")]
     ch3_to_s02: u8,
-    #[packed_field(bits="10")]
+    #[packed_field(bits = "10")]
     ch2_to_s02: u8,
-    #[packed_field(bits="11")]
+    #[packed_field(bits = "11")]
     ch1_to_s02: u8,
-    #[packed_field(bits="12")]
+    #[packed_field(bits = "12")]
     ch4_to_s01: u8,
-    #[packed_field(bits="13")]
+    #[packed_field(bits = "13")]
     ch3_to_s01: u8,
-    #[packed_field(bits="14")]
+    #[packed_field(bits = "14")]
     ch2_to_s01: u8,
-    #[packed_field(bits="15")]
+    #[packed_field(bits = "15")]
     ch1_to_s01: u8,
 
     // NR52
-    #[packed_field(bits="16")]
+    #[packed_field(bits = "16")]
     snd_enable: bool,
     // #[packed_field(bits="17:19")]
-    #[packed_field(bits="20")]
+    #[packed_field(bits = "20")]
     ch4_active: bool,
-    #[packed_field(bits="21")]
+    #[packed_field(bits = "21")]
     ch3_active: bool,
-    #[packed_field(bits="22")]
+    #[packed_field(bits = "22")]
     ch2_active: bool,
-    #[packed_field(bits="23")]
+    #[packed_field(bits = "23")]
     ch1_active: bool,
 }

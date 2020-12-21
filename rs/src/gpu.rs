@@ -1,5 +1,5 @@
 extern crate sdl2;
-use crate::consts::{LCDC, IO, Stat, Interrupt, Mem};
+use crate::consts::{Interrupt, Mem, Stat, IO, LCDC};
 use crate::cpu;
 use crate::ram;
 
@@ -138,18 +138,12 @@ impl GPU {
 
         // Set `ram[STAT].bit{0,1}` to `OAM / Drawing / HBlank / VBlank`
         if lx == 0 && ly < 144 {
-            ram.set(
-                IO::STAT,
-                ((stat & !Stat::MODE_BITS) | Stat::OAM).bits(),
-            );
+            ram.set(IO::STAT, ((stat & !Stat::MODE_BITS) | Stat::OAM).bits());
             if stat.contains(Stat::OAM_INTERRUPT) {
                 cpu.interrupt(ram, Interrupt::STAT);
             }
         } else if lx == 20 && ly < 144 {
-            ram.set(
-                IO::STAT,
-                ((stat & !Stat::MODE_BITS) | Stat::DRAWING).bits(),
-            );
+            ram.set(IO::STAT, ((stat & !Stat::MODE_BITS) | Stat::DRAWING).bits());
             if ly == 0 {
                 // TODO: how often should we update palettes?
                 // Should every pixel reference them directly?
@@ -170,18 +164,12 @@ impl GPU {
                 }
             }
         } else if lx == 63 && ly < 144 {
-            ram.set(
-                IO::STAT,
-                ((stat & !Stat::MODE_BITS) | Stat::HBLANK).bits(),
-            );
+            ram.set(IO::STAT, ((stat & !Stat::MODE_BITS) | Stat::HBLANK).bits());
             if stat.contains(Stat::HBLANK_INTERRUPT) {
                 cpu.interrupt(ram, Interrupt::STAT);
             }
         } else if lx == 0 && ly == 144 {
-            ram.set(
-                IO::STAT,
-                ((stat & !Stat::MODE_BITS) | Stat::VBLANK).bits(),
-            );
+            ram.set(IO::STAT, ((stat & !Stat::MODE_BITS) | Stat::VBLANK).bits());
             if stat.contains(Stat::VBLANK_INTERRUPT) {
                 cpu.interrupt(ram, Interrupt::STAT);
             }
