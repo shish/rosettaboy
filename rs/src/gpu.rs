@@ -62,7 +62,7 @@ pub struct GPU {
 
 impl GPU {
     pub fn init(sdl: &sdl2::Sdl, title: &str, headless: bool, debug: bool) -> Result<GPU, String> {
-        let (w, h) = if debug { (520, 144) } else { (160, 144) };
+        let (w, h) = if debug { (160 + 256, 144) } else { (160, 144) };
         let canvas = if !headless {
             let video_subsystem = sdl.video()?;
             let window = video_subsystem
@@ -206,7 +206,7 @@ impl GPU {
         let tile_display_width = 32;
         for tile_id in 0..384 {
             let xy = Point::new(
-                256 + (tile_id % tile_display_width) * 8,
+                160 + (tile_id % tile_display_width) * 8,
                 (tile_id / tile_display_width) * 8,
             );
             self.paint_tile(ram, tile_id as i16, &xy, self.bgp, false, false);
@@ -410,6 +410,9 @@ impl GPU {
                     offset.x + if flip_x { 7 - x } else { x },
                     offset.y + if flip_y { 7 - y } else { y },
                 );
+                if offset.x < 160 && xy.x >= 160 {
+                    return;
+                }
                 if let Some(canvas) = &mut self.canvas {
                     canvas.set_draw_color(palette[px as usize]);
                     canvas.draw_point(xy).expect("draw point");

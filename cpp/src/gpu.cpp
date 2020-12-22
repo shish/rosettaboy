@@ -25,7 +25,7 @@ GPU::GPU(CPU *cpu, char *title, bool headless, bool debug) {
     // Window
     int w=160, h=144;
     if(this->debug) {
-        w = 520;
+        w = 160 + 256;
         h = 144;
     }
     if(!headless) {
@@ -166,7 +166,7 @@ bool GPU::draw_debug() {
     u8 tile_display_width = 32;
     for(int tile_id=0; tile_id<384; tile_id++) {
         SDL_Point xy = {
-            .x = 256 + (tile_id % tile_display_width) * 8,
+            .x = 160 + (tile_id % tile_display_width) * 8,
             .y = (tile_id / tile_display_width) * 8,
         };
         this->paint_tile(tile_id, &xy, this->bgp, false, false);
@@ -351,6 +351,9 @@ void GPU::paint_tile_line(
                 .x = offset->x + (flip_x ? 7 - x : x),
                 .y = offset->y + (flip_y ? 7 - y : y),
             };
+            if(offset->x < 160 && xy.x >= 160) {
+                return;
+            }
             auto c = palette[px];
             SDL_SetRenderDrawColor(this->renderer, c.r, c.g, c.b, c.a);
             SDL_RenderDrawPoint(this->renderer, xy.x, xy.y);
