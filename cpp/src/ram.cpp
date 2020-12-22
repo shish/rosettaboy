@@ -9,8 +9,12 @@ u8 BOOT[0x100] = {
         // prod memory
         0x31, 0xFE, 0xFF,  // LD SP,$FFFE
 
+        // enable LCD
+        0x3E, 0x91, // LD A,$91
+        0xE0, 0x40, // LDH [IO::LCDC], A
+
         // set flags
-        0x3E, 0x01,  // LD A,$00
+        0x3E, 0x01,  // LD A,$01
         0xCB, 0x7F,  // BIT 7,A (sets Z,n,H)
         0x37,        // SCF (sets C)
 
