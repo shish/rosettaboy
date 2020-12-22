@@ -34,7 +34,7 @@ private:
     CPU *cpu;
 
 public:
-    GPU(CPU *cpu, bool headless, bool debug);
+    GPU(CPU *cpu, char *title, bool headless, bool debug);
     ~GPU();
     bool tick();
 

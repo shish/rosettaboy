@@ -73,9 +73,10 @@ impl Gameboy {
         let sdl = sdl2::init()?;
 
         let cart = cart::Cart::init(args.rom.as_str())?;
+        let cart_name = cart.name.clone();
         let ram = ram::RAM::init(cart, args.debug_ram);
         let cpu = cpu::CPU::init(args.debug_cpu);
-        let gpu = gpu::GPU::init(&sdl, args.rom.as_str(), args.headless, args.debug_gpu)?;
+        let gpu = gpu::GPU::init(&sdl, cart_name.as_str(), args.headless, args.debug_gpu)?;
         let apu = apu::APU::init(&sdl, args.silent, args.debug_apu)?;
         let buttons = buttons::Buttons::init(sdl)?;
         let clock = clock::Clock::init(args.profile, args.turbo, args.fps);

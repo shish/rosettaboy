@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     cart = new Cart(args::get(rom).c_str());
     ram = new RAM(cart);
     cpu = new CPU(ram, debug_cpu);
-    gpu = new GPU(cpu, headless, debug_gpu);
+    gpu = new GPU(cpu, cart->name, headless, debug_gpu);
     buttons = new Buttons(cpu);
     if(!silent) new APU(cpu, debug_apu);
     clock = new Clock(buttons, profile_frames, turbo, fps);

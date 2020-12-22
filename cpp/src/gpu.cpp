@@ -18,7 +18,7 @@ u32 amask = 0xff000000;
 #endif
 
 
-GPU::GPU(CPU *cpu, bool headless, bool debug) {
+GPU::GPU(CPU *cpu, char *title, bool headless, bool debug) {
     this->cpu = cpu;
     this->debug = debug;
 
@@ -30,8 +30,10 @@ GPU::GPU(CPU *cpu, bool headless, bool debug) {
     }
     if(!headless) {
         SDL_InitSubSystem(SDL_INIT_VIDEO);
+        char title_buf[64];
+        snprintf(title_buf, 64, "RosettaBoy - %s", title);
         this->window = SDL_CreateWindow(
-                "RosettaBoy",              // window title
+                title_buf, // window title
                 SDL_WINDOWPOS_UNDEFINED,   // initial x position
                 SDL_WINDOWPOS_UNDEFINED,   // initial y position
                 w * SCALE,                 // width, in pixels
