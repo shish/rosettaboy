@@ -289,18 +289,20 @@ impl GPU {
             } as u16;
 
             // blank out the background
-            let rect = Rect::new(wnd_x as i32 - 7, wnd_y as i32, 160, 144);
-            if let Some(canvas) = &mut self.canvas {
-                canvas.set_draw_color(self.bgp[0]);
-                canvas.fill_rect(rect).expect("fill rect");
+            if ly as u8 > wnd_y {
+                let rect = Rect::new(wnd_x as i32 - 7, ly, 160, 1);
+                if let Some(canvas) = &mut self.canvas {
+                    canvas.set_draw_color(self.bgp[0]);
+                    canvas.fill_rect(rect).expect("fill rect");
+                }
             }
 
-            let y_in_bgmap = ly - wnd_y as i32;
+            let y_in_bgmap = (ly - wnd_y as i32) & 0xFF;
             let tile_y = y_in_bgmap / 8;
             let tile_sub_y = y_in_bgmap % 8;
 
             for tile_x in 0..20 {
-                let mut tile_id = ram.get(window_map + tile_y as u16 * 32 + tile_x) as i16;
+                let mut tile_id = ram.get(window_map + (tile_y as u16 * 32) + tile_x) as i16;
                 if tile_offset && tile_id < 0x80 {
                     tile_id += 0x100
                 };
@@ -410,7 +412,7 @@ impl GPU {
                     offset.x + if flip_x { 7 - x } else { x },
                     offset.y + if flip_y { 7 - y } else { y },
                 );
-                if offset.x < 160 && xy.x >= 160 {
+                if offset.x <= 160 && xy.x >= 160 {
                     return;
                 }
                 if let Some(canvas) = &mut self.canvas {

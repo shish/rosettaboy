@@ -351,7 +351,7 @@ void GPU::paint_tile_line(
                 .x = offset->x + (flip_x ? 7 - x : x),
                 .y = offset->y + (flip_y ? 7 - y : y),
             };
-            if(offset->x < 160 && xy.x >= 160) {
+            if(offset->x <= 160 && xy.x >= 160) {
                 return;
             }
             auto c = palette[px];
