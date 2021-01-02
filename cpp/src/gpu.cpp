@@ -212,7 +212,7 @@ void GPU::draw_line(i32 ly) {
         auto tile_sub_y = y_in_bgmap % 8;
 
         for(int tile_x = scroll_x / 8; tile_x < scroll_x / 8 + 21; tile_x++) {
-            auto tile_id = this->cpu->ram->get(background_map + (tile_y % 32) * 32 + (tile_x % 32));
+            i16 tile_id = this->cpu->ram->get(background_map + (tile_y % 32) * 32 + (tile_x % 32));
             if(tile_offset && tile_id < 0x80) {
                 tile_id += 0x100;
             }
