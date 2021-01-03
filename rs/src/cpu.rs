@@ -175,13 +175,12 @@ impl CPU {
         // printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
         unsafe {
             println!(
-                "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:04X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}",
+                "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:02X}{:02X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}",
                 self.regs.r16.af,
                 self.regs.r16.bc,
                 self.regs.r16.de,
                 self.regs.r16.hl,
-                self.sp,
-                (ram.get(self.sp.overflowing_add(1).0) as u16) << 8 & ram.get(self.sp) as u16,
+                self.sp, ram.get(self.sp.overflowing_add(1).0), ram.get(self.sp),
                 z, n, h, c,
                 v, l, t, s, j,
                 self.pc, op, op_str

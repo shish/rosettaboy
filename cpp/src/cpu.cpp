@@ -81,12 +81,12 @@ void CPU::dump_regs() {
     }
     // if(cycle % 10 == 0)
     // printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
-    printf("%04X %04X %04X %04X : %04X = %04X : %c%c%c%c : %c%c%c%c%c : %04X = %02X : %s\n",
-            AF, BC, DE, HL, SP,
-            this->ram->get(this->SP+1) << 8 & this->ram->get(this->SP),
-           z, n, h, c,
-           v, l, t, s, j,
-           PC, op, op_str
+    printf("%04X %04X %04X %04X : %04X = %02X%02X : %c%c%c%c : %c%c%c%c%c : %04X = %02X : %s\n",
+            AF, BC, DE, HL,
+            SP, this->ram->get(this->SP+1), this->ram->get(this->SP),
+            z, n, h, c,
+            v, l, t, s, j,
+            PC, op, op_str
     );
 }
 
