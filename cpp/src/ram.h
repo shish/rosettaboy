@@ -43,7 +43,7 @@ inline void RAM::set(u16 addr, u8 val) {
         this->rom_bank = (this->rom_bank_high << 5) | this->rom_bank_low;
         if(this->debug) printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/0x2000);
         if(this->rom_bank * 0x2000 > this->cart->rom_size) {
-            throw std::invalid_argument("Set rom_bank beyond the size of RAM");
+            throw std::invalid_argument("Set rom_bank beyond the size of ROM");
         }
     }
     else if(addr >= 0x4000 && addr < 0x6000) {
@@ -59,7 +59,7 @@ inline void RAM::set(u16 addr, u8 val) {
             this->rom_bank = (this->rom_bank_high << 5) | this->rom_bank_low;
             if(this->debug) printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/0x2000);
             if(this->rom_bank * 0x2000 > this->cart->rom_size) {
-                throw std::invalid_argument("Set rom_bank beyond the size of RAM");
+                throw std::invalid_argument("Set rom_bank beyond the size of ROM");
             }
         }
     }

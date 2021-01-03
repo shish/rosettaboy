@@ -12,7 +12,7 @@ class GPU:
         self._game_only = not debug
         self.tiles = []
         self._last_tile_data = []
-        self.title = "RosettaBoy - " + (cpu.cart.name or "<corrupt>")
+        self.title = "RosettaBoy - " + (cpu.ram.cart.name or "<corrupt>")
 
         if self._game_only:
             size = (160, 144)

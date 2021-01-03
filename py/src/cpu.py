@@ -1,53 +1,9 @@
 from enum import Enum
 from .cart import Cart
+from .ram import RAM
 import sys
 from textwrap import dedent
 from .consts import *
-
-try:
-    # boot with the logo scroll if we have a boot rom
-    with open("boot.gb", "rb") as fp:
-        BOOT = list(fp.read(0x100))
-        # NOP the DRM
-        BOOT[0xE9] = 0x00
-        BOOT[0xEA] = 0x00
-        BOOT[0xFA] = 0x00
-        BOOT[0xFB] = 0x00
-except IOError:
-    # Directly set CPU registers as
-    # if the logo had been scrolled
-    BOOT = [
-        # prod memory
-        0x31, 0xFE, 0xFF,  # LD SP,$FFFE
-
-        # enable LCD
-        0x3E, 0x91, # LD A,$91
-        0xE0, 0x40, # LDH [IO::LCDC], A
-
-        # set flags
-        0x3E, 0x01,  # LD A,$00
-        0xCB, 0x7F,  # BIT 7,A (sets Z,n,H)
-        0x37,        # SCF (sets C)
-
-        # set registers
-        0x3E, 0x01,  # LD A,$01
-        0x06, 0x00,  # LD B,$00
-        0x0E, 0x13,  # LD C,$13
-        0x16, 0x00,  # LD D,$00
-        0x1E, 0xD8,  # LD E,$D8
-        0x26, 0x01,  # LD H,$01
-        0x2E, 0x4D,  # LD L,$4D
-
-        # skip to the end of the bootloader
-        0xC3, 0xFD, 0x00,  # JP 0x00FD
-    ]
-
-    # these 5 instructions must be the final 2 --
-    # after these finish executing, PC needs to be 0x100
-    BOOT += [0x00] * (0xFE - len(BOOT))
-    BOOT += [0xE0, 0x50]  # LDH 50,A (disable boot rom)
-
-assert len(BOOT) == 0x100, f"Bootloader must be 256 bytes ({len(BOOT)})"
 
 
 class Reg(Enum):
@@ -89,8 +45,8 @@ def opcode(name, cycles, args=""):
 
 class CPU:
     # <editor-fold description="Init">
-    def __init__(self, cart: Cart, debug=False):
-        self.cart = cart
+    def __init__(self, ram: RAM, debug=False):
+        self.ram = ram
         self.interrupts = True
         self.halt = False
         self.stop = False
@@ -120,94 +76,6 @@ class CPU:
         self.FLAG_H: bool = False  # True   # half-carry
         self.FLAG_C: bool = False  # True   # carry
 
-        self.ram = [0] * (0xFFFF+1)
-
-        # 16KB ROM bank 0
-        for x in range(0x0000, 0x4000):
-            self.ram[x] = self.cart.data[x]
-
-        # 16KB Switchable ROM bank
-        for x in range(0x4000, 0x8000):
-            self.ram[x] = self.cart.data[x]
-
-        # 8KB VRAM
-        # 0x8000 - 0xA000
-        # from random import randint
-        # for x in range(0x8000, 0xA000):
-        #   self.ram[x] = randint(0, 256)
-
-        # 8KB Switchable RAM bank
-        # 0xA000 - 0xC000
-
-        # 8KB Internal RAM
-        # 0xC000 - 0xE000
-
-        # Echo internal RAM
-        # 0xE000 - 0xFE00
-
-        # Sprite Attrib Memory (OAM)
-        # 0xFE00 - 0xFEA0
-
-        # Empty
-        # 0xFEA0 - 0xFF00
-
-        # IO Ports
-        # 0xFF00 - 0xFF4C
-        self.ram[0xFF00] = 0x00  # BUTTONS
-
-        self.ram[0xFF01] = 0x00  # SB (Serial Data)
-        self.ram[0xFF02] = 0x00  # SC (Serial Control)
-
-        self.ram[0xFF04] = 0x00  # DIV
-        self.ram[0xFF05] = 0x00  # TIMA
-        self.ram[0xFF06] = 0x00  # TMA
-        self.ram[0xFF07] = 0x00  # TAC
-
-        self.ram[0xFF0F] = 0x00  # IF
-
-        self.ram[0xFF10] = 0x80  # NR10
-        self.ram[0xFF11] = 0xBF  # NR11
-        self.ram[0xFF12] = 0xF3  # NR12
-        self.ram[0xFF14] = 0xBF  # NR14
-        self.ram[0xFF16] = 0x3F  # NR21
-        self.ram[0xFF17] = 0x00  # NR22
-        self.ram[0xFF19] = 0xBF  # NR24
-        self.ram[0xFF1A] = 0x7F  # NR30
-        self.ram[0xFF1B] = 0xFF  # NR31
-        self.ram[0xFF1C] = 0x9F  # NR32
-        self.ram[0xFF1E] = 0xBF  # NR33
-        self.ram[0xFF20] = 0xFF  # NR41
-        self.ram[0xFF21] = 0x00  # NR42
-        self.ram[0xFF22] = 0x00  # NR43
-        self.ram[0xFF23] = 0xBF  # NR30
-        self.ram[0xFF24] = 0x77  # NR50
-        self.ram[0xFF25] = 0xF3  # NR51
-        self.ram[0xFF26] = 0xF1  # NR52  # 0xF0 on SGB
-
-        self.ram[0xFF40] = 0x00  # LCDC - official boot rom inits this to 0x91
-        self.ram[0xFF41] = 0x00  # STAT
-        self.ram[0xFF42] = 0x00  # SCX aka SCROLL_Y
-        self.ram[0xFF43] = 0x00  # SCY aka SCROLL_X
-        self.ram[0xFF44] = 144  # LY aka currently drawn line, 0-153, >144 = vblank
-        self.ram[0xFF45] = 0x00  # LYC
-        self.ram[0xFF46] = 0x00  # DMA
-        self.ram[0xFF47] = 0xFC  # BGP
-        self.ram[0xFF48] = 0xFF  # OBP0
-        self.ram[0xFF49] = 0xFF  # OBP1
-        self.ram[0xFF4A] = 0x00  # WY
-        self.ram[0xFF4B] = 0x00  # WX
-
-        # Empty
-        # 0xFF4C - 0xFF80
-
-        # Internal RAM
-        # 0xFF80 - 0xFFFF
-
-        # Interrupt Enabled Register
-        self.ram[0xFFFF] = 0x00  # IE
-
-        # TODO: ram[E000-FE00] mirrors ram[C000-DE00]
-
         self.ops = [
             getattr(self, "op%02X" % n)
             for n in range(0x00, 0xFF+1)
@@ -235,16 +103,11 @@ class CPU:
         s = flag(Interrupt.SERIAL, 's')
         j = flag(Interrupt.JOYPAD, 'j')
 
-        if self.ram[IO_BOOT] == 0:
-            src = BOOT + self.ram[len(BOOT):]
-        else:
-            src = self.ram
-
-        op = src[pc+1] if src[pc] == 0xCB else src[pc]
+        op = self.ram[pc+1] if self.ram[pc] == 0xCB else self.ram[pc]
 
         return "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:02X}{:02X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}".format(
             self.AF, self.BC, self.DE, self.HL,
-            self.SP, src[(self.SP+1) & 0xFFFF], src[self.SP],
+            self.SP, self.ram[(self.SP+1) & 0xFFFF], self.ram[self.SP],
             "Z" if self.FLAG_Z else "z", "N" if self.FLAG_N else "n", "H" if self.FLAG_H else "h", "C" if self.FLAG_C else "c",
             v, l, t, s, j,
             pc, op, cmd_str
@@ -348,10 +211,7 @@ class CPU:
             self._owed_cycles -= 4
             return
 
-        if self.ram[IO_BOOT] == 0:
-            src = BOOT
-        else:
-            src = self.ram
+        src = self.ram
 
         original_pc = self.PC
 

@@ -108,7 +108,7 @@ impl RAM {
                     );
                 }
                 if self.rom_bank as u32 * 0x2000 > self.cart.rom_size {
-                    panic!("Set rom_bank beyond the size of RAM");
+                    panic!("Set rom_bank beyond the size of ROM");
                 }
             }
             0x4000..=0x5FFF => {
@@ -135,7 +135,7 @@ impl RAM {
                         );
                     }
                     if self.rom_bank as u32 * 0x2000 > self.cart.rom_size {
-                        panic!("Set rom_bank beyond the size of RAM");
+                        panic!("Set rom_bank beyond the size of ROM");
                     }
                 }
             }
