@@ -49,6 +49,35 @@ class OldLicensee(Enum):
     KONAMI = 0xA4
 
 
+KB: int = 1024
+MB: int = 1024 * 1024
+
+def parse_rom_size(val: int) -> int:
+    return {
+        0: 32 * KB,
+        1: 64 * KB,
+        2: 128 * KB,
+        3: 256 * KB,
+        4: 512 * KB,
+        5: 1 * MB,
+        6: 2 * MB,
+        7: 4 * MB,
+        8: 8 * MB,
+        0x52: 1 * MB + 128 * KB,
+        0x53: 1 * MB + 256 * KB,
+        0x54: 1 * MB + 512 * KB,
+    }.get(val, 0)
+
+def parse_ram_size(val: int) -> int:
+    return {
+        0: 0,
+        1: 2 * KB,
+        2: 8 * KB,
+        3: 32 * KB,
+        4: 128 * KB,
+        5: 64 * KB,
+    }.get(val, 0)
+
 class Cart:
     def __init__(self, rom: str):
         with open(rom, "rb") as fp:
@@ -79,8 +108,8 @@ class Cart:
             ("H", "licensee", None),
             ("B", "is_sgb", lambda x: x == 0x03),
             ("B", "cart_type", lambda x: CartType(x)),
-            ("B", "rom_size", lambda x: x),
-            ("B", "ram_size", lambda x: x),
+            ("B", "rom_size", parse_rom_size),
+            ("B", "ram_size", parse_ram_size),
             ("B", "destination", lambda x: Destination(x)),
             ("B", "old_licensee", lambda x: OldLicensee(x)),
             ("B", "rom_version", None),
