@@ -32,8 +32,8 @@ Completeness
 | gamepad input                      |  &cross;  |  &cross;  |  &check;  |
 | turbo button                       |  &cross;  |  &check;  |  &cross;  |
 | audio                              |  &cross;  |  off-key  |  glitchy  |
-| memory mapping                     |  &cross;  |  &check;  |  &check;  |
+| memory mapping                     |  &check;  |  &check;  |  &check;  |
 | scanline rendering                 |  &cross;  |  &check;  |  &check;  |
-| bank swapping                      |  &cross;  |  ?        |  ?        |
+| bank swapping                      |  ?        |  ?        |  ?        |
 | CPU interrupts                     |  &check;  |  &check;  |  &check;  |
 | GPU interrupts                     |  &cross;  |  &check;  |  &check;  |
