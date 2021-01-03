@@ -292,7 +292,7 @@ class CPU:
         # TODO: writing any value to IO::DIV should reset it to 0x00
         # increment at 16384Hz (each 64 cycles?)
         if self.cycle % 64 == 0:
-            self.ram[IO_DIV] += 1
+            self.ram[IO_DIV] = (self.ram[IO_DIV] + 1) & 0xFF
 
         if self.ram[IO_TAC] & 1 << 2 == 1 << 2:
             # timer enable
