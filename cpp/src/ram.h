@@ -13,6 +13,7 @@ private:
     u8 rom_bank = 1;
     u8 ram_bank = 0;
     u8 *boot;
+    bool debug = false;
 
 public:
     RAM(Cart *cart);
@@ -40,7 +41,7 @@ inline void RAM::set(u16 addr, u8 val) {
     else if(addr >= 0x2000 && addr < 0x4000) {
         this->rom_bank_low = val;
         this->rom_bank = (this->rom_bank_high << 5) | this->rom_bank_low;
-        printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/0x2000);
+        if(this->debug) printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/0x2000);
         if(this->rom_bank * 0x2000 > this->cart->rom_size) {
             throw std::invalid_argument("Set rom_bank beyond the size of RAM");
         }
@@ -48,7 +49,7 @@ inline void RAM::set(u16 addr, u8 val) {
     else if(addr >= 0x4000 && addr < 0x6000) {
         if(this->ram_bank_mode) {
             this->ram_bank = val;
-            printf("ram_bank set to %d/%d\n", this->ram_bank, this->cart->ram_size/0x2000);
+            if(this->debug) printf("ram_bank set to %d/%d\n", this->ram_bank, this->cart->ram_size/0x2000);
             if(this->ram_bank * 0x2000 > this->cart->ram_size) {
                 throw std::invalid_argument("Set ram_bank beyond the size of RAM");
             }
@@ -56,7 +57,7 @@ inline void RAM::set(u16 addr, u8 val) {
         else {
             this->rom_bank_high = val;
             this->rom_bank = (this->rom_bank_high << 5) | this->rom_bank_low;
-            printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/0x2000);
+            if(this->debug) printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/0x2000);
             if(this->rom_bank * 0x2000 > this->cart->rom_size) {
                 throw std::invalid_argument("Set rom_bank beyond the size of RAM");
             }
@@ -73,11 +74,11 @@ inline void RAM::set(u16 addr, u8 val) {
     else if(addr >= 0xA000 && addr < 0xC000) {
         // external RAM, bankable
         if(!this->ram_enable) {
-            printf("ERR: Writing to external ram while disabled: %04X=%02X\n", addr, val);
+            //printf("ERR: Writing to external ram while disabled: %04X=%02X\n", addr, val);
             return;
         }
         u32 addr_within_ram = (this->ram_bank * 0x2000) + (addr - 0xA000);
-        if(false) printf(
+        if(this->debug) printf(
                 "Writing external RAM: %04X=%02X (%02X:%04X)\n",
                 addr_within_ram, val, this->ram_bank, (addr - 0xA000));
         if(addr_within_ram > this->cart->ram_size) {
@@ -130,7 +131,7 @@ inline u8 RAM::get(u16 addr) {
         int bank = (0x4000 * this->rom_bank);
         int offset = (addr - 0x4000);
         // printf("fetching %04X from bank %04X (total = %04X)\n", offset, bank, offset + bank);
-        return this->cart->data[offset + bank];
+        return this->cart->data[bank + offset];
     }
     else if(addr >= 0x8000 && addr < 0xA000) {
         // VRAM
