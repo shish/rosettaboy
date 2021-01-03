@@ -236,7 +236,7 @@ class CPU:
         j = flag(Interrupt.JOYPAD, 'j')
 
         if self.ram[IO_BOOT] == 0:
-            src = BOOT
+            src = BOOT + self.ram[len(BOOT):]
         else:
             src = self.ram
 
@@ -244,7 +244,7 @@ class CPU:
 
         return "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:02X}{:02X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}".format(
             self.AF, self.BC, self.DE, self.HL,
-            self.SP, self.ram[(self.SP+1) % 0xFFFF], self.ram[self.SP],
+            self.SP, src[(self.SP+1) & 0xFFFF], src[self.SP],
             "Z" if self.FLAG_Z else "z", "N" if self.FLAG_N else "n", "H" if self.FLAG_H else "h", "C" if self.FLAG_C else "c",
             v, l, t, s, j,
             pc, op, cmd_str
@@ -510,7 +510,7 @@ class CPU:
         raise OpNotImplemented("CB is special cased, you shouldn't get here")
 
     def _err(self, op):
-        raise OpNotImplemented("Opcode D3 not implemented")
+        raise OpNotImplemented(f"Opcode {op} not implemented")
 
     opD3 = opcode("ERR D3", 4)(lambda self: self._err("D3"))
     opDB = opcode("ERR DB", 4)(lambda self: self._err("DB"))
@@ -588,7 +588,7 @@ class CPU:
 
     # ===================================
     # 6. LD (C),A
-    @opcode("LD A,[C]", 8)
+    @opcode("LDH [C],A", 8)
     def opE2(self):
         self.ram[0xFF00 + self.C] = self.A
 
