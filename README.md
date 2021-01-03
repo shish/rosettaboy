@@ -25,8 +25,8 @@ Completeness
 | gblargh's CPU test suite           |  &check;  |  &check;  |  &check;  |
 | silent / headless                  |  &check;  |  &check;  |  &check;  |
 | scaled output                      |  &check;  |  &check;  |  &check;  |
-| debug build fps                    |  15       |  180      |  80       |
-| release build fps                  |  15       |  500      |  700      |
+| debug build fps                    |  5        |  150      |  80       |
+| release build fps                  |  5        |  230      |  250      |
 | CPU logging                        |  &check;  |  &check;  |  &check;  |
 | keyboard input                     |  &cross;  |  &check;  |  &check;  |
 | gamepad input                      |  &cross;  |  &cross;  |  &check;  |
