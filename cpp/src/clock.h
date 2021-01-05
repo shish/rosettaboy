@@ -11,6 +11,7 @@ private:
     int frame = 0;
     int last_frame_start = SDL_GetTicks();
     int last_report = SDL_GetTicks();
+    int sleep_duration = 0;
     int profile = 0;
     bool turbo = false;
     bool fps = false;

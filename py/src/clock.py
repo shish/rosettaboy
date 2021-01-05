@@ -21,7 +21,7 @@ class Clock:
             if not self.turbo:
                 self.pyclock.tick(60)
 
-            # Print FPS once per frame
+            # Print FPS once per second
             if self.fps and self.frame % 60 == 0:
                 t = time.time()
                 fps = 60 / (t - self.last_report)

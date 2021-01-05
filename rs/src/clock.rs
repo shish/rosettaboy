@@ -58,15 +58,12 @@ impl Clock {
             }
             self.last_frame_start = SystemTime::now();
 
-            // Print FPS once per frame
+            // Print FPS once per second
             if self.fps && self.frame % 60 == 0 {
                 let t = SystemTime::now();
                 let fps = 60000.0 / (t.duration_since(self.last_report)?.as_millis()) as f32;
-                println!(
-                    "{:.1}fps, {:.1}% busy",
-                    fps,
-                    (1.0 - self.sleep_duration.as_secs_f32()) * 100.0
-                );
+                let busy = 1.0 - self.sleep_duration.as_secs_f32();
+                println!("{:.1}fps, {:.1}% busy", fps, busy * 100.0);
                 self.sleep_duration = Duration::new(0, 0);
                 self.last_report = t;
             }

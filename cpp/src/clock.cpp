@@ -5,6 +5,7 @@ Clock::Clock(Buttons *buttons, int profile, bool turbo, bool fps) {
     this->profile = profile;
     this->turbo = turbo;
     this->fps = fps;
+    this->sleep_duration = 0;
 }
 
 bool Clock::tick() {
@@ -17,14 +18,17 @@ bool Clock::tick() {
         i32 sleep_for = (1000 / 60) - time_spent;
         if(sleep_for > 0 && !this->turbo && !this->buttons->turbo) {
             SDL_Delay(sleep_for);
+            this->sleep_duration += sleep_for;
         }
         last_frame_start = SDL_GetTicks();
 
-        // Print FPS once per frame
+        // Print FPS once per second
         if (this->fps && this->frame % 60 == 0) {
             int t = SDL_GetTicks();
             float fps = 60000.0/(t - this->last_report);
-            printf("%.1ffps\n", fps);
+            float busy = 1.0f - (this->sleep_duration/1000.0f);
+            printf("%.1ffps %.1f%% busy\n", fps, busy * 100);
+            this->sleep_duration = 0;
             this->last_report = t;
         }
 
