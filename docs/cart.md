@@ -1,8 +1,8 @@
 Cart
 ====
 
-init(rom)
----------
+`init(rom)`
+-----------
 - Open the `.gb` ROM file
 - Populate self with some attributes
   - `data` - the bytes of the rom

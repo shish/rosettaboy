@@ -6,9 +6,11 @@ Usage
 -----
 ```
 cmake -DCMAKE_BUILD_TYPE=Debug .
-make -j 8
+make -j
 ./rosettaboy-cpp game.gb
 ```
+
+(`BUILD_TYPE=Release` if you want it to be faster and less debuggable)
 
 Requirements
 ------------

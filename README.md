@@ -26,7 +26,7 @@ Completeness
 | silent / headless                  |  &check;  |  &check;  |  &check;  |
 | scaled output                      |  &check;  |  &check;  |  &check;  |
 | debug build fps                    |  5        |  150      |  80       |
-| release build fps                  |  5        |  230      |  250      |
+| release build fps                  |  5        |  350      |  500      |
 | CPU logging                        |  &check;  |  &check;  |  &check;  |
 | keyboard input                     |  &cross;  |  &check;  |  &check;  |
 | gamepad input                      |  &cross;  |  &cross;  |  &check;  |

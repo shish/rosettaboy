@@ -10,19 +10,19 @@ Standard keyboard controls:
 - Start -- Enter
 - Select -- Space
 
-init()
-------
+`init()`
+--------
 - Set up the intial state of each button (nothing pressed)
 
-tick()
-------
-- every tick: update_buttons()
-- once per frame: handle_inputs()
+`tick()`
+--------
+- every tick: `update_buttons()`
+- once per frame: `handle_inputs()`
 
-update_buttons()
-----------------
+`update_buttons()`
+------------------
 - update the I/O registers based on which buttons are currently held
 
-handle_inputs()
----------------
+`handle_inputs()`
+-----------------
 - Accept input events from SDL

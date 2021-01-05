@@ -1,8 +1,8 @@
 Main
 ====
 
-main(args)
-----------
+`main(args)`
+------------
 - Parse arguments
   - rom: string - path to a `.gb` ROM file
   - headless: bool - run without displaying the graphics
