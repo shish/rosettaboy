@@ -100,6 +100,19 @@ class Interrupt:
     JOYPAD = 1 << 4
 
 
+class Joypad:
+    MODE_BUTTONS = 1 << 5
+    MODE_DPAD = 1 << 4
+    DOWN = 1 << 3
+    START = 1 << 3
+    UP = 1 << 2
+    SELECT = 1 << 2
+    LEFT = 1 << 1
+    B = 1 << 1
+    RIGHT = 1 << 0
+    A = 1 << 0
+
+
 class InterruptHandler:
     VBLANK_HANDLER = 0x40
     LCD_HANDLER = 0x48

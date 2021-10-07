@@ -1,8 +1,20 @@
 RosettaBoy
 ==========
 Trying to implement a gameboy emulator in a bunch of languages for my own
-amusement and education. The main goals are readability and basic playability,
-100% accuracy is not a goal.
+amusement and education. The main goals are:
+
+- Readability of the code
+- Consistency across langauges
+- Idiomatic use of language features
+- Basic playability
+
+Notably, 100% accuracy is not a goal - if Tetris works perfectly then I'm
+happy, if other games require more obscure hardware features, then I'll
+weigh up whether or not the feature is worth the complexity.
+
+Also yes, "consistent across languages" and "idiomatic" can be at odds -
+there are subjective compromises to be made, but for the most part that
+doesn't seem to be a huge problem.
 
 So far all the implementations follow a fairly standard layout, with each
 module teaching me how to do a new thing. In fact they're all so similar,
@@ -28,7 +40,7 @@ Completeness
 | debug build fps                    |  5        |  150      |  80       |
 | release build fps                  |  5        |  350      |  500      |
 | CPU logging                        |  &check;  |  &check;  |  &check;  |
-| keyboard input                     |  &cross;  |  &check;  |  &check;  |
+| keyboard input                     |  &check;  |  &check;  |  &check;  |
 | gamepad input                      |  &cross;  |  &cross;  |  &check;  |
 | turbo button                       |  &cross;  |  &check;  |  &cross;  |
 | audio                              |  &cross;  |  off-key  |  glitchy  |

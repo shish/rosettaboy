@@ -1,6 +1,6 @@
 import pygame
 import pygame.locals
-from .consts import Interrupt
+from .consts import Interrupt, IO_JOYP, Joypad
 
 class Buttons:
     def __init__(self, cpu, headless=False):
@@ -31,8 +31,22 @@ class Buttons:
             return True
 
     def update_buttons(self):
-        # TODO: implement this
-        return
+        # Since the hardware uses 0 for pressed and 1 for
+        # released, let's invert on read and write to keep
+        # our logic sensible....
+        JOYP = ~self.cpu.ram[IO_JOYP]
+        JOYP &= 0xF0
+        if JOYP & Joypad.MODE_DPAD:
+            if self.up: JOYP |= Joypad.UP
+            if self.down: JOYP |= Joypad.DOWN
+            if self.left: JOYP |= Joypad.LEFT
+            if self.right: JOYP |= Joypad.RIGHT
+        if JOYP & Joypad.MODE_BUTTONS:
+            if self.b: JOYP |= Joypad.B
+            if self.a: JOYP |= Joypad.A
+            if self.start: JOYP |= Joypad.START
+            if self.select: JOYP |= Joypad.SELECT
+        self.cpu.ram[IO_JOYP] = ~JOYP
 
     def handle_inputs(self) -> bool:
         if self.headless:
