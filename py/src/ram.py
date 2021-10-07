@@ -3,11 +3,11 @@ from .consts import *
 
 
 class RAM:
-    def __init__(self, cart: Cart):
+    def __init__(self, cart: Cart, debug: bool=False):
         self.cart = cart
         self.boot = self.get_boot()
         self.data = [0] * (0xFFFF+1)
-        self.debug = False
+        self.debug = debug
 
         self.ram_enable = True
         self.ram_bank_mode = False

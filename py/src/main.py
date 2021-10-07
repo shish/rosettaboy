@@ -24,6 +24,7 @@ def main(argv: List[str]) -> int:
     )
     parser.add_argument("-c", "--debug-cpu", action="store_true", default=False)
     parser.add_argument("-g", "--debug-gpu", action="store_true", default=False)
+    parser.add_argument("-r", "--debug-ram", action="store_true", default=False)
     parser.add_argument("-H", "--headless", action="store_true", default=False)
     parser.add_argument("-S", "--silent", action="store_true", default=False)
     parser.add_argument("-t", "--turbo", action="store_true", default=False)
@@ -44,7 +45,7 @@ def main(argv: List[str]) -> int:
 
     try:
         cart = Cart(args.rom)
-        ram = RAM(cart)
+        ram = RAM(cart, debug=args.debug_ram)
         cpu = CPU(ram, debug=args.debug_cpu)
         gpu = GPU(cpu, debug=args.debug_gpu, headless=args.headless)
         buttons = Buttons(cpu, headless=args.headless)
