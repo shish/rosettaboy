@@ -9,12 +9,11 @@ class GPU:
         self.cpu = cpu
         self.headless = headless
         self.debug = debug
-        self._game_only = not debug
         self.tiles = []
         self._last_tile_data = []
         self.title = "RosettaBoy - " + (cpu.ram.cart.name or "<corrupt>")
 
-        if self._game_only:
+        if not self.debug:
             size = (160, 144)
         else:
             size = (512, 256)
@@ -141,7 +140,7 @@ class GPU:
         WND_X = self.cpu.ram[IO_WX]
 
         # Display only valid area
-        if self._game_only:
+        if not self.debug:
 
             # LCD enabled at all
             if not LCDC & LCDC_ENABLED:
