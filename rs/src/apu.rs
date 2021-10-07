@@ -35,7 +35,7 @@ macro_rules! LENGTH_COUNTER {
         } else {
             $active = true;
         }
-        $ch = $ch * (if $active { 1 } else { 0 });
+        $ch *= (if $active { 1 } else { 0 });
     };
 }
 
@@ -65,14 +65,11 @@ fn envelope(ctrl: &mut Ch1Control, st: &mut Ch1State) -> u16 {
         st.envelope_timer =
             (st.envelope_timer + 1) % (ctrl.envelope_period as usize * hz_to_samples(64));
         if st.envelope_timer == 0 {
-            if !ctrl.envelope_direction {
-                if st.envelope_vol > 0 {
-                    st.envelope_vol -= 1;
-                }
-            } else {
-                if st.envelope_vol < 0x0F {
-                    st.envelope_vol += 1;
-                }
+            if ctrl.envelope_direction && st.envelope_vol < 0x0F {
+                st.envelope_vol += 1;
+            }
+            if !ctrl.envelope_direction && st.envelope_vol > 0 {
+                st.envelope_vol -= 1;
             }
         }
     }
@@ -126,9 +123,7 @@ impl APU {
             None
         };
 
-        let mut apu = APU::default();
-        apu.device = device;
-        apu._debug = debug;
+        let mut apu = APU { device, _debug: debug, ..Default::default() };
         apu.ch4s.lfsr = 0xFFFF;
         Ok(apu)
     }

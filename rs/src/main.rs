@@ -1,3 +1,8 @@
+#![allow(clippy::needless_return)]
+#![allow(clippy::identity_op)]
+#![allow(clippy::upper_case_acronyms)]
+#![allow(clippy::many_single_char_names)]
+
 use anyhow::Result;
 use structopt::StructOpt;
 extern crate sdl2;

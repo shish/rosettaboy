@@ -71,6 +71,6 @@ impl Clock {
             self.frame += 1;
         }
 
-        return Ok(());
+        Ok(())
     }
 }

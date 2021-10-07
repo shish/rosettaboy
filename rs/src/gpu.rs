@@ -179,7 +179,7 @@ impl GPU {
             cpu.interrupt(ram, Interrupt::VBLANK);
         }
 
-        return Ok(());
+        Ok(())
     }
 
     fn update_palettes(&mut self, ram: &ram::RAM) {
