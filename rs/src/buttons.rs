@@ -84,6 +84,49 @@ impl Buttons {
     }
 
     /**
+     * If `ram[JOYP].bit4 == 0`, then set `ram[JOYP].bit0-3` to up / down / left / right
+     * If `ram[JOYP].bit5 == 0`, then set `ram[JOYP].bit0-3` to a / b / start / select
+     *
+     * Note that in memory, 0=pressed and 1=released - since this makes things
+     * incredibly confusing, we invert the bits when reading the byte and invert
+     * them back when writing.
+     */
+    #[inline(always)]
+    fn update_buttons(&mut self, ram: &mut ram::RAM) {
+        let mut joyp = !Joypad::from_bits_truncate(ram.get(IO::JOYP as u16));
+        joyp.remove(Joypad::BUTTON_BITS);
+        if joyp.contains(Joypad::MODE_DPAD) {
+            if self.up {
+                joyp.insert(Joypad::UP);
+            }
+            if self.down {
+                joyp.insert(Joypad::DOWN);
+            }
+            if self.left {
+                joyp.insert(Joypad::LEFT);
+            }
+            if self.right {
+                joyp.insert(Joypad::RIGHT);
+            }
+        }
+        if joyp.contains(Joypad::MODE_BUTTONS) {
+            if self.b {
+                joyp.insert(Joypad::B);
+            }
+            if self.a {
+                joyp.insert(Joypad::A);
+            }
+            if self.start {
+                joyp.insert(Joypad::START);
+            }
+            if self.select {
+                joyp.insert(Joypad::SELECT);
+            }
+        }
+        ram.set(IO::JOYP, !joyp.bits());
+    }
+
+    /**
      * Once per frame, check the queue of input events from the OS,
      * store which buttons are pressed or not
      */
@@ -164,48 +207,5 @@ impl Buttons {
         }
 
         Ok(())
-    }
-
-    /**
-     * If `ram[JOYP].bit4 == 0`, then set `ram[JOYP].bit0-3` to up / down / left / right
-     * If `ram[JOYP].bit5 == 0`, then set `ram[JOYP].bit0-3` to a / b / start / select
-     *
-     * Note that in memory, 0=pressed and 1=released - since this makes things
-     * incredibly confusing, we invert the bits when reading the byte and invert
-     * them back when writing.
-     */
-    #[inline(always)]
-    fn update_buttons(&mut self, ram: &mut ram::RAM) {
-        let mut joyp = !Joypad::from_bits_truncate(ram.get(IO::JOYP as u16));
-        joyp.remove(Joypad::BUTTON_BITS);
-        if joyp.contains(Joypad::MODE_DPAD) {
-            if self.up {
-                joyp.insert(Joypad::UP);
-            }
-            if self.down {
-                joyp.insert(Joypad::DOWN);
-            }
-            if self.left {
-                joyp.insert(Joypad::LEFT);
-            }
-            if self.right {
-                joyp.insert(Joypad::RIGHT);
-            }
-        }
-        if joyp.contains(Joypad::MODE_BUTTONS) {
-            if self.b {
-                joyp.insert(Joypad::B);
-            }
-            if self.a {
-                joyp.insert(Joypad::A);
-            }
-            if self.start {
-                joyp.insert(Joypad::START);
-            }
-            if self.select {
-                joyp.insert(Joypad::SELECT);
-            }
-        }
-        ram.set(IO::JOYP, !joyp.bits());
     }
 }
