@@ -2,6 +2,7 @@ extern crate sdl2;
 use crate::consts::*;
 use crate::cpu;
 use crate::ram;
+use anyhow::{anyhow, Result};
 
 use sdl2::controller::{Button, GameController};
 use sdl2::event::Event;
@@ -23,10 +24,12 @@ pub struct Buttons {
 }
 
 impl Buttons {
-    pub fn init(sdl: sdl2::Sdl) -> Result<Buttons, String> {
-        let game_controller_subsystem = sdl.game_controller()?;
+    pub fn init(sdl: sdl2::Sdl) -> Result<Buttons> {
+        let game_controller_subsystem = sdl.game_controller().map_err(anyhow::Error::msg)?;
 
-        let available = game_controller_subsystem.num_joysticks()?;
+        let available = game_controller_subsystem
+            .num_joysticks()
+            .map_err(anyhow::Error::msg)?;
 
         // Iterate over all available joysticks and look for game controllers.
         let mut _controller = (0..available).find_map(|id| {
@@ -61,7 +64,7 @@ impl Buttons {
      * Handle SDL inputs every frame, but handle button
      * register every CPU instruction
      */
-    pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> Result<(), String> {
+    pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> Result<()> {
         self.cycle += 1;
 
         self.update_buttons(ram);
@@ -84,15 +87,20 @@ impl Buttons {
      * Once per frame, check the queue of input events from the OS,
      * store which buttons are pressed or not
      */
-    fn handle_inputs(&mut self) -> Result<(), String> {
-        for event in self.sdl.event_pump()?.poll_iter() {
+    fn handle_inputs(&mut self) -> Result<()> {
+        for event in self
+            .sdl
+            .event_pump()
+            .map_err(anyhow::Error::msg)?
+            .poll_iter()
+        {
             // println!("Event: {:?}", event);
             match event {
-                Event::Quit { .. } => return Err("Quit".to_string()),
+                Event::Quit { .. } => return Err(anyhow!("Quit")),
                 Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
-                } => return Err("Quit".to_string()),
+                } => return Err(anyhow!("Quit")),
 
                 Event::KeyDown {
                     keycode: Some(keycode),

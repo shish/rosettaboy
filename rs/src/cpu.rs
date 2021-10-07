@@ -1,5 +1,6 @@
 use crate::consts::*;
 use crate::ram;
+use anyhow::{anyhow, Result};
 
 struct OpArg {
     u8: u8,   // B
@@ -116,7 +117,7 @@ impl CPU {
         self.halt = false; // interrupts interrupt HALT state
     }
 
-    pub fn tick(&mut self, ram: &mut ram::RAM) -> Result<(), String> {
+    pub fn tick(&mut self, ram: &mut ram::RAM) -> Result<()> {
         self.tick_dma(ram);
         self.tick_clock(ram);
         self.tick_interrupts(ram);
@@ -124,7 +125,7 @@ impl CPU {
             return Ok(());
         }
         if self.stop {
-            return Err("CPU Halted".to_string());
+            return Err(anyhow!("CPU Halted"));
         }
         self.tick_instructions(ram);
 

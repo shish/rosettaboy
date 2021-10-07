@@ -1,13 +1,5 @@
+use anyhow::{anyhow, Result};
 use std::time::{Duration, SystemTime};
-
-#[derive(Debug)]
-struct ProfileComplete(Duration);
-impl std::fmt::Display for ProfileComplete {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Hit frame limit after {:?}", self.0)
-    }
-}
-impl std::error::Error for ProfileComplete {}
 
 pub struct Clock {
     start: SystemTime,
@@ -44,7 +36,7 @@ impl Clock {
         }
     }
 
-    pub fn tick(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn tick(&mut self) -> Result<()> {
         self.cycle += 1;
 
         // Do a whole frame's worth of sleeping at the start of each frame
@@ -70,9 +62,10 @@ impl Clock {
 
             // Exit if we've hit the frame limit
             if self.profile != 0 && self.frame > self.profile {
-                return Err(Box::new(ProfileComplete(
+                return Err(anyhow!(
+                    "Hit frame limit after {:?}",
                     SystemTime::now().duration_since(self.start)?,
-                )));
+                ));
             }
 
             self.frame += 1;

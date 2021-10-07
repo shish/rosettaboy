@@ -1,7 +1,7 @@
 use crate::consts::*;
+use anyhow::Result;
 use std::convert::TryFrom;
 use std::fs::File;
-use std::io;
 use std::io::Read;
 
 pub struct Cart {
@@ -59,7 +59,7 @@ fn parse_ram_size(val: u8) -> u32 {
 }
 
 impl Cart {
-    pub fn init(filename: &str) -> Result<Cart, io::Error> {
+    pub fn init(filename: &str) -> Result<Cart> {
         let mut fp = File::open(filename)?;
         let mut data: Vec<u8> = Vec::new();
         fp.read_to_end(&mut data)?;

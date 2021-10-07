@@ -1,3 +1,4 @@
+use anyhow::Result;
 use structopt::StructOpt;
 extern crate sdl2;
 
@@ -69,8 +70,8 @@ struct Gameboy {
 }
 impl Gameboy {
     #[inline(never)]
-    fn init(args: Args) -> Result<Gameboy, Box<dyn std::error::Error>> {
-        let sdl = sdl2::init()?;
+    fn init(args: Args) -> Result<Gameboy> {
+        let sdl = sdl2::init().map_err(anyhow::Error::msg)?;
 
         let cart = cart::Cart::init(args.rom.as_str())?;
         let cart_name = cart.name.clone();
@@ -92,7 +93,7 @@ impl Gameboy {
     }
 
     #[inline(never)]
-    fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn run(&mut self) -> Result<()> {
         loop {
             self.cpu.tick(&mut self.ram)?;
             self.gpu.tick(&mut self.ram, &mut self.cpu)?;
@@ -103,7 +104,7 @@ impl Gameboy {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     Gameboy::init(Args::from_args())?.run()?;
 
     // because debug ROMs print to stdout without newline

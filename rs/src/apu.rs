@@ -1,6 +1,7 @@
 extern crate sdl2;
 use crate::consts::*;
 use crate::ram;
+use anyhow::Result;
 use sdl2::audio::{AudioQueue, AudioSpecDesired};
 use std::convert::TryFrom;
 
@@ -107,16 +108,18 @@ pub struct APU {
 }
 
 impl APU {
-    pub fn init(sdl: &sdl2::Sdl, silent: bool, debug: bool) -> Result<APU, String> {
+    pub fn init(sdl: &sdl2::Sdl, silent: bool, debug: bool) -> Result<APU> {
         let device = if !silent {
-            let audio = sdl.audio()?;
+            let audio = sdl.audio().map_err(anyhow::Error::msg)?;
             let spec = AudioSpecDesired {
                 freq: Some(HZ as i32),
                 channels: Some(2),
                 // generate audio for one frame at a time, 735 samples per frame
                 samples: Some((HZ / 60) as u16),
             };
-            let device = audio.open_queue::<u8, _>(None, &spec)?;
+            let device = audio
+                .open_queue::<u8, _>(None, &spec)
+                .map_err(anyhow::Error::msg)?;
             device.resume();
             Some(device)
         } else {

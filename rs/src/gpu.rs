@@ -2,6 +2,7 @@ extern crate sdl2;
 use crate::consts::*;
 use crate::cpu;
 use crate::ram;
+use anyhow::Result;
 
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
@@ -61,21 +62,23 @@ pub struct GPU {
 }
 
 impl GPU {
-    pub fn init(sdl: &sdl2::Sdl, title: &str, headless: bool, debug: bool) -> Result<GPU, String> {
+    pub fn init(sdl: &sdl2::Sdl, title: &str, headless: bool, debug: bool) -> Result<GPU> {
         let (w, h) = if debug { (160 + 256, 144) } else { (160, 144) };
         let canvas = if !headless {
-            let video_subsystem = sdl.video()?;
+            let video_subsystem = sdl.video().map_err(anyhow::Error::msg)?;
             let window = video_subsystem
                 .window(&format!("RosettaBoy - {}", title)[..], w * SCALE, h * SCALE)
                 .position_centered()
                 .build()
-                .map_err(|e| e.to_string())?;
+                .map_err(anyhow::Error::msg)?;
             let mut canvas = window
                 .into_canvas()
                 .software()
                 .build()
-                .map_err(|e| e.to_string())?;
-            canvas.set_scale(SCALE as f32, SCALE as f32)?;
+                .map_err(anyhow::Error::msg)?;
+            canvas
+                .set_scale(SCALE as f32, SCALE as f32)
+                .map_err(anyhow::Error::msg)?;
             Some(canvas)
         } else {
             None
@@ -101,7 +104,7 @@ impl GPU {
         })
     }
 
-    pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> Result<(), String> {
+    pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> Result<()> {
         self.cycle += 1;
 
         // CPU STOP stops all LCD activity until a button is pressed
@@ -199,7 +202,7 @@ impl GPU {
         self.obp1[3] = self.colors[((raw_obp1 >> 6) & 0x3) as usize];
     }
 
-    fn draw_debug(&mut self, ram: &mut ram::RAM) -> Result<(), String> {
+    fn draw_debug(&mut self, ram: &mut ram::RAM) -> Result<()> {
         let lcdc = LCDC::from_bits(ram.get(IO::LCDC)).unwrap();
 
         // Tile data
@@ -217,7 +220,7 @@ impl GPU {
             let rect = Rect::new(0, 0, 160, 144);
             if let Some(canvas) = &mut self.canvas {
                 canvas.set_draw_color(RED);
-                canvas.draw_rect(rect)?;
+                canvas.draw_rect(rect).map_err(anyhow::Error::msg)?;
             }
         }
 
@@ -228,7 +231,7 @@ impl GPU {
             let rect = Rect::new(wnd_x as i32 - 7, wnd_y as i32, 160, 144);
             if let Some(canvas) = &mut self.canvas {
                 canvas.set_draw_color(BLUE);
-                canvas.draw_rect(rect)?;
+                canvas.draw_rect(rect).map_err(anyhow::Error::msg)?;
             }
         }
 
