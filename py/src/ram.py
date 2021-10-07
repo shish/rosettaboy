@@ -150,9 +150,6 @@ class RAM:
         return BOOT
 
     def __getitem__(self, addr):
-        if isinstance(addr, slice):
-            return self.data[addr]
-
         if addr < 0x4000:
             # ROM bank 0
             if self.data[IO_BOOT] == 0 and addr < 0x100:

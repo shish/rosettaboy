@@ -120,7 +120,7 @@ class GPU:
         # when using tile map 0, tiles are -128..127; also, they overlap
         # T1: [0...........255]
         # T2:        [-128..........127]
-        tile_data = self.cpu.ram[TILE_DATA_TABLE_1 : TILE_DATA_TABLE_1 + 384 * 16]
+        tile_data = self.cpu.ram.data[TILE_DATA_TABLE_1 : TILE_DATA_TABLE_1 + 384 * 16]
         if self._last_tile_data != tile_data:
             self.tiles = []
             for tile_id in range(0x180):  # 384 tiles
@@ -192,7 +192,7 @@ class GPU:
                 for sprite_id in range(40):
                     # FIXME: use obp instead of bgp
                     # + flags support
-                    y, x, tile_id, flags = self.cpu.ram[
+                    y, x, tile_id, flags = self.cpu.ram.data[
                         OAM_BASE + (sprite_id * 4) : OAM_BASE + (sprite_id * 4) + 4
                     ]
                     if tile_offset and tile_id > 0x7F:
@@ -239,7 +239,7 @@ class GPU:
         return True
 
     def get_tile(self, table, tile_id, pallette):
-        tile = self.cpu.ram[table + tile_id * 16 : table + (tile_id * 16) + 16]
+        tile = self.cpu.ram.data[table + tile_id * 16 : table + (tile_id * 16) + 16]
         surf = pygame.Surface((8, 8))
 
         for y in range(8):
