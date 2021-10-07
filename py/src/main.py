@@ -34,6 +34,7 @@ def main(argv: List[str]) -> int:
         type=int,
         help="Exit after N frames",
         default=0,
+        metavar="N",
     )
     args = parser.parse_args(argv[1:])
 
