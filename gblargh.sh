@@ -1,7 +1,11 @@
 #!/bin/bash
 
+if [ ! -d gb-test-roms ] ; then
+	git clone https://github.com/retrio/gb-test-roms
+fi
+
 function test {
-	./run.sh --turbo --silent --headless --profile $2 ../test_roms/cpu_instrs/individual/$1*.gb 2>&1 \
+	./run.sh --turbo --silent --headless --profile $2 "../gb-test-roms/cpu_instrs/individual/$1*.gb" 2>&1 \
 		| grep -q Passed && echo $1 $n ok || echo $1 $n fail &
 }
 

@@ -1,5 +1,6 @@
 boot.gb
 test_roms
+gb-test-roms
 *.log
 0*.txt
 .vscode/
