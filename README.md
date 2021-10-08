@@ -30,6 +30,9 @@ I wrote one copy of the documentation for all the implementations:
 - [consts](docs/consts.md): lists of constant values
 - [ram](docs/ram.md): array access where some array values are special
 
+Pull requests to translate into new languages, or fleshing out existing
+languages, are very welcome :)
+
 Completeness
 ------------
 | Feature                            | Python    | C++       | Rust      |
