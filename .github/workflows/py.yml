@@ -1,0 +1,18 @@
+name: Python
+
+on:
+  push:
+    paths:
+    - 'py/**'
+
+jobs:
+  format:
+    name: Black
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Check
+      uses: rickstaa/action-black@v1
+      with:
+        black_args: "--check py/src"

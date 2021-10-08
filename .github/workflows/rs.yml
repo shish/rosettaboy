@@ -1,0 +1,37 @@
+name: Rust
+
+on:
+  push:
+    paths:
+    - 'rs/**'
+
+jobs:
+  build:
+    name: Build
+    strategy:
+      matrix:
+        toolchain: ["1.53.0"]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install deps
+      run: sudo apt-get update && sudo apt-get install -y gcc libsdl2-dev
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Set Up Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          rs/target
+          ~/.rustup/toolchains
+          ~/.rustup/update-hashes
+          ~/.rustup/settings.toml
+        key: ${{ runner.os }}-rust-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+    - name: Set Up Toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.toolchain }}
+    - name: Build
+      working-directory: rs
+      run: cargo build --release
