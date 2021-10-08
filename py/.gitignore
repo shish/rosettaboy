@@ -1,12 +1,12 @@
 .idea
 .venv
 __pycache__
+.mypy_cache
 
 Makefile
 *.gb
 *.asm
 *.o
-*/
 
 *.swp
 *.txt

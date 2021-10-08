@@ -1,0 +1,22 @@
+name: C++
+
+on:
+  push:
+    paths:
+    - 'cpp/**'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install deps
+      run: sudo apt-get update && sudo apt-get install -y gcc cmake libsdl2-dev
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: CMake
+      working-directory: cpp
+      run: cmake -DCMAKE_BUILD_TYPE=Debug .
+    - name: Build
+      working-directory: cpp
+      run: make
