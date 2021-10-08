@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - 'py/**'
+  workflow_dispatch:
 
 jobs:
   format:

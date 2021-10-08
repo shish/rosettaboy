@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - 'rs/**'
+  workflow_dispatch:
 
 jobs:
   build:
