@@ -268,12 +268,12 @@ void GPU::draw_line(i32 ly) {
         // memcpy(sprites, &ram.data[OAM_BASE], 40 * sizeof(Sprite));
         // for sprite in sprites.iter() {
         for(int n=0; n<40; n++) {
-            Sprite sprite = {
-                .y = this->cpu->ram->get(Mem::OAM_BASE + 4 * n + 0),
-                .x = this->cpu->ram->get(Mem::OAM_BASE + 4 * n + 1),
-                .tile_id = this->cpu->ram->get(Mem::OAM_BASE + 4 * n + 2),
-                .flags = this->cpu->ram->get(Mem::OAM_BASE + 4 * n + 3),
-            };
+            Sprite sprite;
+            sprite.y = this->cpu->ram->get(Mem::OAM_BASE + 4 * n + 0);
+            sprite.x = this->cpu->ram->get(Mem::OAM_BASE + 4 * n + 1);
+            sprite.tile_id = this->cpu->ram->get(Mem::OAM_BASE + 4 * n + 2);
+            sprite.flags = this->cpu->ram->get(Mem::OAM_BASE + 4 * n + 3);
+
             if(sprite.is_live()) {
                 auto palette = sprite.palette ?
                     this->obp1 :
