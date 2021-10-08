@@ -1,16 +1,18 @@
 import pygame
+from typing import List
 from .consts import *
+from .cpu import CPU
 
 SCALE = 2
 
 
 class GPU:
-    def __init__(self, cpu, debug=False, headless=False):
+    def __init__(self, cpu: CPU, debug: bool = False, headless: bool = False) -> None:
         self.cpu = cpu
         self.headless = headless
         self.debug = debug
-        self.tiles = []
-        self._last_tile_data = []
+        self.tiles: List[pygame.Surface] = []
+        self._last_tile_data: List[int] = []
         self.title = "RosettaBoy - " + (cpu.ram.cart.name or "<corrupt>")
 
         if not self.debug:
@@ -97,7 +99,7 @@ class GPU:
 
         return True
 
-    def update_palettes(self):
+    def update_palettes(self) -> None:
         self.bgp = [
             self.colors[(self.cpu.ram[0xFF47] >> 0) & 0x3],
             self.colors[(self.cpu.ram[0xFF47] >> 2) & 0x3],
@@ -117,7 +119,7 @@ class GPU:
             self.colors[(self.cpu.ram[0xFF49] >> 6) & 0x3],
         ]
 
-    def draw_lcd(self):
+    def draw_lcd(self) -> bool:
         self.update_palettes()
 
         LCDC = self.cpu.ram[IO_LCDC]
@@ -246,7 +248,9 @@ class GPU:
             pygame.display.update()
         return True
 
-    def get_tile(self, table, tile_id, pallette):
+    def get_tile(
+        self, table: int, tile_id: int, pallette: List[pygame.Color]
+    ) -> pygame.Surface:
         tile = self.cpu.ram.data[table + tile_id * 16 : table + (tile_id * 16) + 16]
         surf = pygame.Surface((8, 8))
 

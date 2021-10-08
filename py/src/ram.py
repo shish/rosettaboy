@@ -1,9 +1,10 @@
+from typing import List
 from .cart import Cart
 from .consts import *
 
 
 class RAM:
-    def __init__(self, cart: Cart, debug: bool = False):
+    def __init__(self, cart: Cart, debug: bool = False) -> None:
         self.cart = cart
         self.boot = self.get_boot()
         self.data = [0] * (0xFFFF + 1)
@@ -102,7 +103,7 @@ class RAM:
 
         # TODO: ram[E000-FE00] mirrors ram[C000-DE00]
 
-    def get_boot(self):
+    def get_boot(self) -> List[int]:
         try:
             # boot with the logo scroll if we have a boot rom
             with open("boot.gb", "rb") as fp:
@@ -151,7 +152,7 @@ class RAM:
         assert len(BOOT) == 0x100, f"Bootloader must be 256 bytes ({len(BOOT)})"
         return BOOT
 
-    def __getitem__(self, addr):
+    def __getitem__(self, addr: int) -> int:
         if addr < 0x4000:
             # ROM bank 0
             if self.data[IO_BOOT] == 0 and addr < 0x100:
@@ -189,7 +190,8 @@ class RAM:
                     self.ram_bank,
                     (addr - 0xA000),
                 )
-            return self.cart.ram[addr_within_ram]
+            raise Exception("Cart RAM not supported")  # TODO
+            # return self.cart.ram[addr_within_ram]
         elif addr < 0xD000:
             # work RAM, bank 0
             pass
@@ -217,7 +219,7 @@ class RAM:
 
         return self.data[addr]
 
-    def __setitem__(self, addr, val):
+    def __setitem__(self, addr: int, val: int) -> None:
         if addr < 0x2000:
             self.ram_enable = val != 0
         elif addr < 0x4000:
@@ -277,7 +279,8 @@ class RAM:
             if addr_within_ram >= self.cart.ram_size:
                 # raise Exception!("Writing beyond RAM limit")
                 return
-            self.cart.ram[addr_within_ram] = val
+            raise Exception("Cart RAM not supported")  # TODO
+            # self.cart.ram[addr_within_ram] = val
         elif addr < 0xD000:
             # work RAM, bank 0
             pass

@@ -1,8 +1,9 @@
 from enum import Enum
-from .cart import Cart
-from .ram import RAM
+from typing import Optional
 import sys
 from textwrap import dedent
+
+from .ram import RAM
 from .consts import *
 
 
@@ -34,7 +35,7 @@ class OpNotImplemented(Exception):
     pass
 
 
-def opcode(name, cycles, args=""):
+def opcode(name: str, cycles: int, args: str = ""):
     def dec(fn):
         fn.name = name
         fn.cycles = cycles
@@ -46,7 +47,7 @@ def opcode(name, cycles, args=""):
 
 class CPU:
     # <editor-fold description="Init">
-    def __init__(self, ram: RAM, debug=False):
+    def __init__(self, ram: RAM, debug=False) -> None:
         self.ram = ram
         self.interrupts = True
         self.halt = False
@@ -123,7 +124,7 @@ class CPU:
             cmd_str,
         )
 
-    def interrupt(self, i: int):
+    def interrupt(self, i: int) -> None:
         """
         Set a given interrupt bit - on the next tick, if the interrupt
         handler for this interrupt is enabled (and interrupts in general
@@ -132,7 +133,7 @@ class CPU:
         self.ram[IO_IF] |= i
         self.halt = False  # interrupts interrupt HALT state
 
-    def tick(self):
+    def tick(self) -> bool:
         self.tick_dma()
         self.tick_clock()
         self.tick_interrupts()
@@ -143,7 +144,7 @@ class CPU:
         self.tick_instructions()
         return True
 
-    def tick_dma(self):
+    def tick_dma(self) -> None:
         """
         If there is a non-zero value in ram[IO_DMA], eg 0x42, then
         we should copy memory from eg 0x4200 to OAM space.
@@ -155,7 +156,7 @@ class CPU:
                 self.ram[OAM_BASE + i] = self.ram[dma_src + i]
             self.ram[IO_DMA] = 0x00
 
-    def tick_clock(self):
+    def tick_clock(self) -> None:
         """
         Increment the timer registers, and send an interrupt
         when `ram[IO::TIMA]` wraps around.
@@ -179,7 +180,7 @@ class CPU:
                     self.interrupt(Interrupt.TIMER)
                 self.ram[IO_TIMA] += 1
 
-    def tick_interrupts(self):
+    def tick_interrupts(self) -> None:
         """
         Compare Interrupt Enabled and Interrupt Flag registers - if
         there are any interrupts which are both enabled and flagged,
@@ -219,7 +220,7 @@ class CPU:
                 self.PC = InterruptHandler.JOYPAD_HANDLER
                 self.ram[IO_IF] &= ~Interrupt.JOYPAD
 
-    def tick_instructions(self):
+    def tick_instructions(self) -> None:
         # TODO: extra cycles when conditional jumps are taken
         if self._owed_cycles:
             self._owed_cycles -= 4
@@ -236,6 +237,8 @@ class CPU:
             self.PC += 1
         else:
             cmd = self.ops[ins]
+
+        param: Optional[int]
 
         if cmd.args == "B":
             param = src[self.PC + 1]
@@ -268,12 +271,11 @@ class CPU:
             cmd()
 
         self._owed_cycles = cmd.cycles - 4
-        return True
 
     # </editor-fold>
 
     # <editor-fold description="Debugger">
-    def debugger(self):
+    def debugger(self) -> None:
         while True:
             cmd = input("dbg> ").split()
             if cmd[0] == "cpu":
@@ -287,7 +289,7 @@ class CPU:
 
     # <editor-fold description="Registers">
     @property
-    def AF(self):
+    def AF(self) -> int:
         """
         >>> cpu = CPU()
         >>> cpu.A = 0x01
@@ -307,7 +309,7 @@ class CPU:
         )
 
     @AF.setter
-    def AF(self, val):
+    def AF(self, val: int) -> None:
         self.A = val >> 8 & 0xFF
         self.FLAG_Z = bool(val & 0b10000000)
         self.FLAG_N = bool(val & 0b01000000)
@@ -315,7 +317,7 @@ class CPU:
         self.FLAG_C = bool(val & 0b00010000)
 
     @property
-    def BC(self):
+    def BC(self) -> int:
         """
         >>> cpu = CPU()
         >>> cpu.BC = 0x1234
@@ -329,12 +331,12 @@ class CPU:
         return self.B << 8 | self.C
 
     @BC.setter
-    def BC(self, val):
+    def BC(self, val: int) -> None:
         self.B = val >> 8 & 0xFF
         self.C = val & 0xFF
 
     @property
-    def DE(self):
+    def DE(self) -> int:
         """
         >>> cpu = CPU()
         >>> cpu.DE = 0x1234
@@ -348,12 +350,12 @@ class CPU:
         return self.D << 8 | self.E
 
     @DE.setter
-    def DE(self, val):
+    def DE(self, val: int) -> None:
         self.D = val >> 8 & 0xFF
         self.E = val & 0xFF
 
     @property
-    def HL(self):
+    def HL(self) -> int:
         """
         >>> cpu = CPU()
         >>> cpu.HL = 0x1234
@@ -367,16 +369,16 @@ class CPU:
         return self.H << 8 | self.L
 
     @HL.setter
-    def HL(self, val):
+    def HL(self, val: int) -> None:
         self.H = val >> 8 & 0xFF
         self.L = val & 0xFF
 
     @property
-    def MEM_AT_HL(self):
+    def MEM_AT_HL(self) -> int:
         return self.ram[self.HL]
 
     @MEM_AT_HL.setter
-    def MEM_AT_HL(self, val):
+    def MEM_AT_HL(self, val: int) -> None:
         self.ram[self.HL] = val
 
     # </editor-fold>

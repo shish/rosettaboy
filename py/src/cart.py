@@ -82,14 +82,14 @@ def parse_ram_size(val: int) -> int:
 
 
 class Cart:
-    def __init__(self, rom: str):
+    def __init__(self, rom: str) -> None:
         with open(rom, "rb") as fp:
             self.data = fp.read()
 
         self.rsts: str
         self.init: Tuple[int]
         self.logo: Tuple[int]
-        self.name: bytes
+        self.name: str
         self.is_gbc: bool
         self.licensee: int
         self.is_sgb: bool
@@ -144,7 +144,7 @@ class Cart:
         if header_checksum != 0:
             raise CorruptCart("Header checksum failed: %02X != 0" % header_checksum)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "\n".join(
             [
                 f"{k}: {v}"
