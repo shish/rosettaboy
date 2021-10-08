@@ -52,6 +52,7 @@ class OldLicensee(Enum):
 KB: int = 1024
 MB: int = 1024 * 1024
 
+
 def parse_rom_size(val: int) -> int:
     return {
         0: 32 * KB,
@@ -68,6 +69,7 @@ def parse_rom_size(val: int) -> int:
         0x54: 1 * MB + 512 * KB,
     }.get(val, 0)
 
+
 def parse_ram_size(val: int) -> int:
     return {
         0: 0,
@@ -77,6 +79,7 @@ def parse_ram_size(val: int) -> int:
         4: 128 * KB,
         5: 64 * KB,
     }.get(val, 0)
+
 
 class Cart:
     def __init__(self, rom: str):
@@ -109,7 +112,7 @@ class Cart:
             ("B", "is_sgb", lambda x: x == 0x03),
             ("B", "cart_type", lambda x: CartType(x)),
             ("B", "rom_size", lambda x: parse_rom_size(x)),
-            ("B", "ram_size", lambda x:  parse_ram_size(x)),
+            ("B", "ram_size", lambda x: parse_ram_size(x)),
             ("B", "destination", lambda x: Destination(x)),
             ("B", "old_licensee", lambda x: OldLicensee(x)),
             ("B", "rom_version", None),
@@ -135,9 +138,17 @@ class Cart:
         if logo_checksum != 5446:
             raise CorruptCart("Logo checksum failed: %d != 5446" % logo_checksum)
 
-        header_checksum = (sum(struct.unpack("26B", self.data[0x0134:0x014E])) + 25) & 0xFF
+        header_checksum = (
+            sum(struct.unpack("26B", self.data[0x0134:0x014E])) + 25
+        ) & 0xFF
         if header_checksum != 0:
             raise CorruptCart("Header checksum failed: %02X != 0" % header_checksum)
 
     def __str__(self):
-        return "\n".join([f"{k}: {v}" for k, v in self.__dict__.items() if k not in {"data", "logo", "init", "rsts"}])
+        return "\n".join(
+            [
+                f"{k}: {v}"
+                for k, v in self.__dict__.items()
+                if k not in {"data", "logo", "init", "rsts"}
+            ]
+        )

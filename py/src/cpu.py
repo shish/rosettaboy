@@ -40,6 +40,7 @@ def opcode(name, cycles, args=""):
         fn.cycles = cycles
         fn.args = args
         return fn
+
     return dec
 
 
@@ -76,14 +77,8 @@ class CPU:
         self.FLAG_H: bool = False  # True   # half-carry
         self.FLAG_C: bool = False  # True   # carry
 
-        self.ops = [
-            getattr(self, "op%02X" % n)
-            for n in range(0x00, 0xFF+1)
-        ]
-        self.cb_ops = [
-            getattr(self, "opCB%02X" % n)
-            for n in range(0x00, 0xFF+1)
-        ]
+        self.ops = [getattr(self, "op%02X" % n) for n in range(0x00, 0xFF + 1)]
+        self.cb_ops = [getattr(self, "opCB%02X" % n) for n in range(0x00, 0xFF + 1)]
 
     def dump(self, pc: int, cmd_str: str) -> str:
         ien = self.ram[IO_IE]
@@ -96,21 +91,36 @@ class CPU:
                 else:
                     return c
             else:
-                return '_'
-        v = flag(Interrupt.VBLANK, 'v')
-        l = flag(Interrupt.STAT, 'l')
-        t = flag(Interrupt.TIMER, 't')
-        s = flag(Interrupt.SERIAL, 's')
-        j = flag(Interrupt.JOYPAD, 'j')
+                return "_"
 
-        op = self.ram[pc+1] if self.ram[pc] == 0xCB else self.ram[pc]
+        v = flag(Interrupt.VBLANK, "v")
+        l = flag(Interrupt.STAT, "l")
+        t = flag(Interrupt.TIMER, "t")
+        s = flag(Interrupt.SERIAL, "s")
+        j = flag(Interrupt.JOYPAD, "j")
+
+        op = self.ram[pc + 1] if self.ram[pc] == 0xCB else self.ram[pc]
 
         return "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:02X}{:02X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}".format(
-            self.AF, self.BC, self.DE, self.HL,
-            self.SP, self.ram[(self.SP+1) & 0xFFFF], self.ram[self.SP],
-            "Z" if self.FLAG_Z else "z", "N" if self.FLAG_N else "n", "H" if self.FLAG_H else "h", "C" if self.FLAG_C else "c",
-            v, l, t, s, j,
-            pc, op, cmd_str
+            self.AF,
+            self.BC,
+            self.DE,
+            self.HL,
+            self.SP,
+            self.ram[(self.SP + 1) & 0xFFFF],
+            self.ram[self.SP],
+            "Z" if self.FLAG_Z else "z",
+            "N" if self.FLAG_N else "n",
+            "H" if self.FLAG_H else "h",
+            "C" if self.FLAG_C else "c",
+            v,
+            l,
+            t,
+            s,
+            j,
+            pc,
+            op,
+            cmd_str,
         )
 
     def interrupt(self, i: int):
@@ -163,7 +173,9 @@ class CPU:
             speed = speeds[self.ram[IO_TAC] & 0x03]
             if self.cycle % speed == 0:
                 if self.ram[IO_TIMA] == 0xFF:
-                    self.ram[IO_TIMA] = self.ram[IO_TMA]  # if timer overflows, load base
+                    self.ram[IO_TIMA] = self.ram[
+                        IO_TMA
+                    ]  # if timer overflows, load base
                     self.interrupt(Interrupt.TIMER)
                 self.ram[IO_TIMA] += 1
 
@@ -176,7 +188,9 @@ class CPU:
         queued_interrupts = self.ram[IO_IE] & self.ram[IO_IF]
         if self.interrupts and queued_interrupts:
             if self._debug:
-                print(f"Handling interrupts: {self.ram[IO_IE]:02X} & {self.ram[IO_IF]:02X}")
+                print(
+                    f"Handling interrupts: {self.ram[IO_IE]:02X} & {self.ram[IO_IF]:02X}"
+                )
 
             # no nested interrupts, RETI will re-enable
             self.interrupts = False
@@ -225,19 +239,19 @@ class CPU:
 
         if cmd.args == "B":
             param = src[self.PC + 1]
-            cmd_str = cmd.name.replace('n', '$%02X' % param)
+            cmd_str = cmd.name.replace("n", "$%02X" % param)
             self.PC += 2
         elif cmd.args == "b":
             param = src[self.PC + 1]
             if param > 128:
                 param -= 256
-                cmd_str = cmd.name.replace('n', '%d' % param)
+                cmd_str = cmd.name.replace("n", "%d" % param)
             else:
-                cmd_str = cmd.name.replace('n', '+%d' % param)
+                cmd_str = cmd.name.replace("n", "+%d" % param)
             self.PC += 2
         elif cmd.args == "H":
             param = (src[self.PC + 1]) | (src[self.PC + 2] << 8)
-            cmd_str = cmd.name.replace('nn', '$%04X' % param)
+            cmd_str = cmd.name.replace("nn", "$%04X" % param)
             self.PC += 3
         else:
             param = None
@@ -255,6 +269,7 @@ class CPU:
 
         self._owed_cycles = cmd.cycles - 4
         return True
+
     # </editor-fold>
 
     # <editor-fold description="Debugger">
@@ -267,6 +282,7 @@ class CPU:
                 print("%02X" % self.ram[int(cmd[1], 16)])
             if cmd[0] == "run":
                 break
+
     # </editor-fold>
 
     # <editor-fold description="Registers">
@@ -283,11 +299,11 @@ class CPU:
         496
         """
         return (
-            self.A << 8 |
-            (self.FLAG_Z or 0) << 7 |
-            (self.FLAG_N or 0) << 6 |
-            (self.FLAG_H or 0) << 5 |
-            (self.FLAG_C or 0) << 4
+            self.A << 8
+            | (self.FLAG_Z or 0) << 7
+            | (self.FLAG_N or 0) << 6
+            | (self.FLAG_H or 0) << 5
+            | (self.FLAG_C or 0) << 4
         )
 
     @AF.setter
@@ -362,6 +378,7 @@ class CPU:
     @MEM_AT_HL.setter
     def MEM_AT_HL(self, val):
         self.ram[self.HL] = val
+
     # </editor-fold>
 
     # <editor-fold description="Empty Instructions">
@@ -388,6 +405,7 @@ class CPU:
     def opE3(self):
         print(self)
         self.debugger()
+
     # </editor-fold>
 
     # <editor-fold description="3.3.1 8-Bit Loads">
@@ -396,12 +414,16 @@ class CPU:
     for base, reg_to in enumerate(GEN_REGS):
         cycles = 12 if "[HL]" in {reg_to} else 8
         op = 0x06 + base * 8
-        reg_to_name = reg_to.replace('[HL]', 'MEM_AT_HL')
-        exec(dedent(f"""
+        reg_to_name = reg_to.replace("[HL]", "MEM_AT_HL")
+        exec(
+            dedent(
+                f"""
             @opcode("LD {reg_to},n", {cycles}, "B")
             def op{op:02X}(self, val):
                 self.{reg_to_name} = val
-        """))
+        """
+            )
+        )
 
     # ===================================
     # 2. LD r1,r2
@@ -413,13 +435,17 @@ class CPU:
 
             cycles = 8 if "[HL]" in {reg_from, reg_to} else 4
             op = 0x40 + base * 8 + offset
-            reg_to_name = reg_to.replace('[HL]', 'MEM_AT_HL')
-            reg_from_name = reg_from.replace('[HL]', 'MEM_AT_HL')
-            exec(dedent(f"""
+            reg_to_name = reg_to.replace("[HL]", "MEM_AT_HL")
+            reg_from_name = reg_from.replace("[HL]", "MEM_AT_HL")
+            exec(
+                dedent(
+                    f"""
                 @opcode("LD {reg_to},{reg_from}", {cycles})
                 def op{op:02X}(self):
                     self.{reg_to_name} = self.{reg_from_name}
-            """))
+            """
+                )
+            )
 
     # ===================================
     # 3. LD A,n
@@ -429,7 +455,9 @@ class CPU:
 
     op0A = opcode("LD A,[BC]", 8)(lambda self: self._ld_val_to_a(self.ram[self.BC]))
     op1A = opcode("LD A,[DE]", 8)(lambda self: self._ld_val_to_a(self.ram[self.DE]))
-    opFA = opcode("LD A,[nn]", 16, "H")(lambda self, val: self._ld_val_to_a(self.ram[val]))
+    opFA = opcode("LD A,[nn]", 16, "H")(
+        lambda self, val: self._ld_val_to_a(self.ram[val])
+    )
 
     # ===================================
     # 4. LD [nn],A
@@ -438,7 +466,7 @@ class CPU:
 
     op02 = opcode("LD [BC],A", 8)(lambda self: self._ld_a_to_mem(self.BC))
     op12 = opcode("LD [DE],A", 8)(lambda self: self._ld_a_to_mem(self.DE))
-    opEA = opcode("LD [nn],A", 16, 'H')(lambda self, val: self._ld_a_to_mem(val))
+    opEA = opcode("LD [nn],A", 16, "H")(lambda self, val: self._ld_a_to_mem(val))
 
     # ===================================
     # 5. LD A,(C)
@@ -503,6 +531,7 @@ class CPU:
     @opcode("LDH A,[n]", 12, "B")
     def opF0(self, val):
         self.A = self.ram[0xFF00 + val]
+
     # </editor-fold>
 
     # <editor-fold description="3.3.2 16-Bit Loads">
@@ -511,10 +540,18 @@ class CPU:
     def _ld_val_to_reg(self, val, reg: Reg):
         setattr(self, reg.value, val)
 
-    op01 = opcode("LD BC,nn", 12, "H")(lambda self, val: self._ld_val_to_reg(val, Reg.BC))
-    op11 = opcode("LD DE,nn", 12, "H")(lambda self, val: self._ld_val_to_reg(val, Reg.DE))
-    op21 = opcode("LD HL,nn", 12, "H")(lambda self, val: self._ld_val_to_reg(val, Reg.HL))
-    op31 = opcode("LD SP,nn", 12, "H")(lambda self, val: self._ld_val_to_reg(val, Reg.SP))
+    op01 = opcode("LD BC,nn", 12, "H")(
+        lambda self, val: self._ld_val_to_reg(val, Reg.BC)
+    )
+    op11 = opcode("LD DE,nn", 12, "H")(
+        lambda self, val: self._ld_val_to_reg(val, Reg.DE)
+    )
+    op21 = opcode("LD HL,nn", 12, "H")(
+        lambda self, val: self._ld_val_to_reg(val, Reg.HL)
+    )
+    op31 = opcode("LD SP,nn", 12, "H")(
+        lambda self, val: self._ld_val_to_reg(val, Reg.SP)
+    )
 
     # ===================================
     # 2. LD SP,HL
@@ -542,7 +579,7 @@ class CPU:
     # 5. LD [nn],SP
     @opcode("LD [nn],SP", 20, "H")
     def op08(self, val):
-        self.ram[val+1] = (self.SP >> 8) & 0xFF
+        self.ram[val + 1] = (self.SP >> 8) & 0xFF
         self.ram[val] = self.SP & 0xFF
 
     # ===================================
@@ -570,7 +607,7 @@ class CPU:
     # ===================================
     # 6. POP nn
     def _pop16(self, reg: Reg):
-        val = (self.ram[self.SP+1] << 8) | self.ram[self.SP]
+        val = (self.ram[self.SP + 1] << 8) | self.ram[self.SP]
         # print("Set %r to %r from %r, %r" % (reg, val, self.SP, self.ram[-10:]))
         setattr(self, reg.value, val)
         self.SP += 2
@@ -673,7 +710,7 @@ class CPU:
         byte2 = val
         res = byte1 - byte2 - int(self.FLAG_C)
         self._sub(val + int(self.FLAG_C))
-        self.FLAG_H = ((byte1 ^ byte2 ^ (res & 0xff)) & (1 << 4)) != 0
+        self.FLAG_H = ((byte1 ^ byte2 ^ (res & 0xFF)) & (1 << 4)) != 0
 
     op98 = opcode("SBC A,B", 4)(lambda self: self._sbc(self.B))
     op99 = opcode("SBC A,C", 4)(lambda self: self._sbc(self.C))
@@ -834,8 +871,8 @@ class CPU:
     # ===================================
     # 1. ADD HL,nn
     def _add_hl(self, val):
-        self.FLAG_H = ((self.HL & 0x0fff) + (val & 0x0fff) > 0x0fff)
-        self.FLAG_C = (self.HL + val > 0xffff)
+        self.FLAG_H = (self.HL & 0x0FFF) + (val & 0x0FFF) > 0x0FFF
+        self.FLAG_C = self.HL + val > 0xFFFF
         self.HL += val
         self.HL &= 0xFFFF
         self.FLAG_N = False
@@ -1029,11 +1066,15 @@ class CPU:
             op = (base * 8) + offset
             time = 16 if reg == "[HL]" else 8
             regn = reg.replace("[HL]", "MEM_AT_HL")
-            exec(dedent(f"""
+            exec(
+                dedent(
+                    f"""
                 @opcode("{ins} {reg}", {time})
                 def opCB{op:02X}(self):
                     self._{ins.lower()}(Reg.{regn})
-            """))
+            """
+                )
+            )
 
     # ===================================
     # 1. RCLA
@@ -1239,18 +1280,23 @@ class CPU:
         >>> c.FLAG_Z
         False
         """
+
     for b in range(8):
         for offset, reg in enumerate(GEN_REGS):
             op = 0x40 + b * 0x08 + offset
             time = 16 if reg == "[HL]" else 8
             arg = reg.replace("[HL]", "MEM_AT_HL")
-            exec(dedent(f"""
+            exec(
+                dedent(
+                    f"""
                 @opcode("BIT {b},{reg}", {time})
                 def opCB{op:02X}(self):
                     self.FLAG_Z = not bool(self.{arg} & (1 << {b}))
                     self.FLAG_N = False
                     self.FLAG_H = True
-            """))
+            """
+                )
+            )
 
     # ===================================
     # 2. SET b,r
@@ -1259,11 +1305,15 @@ class CPU:
             op = 0x80 + b * 0x08 + offset
             time = 16 if arg == "[HL]" else 8
             arg = arg.replace("[HL]", "MEM_AT_HL")
-            exec(dedent(f"""
+            exec(
+                dedent(
+                    f"""
                 @opcode("RES {b},{arg}", {time})
                 def opCB{op:02X}(self):
                     self.{arg} &= ((0x01 << {b}) ^ 0xFF)
-            """))
+            """
+                )
+            )
 
     # ===================================
     # 3. RES b,r
@@ -1272,11 +1322,15 @@ class CPU:
             op = 0xC0 + b * 0x08 + offset
             time = 16 if arg == "[HL]" else 8
             arg = arg.replace("[HL]", "MEM_AT_HL")
-            exec(dedent(f"""
+            exec(
+                dedent(
+                    f"""
                 @opcode("SET {b},{arg}", {time})
                 def opCB{op:02X}(self):
                     self.{arg} |= (0x01 << {b})
-            """))
+            """
+                )
+            )
 
     # </editor-fold>
 
@@ -1345,6 +1399,7 @@ class CPU:
     def op38(self, n):
         if self.FLAG_C:
             self.PC += n
+
     # </editor-fold>
 
     # <editor-fold description="3.3.9 Calls">

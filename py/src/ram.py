@@ -3,10 +3,10 @@ from .consts import *
 
 
 class RAM:
-    def __init__(self, cart: Cart, debug: bool=False):
+    def __init__(self, cart: Cart, debug: bool = False):
         self.cart = cart
         self.boot = self.get_boot()
-        self.data = [0] * (0xFFFF+1)
+        self.data = [0] * (0xFFFF + 1)
         self.debug = debug
 
         self.ram_enable = True
@@ -100,7 +100,7 @@ class RAM:
         # Interrupt Enabled Register
         self.data[0xFFFF] = 0x00  # IE
 
-        # TODO: ram[E000-FE00] mirrors ram[C000-DE00] 
+        # TODO: ram[E000-FE00] mirrors ram[C000-DE00]
 
     def get_boot(self):
         try:
@@ -113,6 +113,7 @@ class RAM:
                 BOOT[0xFA] = 0x00
                 BOOT[0xFB] = 0x00
         except IOError:
+            # fmt: off
             # Directly set CPU registers as
             # if the logo had been scrolled
             BOOT = [
@@ -140,6 +141,7 @@ class RAM:
                 # skip to the end of the bootloader
                 0xC3, 0xFD, 0x00,  # JP 0x00FD
             ]
+            # fmt: on
 
             # these 5 instructions must be the final 2 --
             # after these finish executing, PC needs to be 0x100
@@ -165,7 +167,7 @@ class RAM:
                     "fetching {:04x} from bank {:04x} (total = {:04x})",
                     offset,
                     bank,
-                    offset + bank
+                    offset + bank,
                 )
             return self.cart.data[bank + offset]
         elif addr < 0xA000:
@@ -174,7 +176,9 @@ class RAM:
         elif addr < 0xC000:
             # 8KB Switchable RAM bank
             if not self.ram_enable:
-                raise Exception("Reading from external ram while disabled: {:04X}", addr)
+                raise Exception(
+                    "Reading from external ram while disabled: {:04X}", addr
+                )
             addr_within_ram = (self.ram_bank * 0x2000) + (addr - 0xA000)
             if addr_within_ram > self.cart.ram_size:
                 # this should never happen because we die on ram_bank being
@@ -183,7 +187,7 @@ class RAM:
                     "Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})",
                     addr_within_ram,
                     self.ram_bank,
-                    (addr - 0xA000)
+                    (addr - 0xA000),
                 )
             return self.cart.ram[addr_within_ram]
         elif addr < 0xD000:
@@ -221,9 +225,7 @@ class RAM:
             self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low
             if self.debug:
                 print(
-                    "rom_bank set to {}/{}",
-                    self.rom_bank,
-                    self.cart.rom_size / 0x2000
+                    "rom_bank set to {}/{}", self.rom_bank, self.cart.rom_size / 0x2000
                 )
             if self.rom_bank * 0x2000 > self.cart.rom_size:
                 raise Exception("Set rom_bank beyond the size of ROM")
@@ -234,7 +236,7 @@ class RAM:
                     print(
                         "ram_bank set to {}/{}",
                         self.ram_bank,
-                        self.cart.ram_size / 0x2000
+                        self.cart.ram_size / 0x2000,
                     )
                 if self.ram_bank * 0x2000 > self.cart.ram_size:
                     raise Exception("Set ram_bank beyond the size of RAM")
@@ -245,7 +247,7 @@ class RAM:
                     print(
                         "rom_bank set to {}/{}",
                         self.rom_bank,
-                        self.cart.rom_size / 0x2000
+                        self.cart.rom_size / 0x2000,
                     )
                 if self.rom_bank * 0x2000 > self.cart.rom_size:
                     raise Exception("Set rom_bank beyond the size of ROM")
@@ -261,8 +263,7 @@ class RAM:
             # external RAM, bankable
             if not self.ram_enable:
                 raise Exception(
-                    "Writing to external ram while disabled: {:04x}={:02x}",
-                    addr, val
+                    "Writing to external ram while disabled: {:04x}={:02x}", addr, val
                 )
             addr_within_ram = (self.ram_bank * 0x2000) + (addr - 0xA000)
             if self.debug:
@@ -271,7 +272,7 @@ class RAM:
                     addr_within_ram,
                     val,
                     self.ram_bank,
-                    (addr - 0xA000)
+                    (addr - 0xA000),
                 )
             if addr_within_ram >= self.cart.ram_size:
                 # raise Exception!("Writing beyond RAM limit")
