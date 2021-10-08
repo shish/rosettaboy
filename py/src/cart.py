@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List, Optional, Callable, Any
 import struct
 from enum import Enum
 
@@ -99,7 +99,7 @@ class Cart:
         self.complement_check: int
         self.checksum: int
 
-        fmts = [
+        fmts: List[Tuple[str, str, Optional[Callable[[Any], Any]]]] = [
             ("256x", "rsts", None),
             ("4B", "init", None),
             ("48B", "logo", None),
@@ -108,8 +108,8 @@ class Cart:
             ("H", "licensee", None),
             ("B", "is_sgb", lambda x: x == 0x03),
             ("B", "cart_type", lambda x: CartType(x)),
-            ("B", "rom_size", parse_rom_size),
-            ("B", "ram_size", parse_ram_size),
+            ("B", "rom_size", lambda x: parse_rom_size(x)),
+            ("B", "ram_size", lambda x:  parse_ram_size(x)),
             ("B", "destination", lambda x: Destination(x)),
             ("B", "old_licensee", lambda x: OldLicensee(x)),
             ("B", "rom_version", None),
@@ -138,3 +138,6 @@ class Cart:
         header_checksum = (sum(struct.unpack("26B", self.data[0x0134:0x014E])) + 25) & 0xFF
         if header_checksum != 0:
             raise CorruptCart("Header checksum failed: %02X != 0" % header_checksum)
+
+    def __str__(self):
+        return "\n".join([f"{k}: {v}" for k, v in self.__dict__.items() if k not in {"data", "logo", "init", "rsts"}])
