@@ -1,6 +1,7 @@
 #ifndef SPIGOT_RAM_H
 #define SPIGOT_RAM_H
 
+#include <stdexcept>
 #include "cart.h"
 
 class RAM {
