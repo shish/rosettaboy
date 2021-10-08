@@ -20,3 +20,5 @@ jobs:
     - name: Build
       working-directory: cpp
       run: make
+    - name: gblargh
+      run: ./gblargh.py cpp

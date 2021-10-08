@@ -30,10 +30,10 @@ def test(cwd, n, frames):
     p = subprocess.run(
         cmd,
         cwd=cwd,
-        text=True,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
-    ok = "Passed" in p.stdout
+    ok = b"Passed" in p.stdout
     print(f"{cwd} {n} = {ok}")
     return ok
 

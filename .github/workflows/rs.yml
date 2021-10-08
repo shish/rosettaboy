@@ -35,3 +35,5 @@ jobs:
     - name: Build
       working-directory: rs
       run: cargo build --release
+    - name: gblargh
+      run: ./gblargh.py rs

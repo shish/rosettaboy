@@ -10,9 +10,15 @@ jobs:
     name: Black
     runs-on: ubuntu-latest
     steps:
+    - name: Install deps
+      run: apt-get update && apt-get install -y python3-venv
     - name: Checkout
       uses: actions/checkout@v2
     - name: Check
       uses: rickstaa/action-black@v1
       with:
         black_args: "--check py/src"
+    - name: Setup venv
+      run: python3 -m venv venv && ./venv/bin/pip install pygame
+    - name: gblargh
+      run: ./gblargh.py py
