@@ -21,7 +21,6 @@ int main(int argc, char *argv[]) {
     args::Flag debug_apu(parser, "debug-apu", "Debug APU", {'a', "debug-apu"});
     args::ValueFlag<int> profile(parser, "profile", "Exit after N frames", {'p', "profile"});
     args::Flag turbo(parser, "turbo", "No sleep between frames", {'t', "turbo"});
-    args::Flag fps(parser, "fps", "Show FPS reports", {'f', "fps"});
     args::Positional<std::string> rom(parser, "rom", "Path to a .gb file");
     args::CompletionFlag completion(parser, {"complete"});
     try { parser.ParseCLI(argc, argv); }
@@ -44,7 +43,7 @@ int main(int argc, char *argv[]) {
     gpu = new GPU(cpu, cart->name, headless, debug_gpu);
     buttons = new Buttons(cpu);
     if(!silent) new APU(cpu, debug_apu);
-    clock = new Clock(buttons, profile_frames, turbo, fps);
+    clock = new Clock(buttons, profile_frames, turbo);
 
     /**
      * GB CPU runs at 4MHz, but each action takes a multiple of 4 hardware

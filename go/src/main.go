@@ -11,7 +11,6 @@ func main() {
 	var headless = flag.Bool("headless", false, "No video")
 	var silent = flag.Bool("silent", false, "No audio")
 	var turbo = flag.Bool("turbo", false, "No sleep()")
-	var fps = flag.Bool("fps", false, "Show FPS on stdout")
 	var profile = flag.Int("profile", 0, "Exit after N frames")
 	flag.Parse()
 	var rom = flag.Arg(0)
@@ -23,7 +22,7 @@ func main() {
 	var gpu = NewGPU(&cpu, cart.name, *debug_gpu, *headless)
 	defer gpu.Destroy()
 	var buttons = NewButtons(&cpu, *headless)
-	var clock = NewClock(&buttons, *profile, *turbo, *fps)
+	var clock = NewClock(&buttons, *profile, *turbo)
 
 	for true {
 		if !cpu.tick() {

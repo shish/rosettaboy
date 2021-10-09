@@ -59,10 +59,6 @@ struct Args {
     /// No sleep()
     #[structopt(short, long)]
     turbo: bool,
-
-    /// Print out FPS reports
-    #[structopt(short, long)]
-    fps: bool,
 }
 
 struct Gameboy {
@@ -85,7 +81,7 @@ impl Gameboy {
         let gpu = gpu::GPU::init(&sdl, cart_name.as_str(), args.headless, args.debug_gpu)?;
         let apu = apu::APU::init(&sdl, args.silent, args.debug_apu)?;
         let buttons = buttons::Buttons::init(sdl)?;
-        let clock = clock::Clock::init(args.profile, args.turbo, args.fps);
+        let clock = clock::Clock::init(args.profile, args.turbo);
 
         Ok(Gameboy {
             ram,
