@@ -1,5 +1,19 @@
 package main
 
+// Joypad
+const (
+	JOYPAD_MODE_BUTTONS = 1 << 5
+	JOYPAD_MODE_DPAD    = 1 << 4
+	JOYPAD_DOWN         = 1 << 3
+	JOYPAD_START        = 1 << 3
+	JOYPAD_UP           = 1 << 2
+	JOYPAD_SELECT       = 1 << 2
+	JOYPAD_LEFT         = 1 << 1
+	JOYPAD_B            = 1 << 1
+	JOYPAD_RIGHT        = 1 << 0
+	JOYPAD_A            = 1 << 0
+)
+
 type Buttons struct {
 	cpu                   CPU
 	headless              bool

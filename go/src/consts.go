@@ -1,6 +1,13 @@
 package main
 
+// Mem
 const (
+	VBLANK_HANDLER = 0x40
+	LCD_HANDLER    = 0x48
+	TIMER_HANDLER  = 0x50
+	SERIAL_HANDLER = 0x58
+	JOYPAD_HANDLER = 0x60
+
 	VRAM_BASE         = 0x8000
 	TILE_DATA_TABLE_0 = 0x8800
 	TILE_DATA_TABLE_1 = 0x8000
@@ -9,9 +16,7 @@ const (
 	WINDOW_MAP_0      = 0x9800
 	WINDOW_MAP_1      = 0x9C00
 	OAM_BASE          = 0xFE00
-)
 
-const (
 	IO_JOYP = 0xFF00
 
 	IO_SB = 0xFF01 // Serial Data
@@ -70,35 +75,6 @@ const (
 	IO_IE = 0xFFFF
 )
 
-const (
-	LCDC_ENABLED        = 0b10000000
-	LCDC_WINDOW_MAP     = 0b01000000
-	LCDC_WINDOW_ENABLED = 0b00100000
-	LCDC_DATA_SRC       = 0b00010000
-	LCDC_BG_MAP         = 0b00001000
-	LCDC_OBJ_SIZE       = 0b00000100
-	LCDC_OBJ_ENABLED    = 0b00000010
-	LCDC_BG_WIN_ENABLED = 0b00000001
-)
-
-// STATFlag
-const (
-	LYC_INTERRUPT    = 1 << 6
-	OAM_INTERRUPT    = 1 << 5
-	VBLANK_INTERRUPT = 1 << 4
-	HBLANK_INTERRUPT = 1 << 3
-	LCY_EQUAL        = 1 << 2
-	MODE             = 1<<1 | 1<<0
-)
-
-// STATMode
-const (
-	HBLANK  = 0x00
-	VBLANK  = 0x01
-	OAM     = 0x02
-	DRAWING = 0x03
-)
-
 // Interrupt
 const (
 	VBLANK           = 1 << 0
@@ -106,27 +82,4 @@ const (
 	TIMER            = 1 << 2
 	SERIAL           = 1 << 3
 	INTERRUPT_JOYPAD = 1 << 4
-)
-
-// Joypad
-const (
-	JOYPAD_MODE_BUTTONS = 1 << 5
-	JOYPAD_MODE_DPAD    = 1 << 4
-	JOYPAD_DOWN         = 1 << 3
-	JOYPAD_START        = 1 << 3
-	JOYPAD_UP           = 1 << 2
-	JOYPAD_SELECT       = 1 << 2
-	JOYPAD_LEFT         = 1 << 1
-	JOYPAD_B            = 1 << 1
-	JOYPAD_RIGHT        = 1 << 0
-	JOYPAD_A            = 1 << 0
-)
-
-// InterruptHandler
-const (
-	VBLANK_HANDLER = 0x40
-	LCD_HANDLER    = 0x48
-	TIMER_HANDLER  = 0x50
-	SERIAL_HANDLER = 0x58
-	JOYPAD_HANDLER = 0x60
 )
