@@ -208,7 +208,7 @@ class RAM:
             # Unusable
             return 0xFF
         elif addr < 0xFF80:
-            # Mem.Registers
+            # IO Registers
             pass
         elif addr < 0xFFFF:
             # High RAM
@@ -298,7 +298,7 @@ class RAM:
             if self.debug:
                 print("Writing to invalid ram: {:04x} = {:02x}", addr, val)
         elif addr < 0xFF80:
-            # Mem.Registers
+            # IO Registers
             # if addr == Mem.:SCX as u16 {
             #     println!("LY = {}, SCX = {}", self.get(Mem.:LY), val);
             # }
