@@ -22,9 +22,6 @@ bool Buttons::tick() {
 }
 
 void Buttons::update_buttons() {
-    // Since the hardware uses 0 for pressed and 1 for
-    // released, let's invert on read and write to keep
-    // our logic sensible....
     u8 JOYP = ~this->cpu->ram->get(Mem::JOYP);
     JOYP &= 0xF0;
     if(JOYP & Joypad::MODE_DPAD) {

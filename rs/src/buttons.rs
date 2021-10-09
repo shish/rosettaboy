@@ -12,17 +12,14 @@ bitflags! {
     pub struct Joypad: u8 {
         const MODE_BUTTONS = 1<<5;
         const MODE_DPAD = 1<<4;
-
-        const START = 1<<3;
-        const SELECT = 1<<2;
-        const B = 1<<1;
-        const A = 1<<0;
-
         const DOWN = 1<<3;
+        const START = 1<<3;
         const UP = 1<<2;
+        const SELECT = 1<<2;
         const LEFT = 1<<1;
+        const B = 1<<1;
         const RIGHT = 1<<0;
-
+        const A = 1<<0;
         const BUTTON_BITS = 0b00001111;
     }
 }
@@ -85,12 +82,8 @@ impl Buttons {
      */
     pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> Result<()> {
         self.cycle += 1;
-
         self.update_buttons(ram);
         if self.need_interrupt {
-            // if any button is pressed which wasn't pressed last time, interrupt
-            // FIXME: do we also need to interrupt on button release?
-            // FIXME: do we also need to interrupt even when neither Dpad nor Buttons are selected?
             cpu.stop = false;
             cpu.interrupt(ram, Interrupt::JOYPAD);
             self.need_interrupt = false;

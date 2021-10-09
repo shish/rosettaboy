@@ -45,9 +45,6 @@ class Buttons:
             return True
 
     def update_buttons(self) -> None:
-        # Since the hardware uses 0 for pressed and 1 for
-        # released, let's invert on read and write to keep
-        # our logic sensible....
         JOYP = ~self.cpu.ram[Mem.JOYP]
         JOYP &= 0xF0
         if JOYP & Joypad.MODE_DPAD:
@@ -71,9 +68,6 @@ class Buttons:
         self.cpu.ram[Mem.JOYP] = ~JOYP
 
     def handle_inputs(self) -> bool:
-        if self.headless:
-            return True
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False

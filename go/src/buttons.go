@@ -59,9 +59,6 @@ func (self *Buttons) tick() bool {
 }
 
 func (self *Buttons) update_buttons() {
-	// Since the hardware uses 0 for pressed and 1 for
-	// released, let's invert on read and write to keep
-	// our logic sensible....
 	var JOYP = ^self.cpu.ram.data[IO_JOYP]
 	JOYP &= 0xF0
 	if JOYP&JOYPAD_MODE_DPAD > 0 {
