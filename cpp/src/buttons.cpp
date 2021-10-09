@@ -1,9 +1,10 @@
 #include "buttons.h"
 
-Buttons::Buttons(CPU *cpu) {
+Buttons::Buttons(CPU *cpu, bool headless) {
     SDL_InitSubSystem(SDL_INIT_EVENTS);
     this->cpu = cpu;
     this->cycle = 0;
+    this->headless = headless;
 }
 
 bool Buttons::tick() {
@@ -40,6 +41,10 @@ void Buttons::update_buttons() {
 }
 
 bool Buttons::handle_inputs() {
+    if(this->headless) {
+        return true;
+    }
+
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {

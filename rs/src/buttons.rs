@@ -27,6 +27,7 @@ bitflags! {
 pub struct Buttons {
     sdl: sdl2::Sdl,
     _controller: Option<GameController>, // need to keep a reference to avoid deconstructor
+    headless: bool,
     cycle: u32,
     need_interrupt: bool,
     up: bool,
@@ -40,7 +41,7 @@ pub struct Buttons {
 }
 
 impl Buttons {
-    pub fn init(sdl: sdl2::Sdl) -> Result<Buttons> {
+    pub fn init(sdl: sdl2::Sdl, headless: bool) -> Result<Buttons> {
         let game_controller_subsystem = sdl.game_controller().map_err(anyhow::Error::msg)?;
 
         let available = game_controller_subsystem
@@ -62,6 +63,7 @@ impl Buttons {
         Ok(Buttons {
             sdl,
             _controller,
+            headless,
             cycle: 0,
             need_interrupt: false,
             up: false,

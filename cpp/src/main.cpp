@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     ram = new RAM(cart);
     cpu = new CPU(ram, debug_cpu);
     gpu = new GPU(cpu, cart->name, headless, debug_gpu);
-    buttons = new Buttons(cpu);
+    buttons = new Buttons(cpu, headless);
     if(!silent) new APU(cpu, debug_apu);
     clock = new Clock(buttons, profile_frames, turbo);
 

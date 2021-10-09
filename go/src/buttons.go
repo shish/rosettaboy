@@ -93,6 +93,10 @@ func (self *Buttons) update_buttons() {
 }
 
 func (self *Buttons) handle_inputs() bool {
+	if self.headless {
+		return true
+	}
+
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) {
 		case *sdl.QuitEvent:

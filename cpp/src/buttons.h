@@ -23,6 +23,7 @@ private:
     u32 cycle = 0;
     bool need_interrupt = false;
     CPU *cpu = nullptr;
+    bool headless = false;
     bool up = false;
     bool down = false;
     bool left = false;
@@ -33,7 +34,7 @@ private:
     bool select = false;
 
 public:
-    Buttons(CPU *cpu);
+    Buttons(CPU *cpu, bool headless);
     bool tick();
     bool turbo = false;
 

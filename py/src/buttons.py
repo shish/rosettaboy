@@ -68,6 +68,9 @@ class Buttons:
         self.cpu.ram[Mem.JOYP] = ~JOYP
 
     def handle_inputs(self) -> bool:
+        if self.headless:
+            return True
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False

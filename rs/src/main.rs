@@ -80,7 +80,7 @@ impl Gameboy {
         let cpu = cpu::CPU::init(args.debug_cpu);
         let gpu = gpu::GPU::init(&sdl, cart_name.as_str(), args.headless, args.debug_gpu)?;
         let apu = apu::APU::init(&sdl, args.silent, args.debug_apu)?;
-        let buttons = buttons::Buttons::init(sdl)?;
+        let buttons = buttons::Buttons::init(sdl, args.headless)?;
         let clock = clock::Clock::init(args.profile, args.turbo);
 
         Ok(Gameboy {
