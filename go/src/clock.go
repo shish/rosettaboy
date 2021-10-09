@@ -13,6 +13,7 @@ type Clock struct {
 	last_frame_start uint32
 	sleep_duration   uint32
 	last_report      uint32
+	start            uint32
 }
 
 func NewClock(buttons *Buttons, profile int, turbo, fps bool) Clock {
@@ -20,7 +21,7 @@ func NewClock(buttons *Buttons, profile int, turbo, fps bool) Clock {
 		panic(err)
 	}
 
-	return Clock{buttons, 0, 0, profile, turbo, fps, 0, 0, 0}
+	return Clock{buttons, 0, 0, profile, turbo, fps, 0, 0, 0, sdl.GetTicks()}
 }
 
 func (self *Clock) tick() bool {
@@ -49,6 +50,12 @@ func (self *Clock) tick() bool {
 
 		// Exit if we've hit the frame limit
 		if self.profile != 0 && self.frame > self.profile {
+            var duration = (float32)(sdl.GetTicks() - self.start) / 1000.0;
+			fmt.Printf(
+				"Hit frame limit after %.2f (%.2ffps)\n",
+				duration,
+				float32(self.profile) / duration,
+			)
 			return false
 		}
 
