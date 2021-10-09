@@ -44,7 +44,8 @@ impl Clock {
                 let duration = SystemTime::now().duration_since(self.start)?.as_secs_f32();
                 return Err(anyhow!(
                     "Emulated {} frames in {:.2}s ({:.2}fps)",
-                    self.profile, duration,
+                    self.profile,
+                    duration,
                     self.profile as f32 / duration
                 ));
             }

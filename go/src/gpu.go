@@ -120,7 +120,7 @@ func (self *GPU) tick() bool {
 				panic(err)
 			}
 			self.buffer.BlitScaled(nil, window_surface, nil)
-			self.window.UpdateSurface()	
+			self.window.UpdateSurface()
 		}
 	}
 

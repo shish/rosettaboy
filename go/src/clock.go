@@ -36,11 +36,11 @@ func (self *Clock) tick() bool {
 
 		// Exit if we've hit the frame limit
 		if self.profile != 0 && self.frame > self.profile {
-            var duration = (float32)(sdl.GetTicks() - self.start) / 1000.0;
+			var duration = (float32)(sdl.GetTicks()-self.start) / 1000.0
 			fmt.Printf(
 				"Emulated %d frames in %.2fs (%.2ffps)\n",
 				self.profile, duration,
-				float32(self.profile) / duration,
+				float32(self.profile)/duration,
 			)
 			return false
 		}

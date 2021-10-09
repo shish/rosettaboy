@@ -50,7 +50,7 @@ bitflags! {
         const HBLANK_INTERRUPT = 1<<3;
         const LCY_EQUAL = 1<<2;
         const MODE_BITS = 0b00000011;
-        
+
         const HBLANK = 0x00;
         const VBLANK = 0x01;
         const OAM = 0x02;
