@@ -82,8 +82,8 @@ class CPU:
         self.cb_ops = [getattr(self, "opCB%02X" % n) for n in range(0x00, 0xFF + 1)]
 
     def dump(self, pc: int, cmd_str: str) -> str:
-        ien = self.ram[IO_IE]
-        ifl = self.ram[IO_IF]
+        ien = self.ram[Mem.IE]
+        ifl = self.ram[Mem.IF]
 
         def flag(i: int, c: str) -> str:
             if ien & i != 0:
@@ -130,7 +130,7 @@ class CPU:
         handler for this interrupt is enabled (and interrupts in general
         are enabled), then the interrupt handler will be called.
         """
-        self.ram[IO_IF] |= i
+        self.ram[Mem.IF] |= i
         self.halt = False  # interrupts interrupt HALT state
 
     def tick(self) -> bool:
@@ -146,39 +146,39 @@ class CPU:
 
     def tick_dma(self) -> None:
         """
-        If there is a non-zero value in ram[IO_DMA], eg 0x42, then
+        If there is a non-zero value in ram[Mem.DMA], eg 0x42, then
         we should copy memory from eg 0x4200 to OAM space.
         """
         # TODO: DMA should take 26 cycles, during which main RAM is inaccessible
-        if self.ram[IO_DMA]:
-            dma_src = self.ram[IO_DMA] << 8
+        if self.ram[Mem.DMA]:
+            dma_src = self.ram[Mem.DMA] << 8
             for i in range(0, 0xA0):
-                self.ram[OAM_BASE + i] = self.ram[dma_src + i]
-            self.ram[IO_DMA] = 0x00
+                self.ram[Mem.OAM_BASE + i] = self.ram[dma_src + i]
+            self.ram[Mem.DMA] = 0x00
 
     def tick_clock(self) -> None:
         """
         Increment the timer registers, and send an interrupt
-        when `ram[IO::TIMA]` wraps around.
+        when `ram[Mem.:TIMA]` wraps around.
         """
         self.cycle += 1
 
-        # TODO: writing any value to IO::DIV should reset it to 0x00
+        # TODO: writing any value to Mem.:DIV should reset it to 0x00
         # increment at 16384Hz (each 64 cycles?)
         if self.cycle % 64 == 0:
-            self.ram[IO_DIV] = (self.ram[IO_DIV] + 1) & 0xFF
+            self.ram[Mem.DIV] = (self.ram[Mem.DIV] + 1) & 0xFF
 
-        if self.ram[IO_TAC] & 1 << 2 == 1 << 2:
+        if self.ram[Mem.TAC] & 1 << 2 == 1 << 2:
             # timer enable
             speeds = [256, 4, 16, 64]  # increment per X cycles
-            speed = speeds[self.ram[IO_TAC] & 0x03]
+            speed = speeds[self.ram[Mem.TAC] & 0x03]
             if self.cycle % speed == 0:
-                if self.ram[IO_TIMA] == 0xFF:
-                    self.ram[IO_TIMA] = self.ram[
-                        IO_TMA
+                if self.ram[Mem.TIMA] == 0xFF:
+                    self.ram[Mem.TIMA] = self.ram[
+                        Mem.TMA
                     ]  # if timer overflows, load base
                     self.interrupt(Interrupt.TIMER)
-                self.ram[IO_TIMA] += 1
+                self.ram[Mem.TIMA] += 1
 
     def tick_interrupts(self) -> None:
         """
@@ -186,11 +186,11 @@ class CPU:
         there are any interrupts which are both enabled and flagged,
         clear the flag and call the handler for the first of them.
         """
-        queued_interrupts = self.ram[IO_IE] & self.ram[IO_IF]
+        queued_interrupts = self.ram[Mem.IE] & self.ram[Mem.IF]
         if self.interrupts and queued_interrupts:
             if self._debug:
                 print(
-                    f"Handling interrupts: {self.ram[IO_IE]:02X} & {self.ram[IO_IF]:02X}"
+                    f"Handling interrupts: {self.ram[Mem.IE]:02X} & {self.ram[Mem.IF]:02X}"
                 )
 
             # no nested interrupts, RETI will re-enable
@@ -201,24 +201,24 @@ class CPU:
             # TODO: one more cycle to store new PC
             if queued_interrupts & Interrupt.VBLANK:
                 self._push16(Reg.PC)
-                self.PC = InterruptHandler.VBLANK_HANDLER
-                self.ram[IO_IF] &= ~Interrupt.VBLANK
+                self.PC = Mem.VBLANK_HANDLER
+                self.ram[Mem.IF] &= ~Interrupt.VBLANK
             elif queued_interrupts & Interrupt.STAT:
                 self._push16(Reg.PC)
-                self.PC = InterruptHandler.LCD_HANDLER
-                self.ram[IO_IF] &= ~Interrupt.STAT
+                self.PC = Mem.LCD_HANDLER
+                self.ram[Mem.IF] &= ~Interrupt.STAT
             elif queued_interrupts & Interrupt.TIMER:
                 self._push16(Reg.PC)
-                self.PC = InterruptHandler.TIMER_HANDLER
-                self.ram[IO_IF] &= ~Interrupt.TIMER
+                self.PC = Mem.TIMER_HANDLER
+                self.ram[Mem.IF] &= ~Interrupt.TIMER
             elif queued_interrupts & Interrupt.SERIAL:
                 self._push16(Reg.PC)
-                self.PC = InterruptHandler.SERIAL_HANDLER
-                self.ram[IO_IF] &= ~Interrupt.SERIAL
+                self.PC = Mem.SERIAL_HANDLER
+                self.ram[Mem.IF] &= ~Interrupt.SERIAL
             elif queued_interrupts & Interrupt.JOYPAD:
                 self._push16(Reg.PC)
-                self.PC = InterruptHandler.JOYPAD_HANDLER
-                self.ram[IO_IF] &= ~Interrupt.JOYPAD
+                self.PC = Mem.JOYPAD_HANDLER
+                self.ram[Mem.IF] &= ~Interrupt.JOYPAD
 
     def tick_instructions(self) -> None:
         # TODO: extra cycles when conditional jumps are taken

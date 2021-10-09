@@ -1,6 +1,19 @@
 import pygame
-from .consts import Interrupt, IO_JOYP, Joypad
+from .consts import Interrupt, Mem
 from .cpu import CPU
+
+
+class Joypad:
+    MODE_BUTTONS = 1 << 5
+    MODE_DPAD = 1 << 4
+    DOWN = 1 << 3
+    START = 1 << 3
+    UP = 1 << 2
+    SELECT = 1 << 2
+    LEFT = 1 << 1
+    B = 1 << 1
+    RIGHT = 1 << 0
+    A = 1 << 0
 
 
 class Buttons:
@@ -35,7 +48,7 @@ class Buttons:
         # Since the hardware uses 0 for pressed and 1 for
         # released, let's invert on read and write to keep
         # our logic sensible....
-        JOYP = ~self.cpu.ram[IO_JOYP]
+        JOYP = ~self.cpu.ram[Mem.JOYP]
         JOYP &= 0xF0
         if JOYP & Joypad.MODE_DPAD:
             if self.up:
@@ -55,7 +68,7 @@ class Buttons:
                 JOYP |= Joypad.START
             if self.select:
                 JOYP |= Joypad.SELECT
-        self.cpu.ram[IO_JOYP] = ~JOYP
+        self.cpu.ram[Mem.JOYP] = ~JOYP
 
     def handle_inputs(self) -> bool:
         if self.headless:

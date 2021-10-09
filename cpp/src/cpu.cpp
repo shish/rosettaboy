@@ -56,8 +56,8 @@ u8 CPU::set_reg(int n, u8 val) {
 }
 
 void CPU::dump_regs() {
-    u8 IE = this->ram->get(IO::IE);
-    u8 IF = this->ram->get(IO::IF);
+    u8 IE = this->ram->get(Mem::IE);
+    u8 IF = this->ram->get(Mem::IF);
     char z = 'z' ^ ((this->F >> 7) & 1) << 5;
     char n = 'n' ^ ((this->F >> 6) & 1) << 5;
     char h = 'h' ^ ((this->F >> 5) & 1) << 5;
@@ -96,7 +96,7 @@ void CPU::dump_regs() {
  * are enabled), then the interrupt handler will be called.
  */
 void CPU::interrupt(Interrupt::Interrupt i) {
-    this->ram->_or(IO::IF, i);
+    this->ram->_or(Mem::IF, i);
     this->halt = false;  // interrupts interrupt HALT state
 }
 
@@ -111,17 +111,17 @@ bool CPU::tick() {
 }
 
 /**
- * If there is a non-zero value in ram[IO::DMA], eg 0x42, then
+ * If there is a non-zero value in ram[Mem::DMA], eg 0x42, then
  * we should copy memory from eg 0x4200 to OAM space.
  */
 void CPU::tick_dma() {
     // TODO: DMA should take 26 cycles, during which main RAM is inaccessible
-    if(this->ram->get(IO::DMA)) {
-        u16 dma_src = this->ram->get(IO::DMA) << 8;
+    if(this->ram->get(Mem::DMA)) {
+        u16 dma_src = this->ram->get(Mem::DMA) << 8;
         for(int i=0; i<0xA0; i++) {
             this->ram->set(Mem::OAM_BASE + i, this->ram->get(dma_src + i));
         }
-        this->ram->set(IO::DMA, 0x00);
+        this->ram->set(Mem::DMA, 0x00);
     }
 }
 
@@ -132,19 +132,19 @@ void CPU::tick_dma() {
 bool CPU::tick_clock() {
     cycle++;
 
-    // TODO: writing any value to IO::DIV should reset it to 0x00
+    // TODO: writing any value to Mem::DIV should reset it to 0x00
     // increment at 16384Hz (each 64 cycles?)
-    if(cycle % 64 == 0) this->ram->_inc(IO::DIV);
+    if(cycle % 64 == 0) this->ram->_inc(Mem::DIV);
 
-    if(this->ram->get(IO::TAC) & BIT_2) {  // timer enable
+    if(this->ram->get(Mem::TAC) & (1 << 2)) {  // timer enable
         u16 speeds[] = {256, 4, 16, 64};  // increment per X cycles
-        u16 speed = speeds[this->ram->get(IO::TAC) & 0x03];
+        u16 speed = speeds[this->ram->get(Mem::TAC) & 0x03];
         if(cycle % speed == 0) {
-            if(this->ram->get(IO::TIMA) == 0xFF) {
-                this->ram->set(IO::TIMA, this->ram->get(IO::TMA));  // if timer overflows, load base
+            if(this->ram->get(Mem::TIMA) == 0xFF) {
+                this->ram->set(Mem::TIMA, this->ram->get(Mem::TMA));  // if timer overflows, load base
                 this->interrupt(Interrupt::TIMER);
             }
-            this->ram->_inc(IO::TIMA);
+            this->ram->_inc(Mem::TIMA);
         }
     }
     return true;
@@ -156,37 +156,37 @@ bool CPU::tick_clock() {
  * clear the flag and call the handler for the first of them.
  */
 bool CPU::tick_interrupts() {
-    u8 queued_interrupts = this->ram->get(IO::IE) & this->ram->get(IO::IF);
+    u8 queued_interrupts = this->ram->get(Mem::IE) & this->ram->get(Mem::IF);
     if(this->interrupts && queued_interrupts) {
-        if(debug) printf("Handling interrupts: %02X & %02X\n", this->ram->get(IO::IE), this->ram->get(IO::IF));
+        if(debug) printf("Handling interrupts: %02X & %02X\n", this->ram->get(Mem::IE), this->ram->get(Mem::IF));
         this->interrupts = false;  // no nested interrupts, RETI will re-enable
         // TODO: wait two cycles
         // TODO: push16(PC) should also take two cycles
         // TODO: one more cycle to store new PC
         if(queued_interrupts & Interrupt::VBLANK) {
             this->push(this->PC);
-            this->PC = InterruptHandler::VBLANK;
-            this->ram->_and(IO::IF, ~Interrupt::VBLANK);
+            this->PC = Mem::VBLANK_HANDLER;
+            this->ram->_and(Mem::IF, ~Interrupt::VBLANK);
         }
         else if(queued_interrupts & Interrupt::STAT) {
             this->push(this->PC);
-            this->PC = InterruptHandler::LCD;
-            this->ram->_and(IO::IF, ~Interrupt::STAT);
+            this->PC = Mem::LCD_HANDLER;
+            this->ram->_and(Mem::IF, ~Interrupt::STAT);
         }
         else if(queued_interrupts & Interrupt::TIMER) {
             this->push(this->PC);
-            this->PC = InterruptHandler::TIMER;
-            this->ram->_and(IO::IF, ~Interrupt::TIMER);
+            this->PC = Mem::TIMER_HANDLER;
+            this->ram->_and(Mem::IF, ~Interrupt::TIMER);
         }
         else if(queued_interrupts & Interrupt::SERIAL) {
             this->push(this->PC);
-            this->PC = InterruptHandler::SERIAL;
-            this->ram->_and(IO::IF, ~Interrupt::SERIAL);
+            this->PC = Mem::SERIAL_HANDLER;
+            this->ram->_and(Mem::IF, ~Interrupt::SERIAL);
         }
         else if(queued_interrupts & Interrupt::JOYPAD) {
             this->push(this->PC);
-            this->PC = InterruptHandler::JOYPAD;
-            this->ram->_and(IO::IF, ~Interrupt::JOYPAD);
+            this->PC = Mem::JOYPAD_HANDLER;
+            this->ram->_and(Mem::IF, ~Interrupt::JOYPAD);
         }
     }
     return true;
@@ -337,19 +337,19 @@ void CPU::tick_main(u8 op) {
         case 0x1F: // RRA
             carry = this->FLAG_C ? 1 : 0;
             if(op == 0x07) { // RCLA
-                this->FLAG_C = (this->A & BIT_7) != 0;
+                this->FLAG_C = (this->A & (1 << 7)) != 0;
                 this->A = (this->A << 1) | (this->A >> 7);
             }
             if(op == 0x17) { // RLA
-                this->FLAG_C = (this->A & BIT_7) != 0;
+                this->FLAG_C = (this->A & (1 << 7)) != 0;
                 this->A = (this->A << 1) | carry;
             }
             if(op == 0x0F) { // RRCA
-                this->FLAG_C = (this->A & BIT_0) != 0;
+                this->FLAG_C = (this->A & (1 << 0)) != 0;
                 this->A = (this-> A >> 1) | (this->A << 7);
             }
             if(op == 0x1F) { // RRA
-                this->FLAG_C = (this->A & BIT_0) != 0;
+                this->FLAG_C = (this->A & (1 << 0)) != 0;
                 this->A = (this->A >> 1) | (carry << 7);
             }
             this->FLAG_N = false;
@@ -513,9 +513,9 @@ void CPU::tick_cb(u8 op) {
     switch(op & 0xF8) {
         // RLC
         case 0x00 ... 0x07:
-            this->FLAG_C = (val & BIT_7) != 0;
+            this->FLAG_C = (val & (1 << 7)) != 0;
             val <<= 1;
-            if(this->FLAG_C) val |= BIT_0;
+            if(this->FLAG_C) val |= (1 << 0);
             this->FLAG_N = false;
             this->FLAG_H = false;
             this->FLAG_Z = val == 0;
@@ -523,9 +523,9 @@ void CPU::tick_cb(u8 op) {
 
         // RRC
         case 0x08 ... 0x0F:
-            this->FLAG_C = (val & BIT_0) != 0;
+            this->FLAG_C = (val & (1 << 0)) != 0;
             val >>= 1;
-            if(this->FLAG_C) val |= BIT_7;
+            if(this->FLAG_C) val |= (1 << 7);
             this->FLAG_N = false;
             this->FLAG_H = false;
             this->FLAG_Z = val == 0;
@@ -534,9 +534,9 @@ void CPU::tick_cb(u8 op) {
         // RL
         case 0x10 ... 0x17:
             orig_c = this->FLAG_C;
-            this->FLAG_C = (val & BIT_7) != 0;
+            this->FLAG_C = (val & (1 << 7)) != 0;
             val <<= 1;
-            if(orig_c) val |= BIT_0;
+            if(orig_c) val |= (1 << 0);
             this->FLAG_N = false;
             this->FLAG_H = false;
             this->FLAG_Z = val == 0;
@@ -545,9 +545,9 @@ void CPU::tick_cb(u8 op) {
         // RR
         case 0x18 ... 0x1F:
             orig_c = this->FLAG_C;
-            this->FLAG_C = (val & BIT_0) != 0;
+            this->FLAG_C = (val & (1 << 0)) != 0;
             val >>= 1;
-            if(orig_c) val |= BIT_7;
+            if(orig_c) val |= (1 << 7);
             this->FLAG_N = false;
             this->FLAG_H = false;
             this->FLAG_Z = val == 0;
@@ -555,7 +555,7 @@ void CPU::tick_cb(u8 op) {
 
         // SLA
         case 0x20 ... 0x27:
-            this->FLAG_C = (val & BIT_7) != 0;
+            this->FLAG_C = (val & (1 << 7)) != 0;
             val <<= 1;
             val &= 0xFF;
             this->FLAG_N = false;
@@ -565,9 +565,9 @@ void CPU::tick_cb(u8 op) {
 
         // SRA
         case 0x28 ... 0x2F:
-            this->FLAG_C = (val & BIT_0) != 0;
+            this->FLAG_C = (val & (1 << 0)) != 0;
             val >>= 1;
-            if(val & BIT_6) val |= BIT_7;
+            if(val & (1 << 6)) val |= (1 << 7);
             this->FLAG_N = false;
             this->FLAG_H = false;
             this->FLAG_Z = val == 0;
@@ -584,7 +584,7 @@ void CPU::tick_cb(u8 op) {
 
         // SRL
         case 0x38 ... 0x3F:
-            this->FLAG_C = (val & BIT_0) != 0;
+            this->FLAG_C = (val & (1 << 0)) != 0;
             val >>= 1;
             this->FLAG_N = false;
             this->FLAG_H = false;

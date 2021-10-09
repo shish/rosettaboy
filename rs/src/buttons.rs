@@ -8,6 +8,25 @@ use sdl2::controller::{Button, GameController};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
+bitflags! {
+    pub struct Joypad: u8 {
+        const MODE_BUTTONS = 1<<5;
+        const MODE_DPAD = 1<<4;
+
+        const START = 1<<3;
+        const SELECT = 1<<2;
+        const B = 1<<1;
+        const A = 1<<0;
+
+        const DOWN = 1<<3;
+        const UP = 1<<2;
+        const LEFT = 1<<1;
+        const RIGHT = 1<<0;
+
+        const BUTTON_BITS = 0b00001111;
+    }
+}
+
 pub struct Buttons {
     sdl: sdl2::Sdl,
     _controller: Option<GameController>, // need to keep a reference to avoid deconstructor
@@ -60,7 +79,7 @@ impl Buttons {
     }
 
     /**
-     * Turn OS keypresses into updates for the IO::JOYP byte.
+     * Turn OS keypresses into updates for the Mem::JOYP byte.
      * Handle SDL inputs every frame, but handle button
      * register every CPU instruction
      */
@@ -93,7 +112,7 @@ impl Buttons {
      */
     #[inline(always)]
     fn update_buttons(&mut self, ram: &mut ram::RAM) {
-        let mut joyp = !Joypad::from_bits_truncate(ram.get(IO::JOYP as u16));
+        let mut joyp = !Joypad::from_bits_truncate(ram.get(Mem::JOYP as u16));
         joyp.remove(Joypad::BUTTON_BITS);
         if joyp.contains(Joypad::MODE_DPAD) {
             if self.up {
@@ -123,7 +142,7 @@ impl Buttons {
                 joyp.insert(Joypad::SELECT);
             }
         }
-        ram.set(IO::JOYP, !joyp.bits());
+        ram.set(Mem::JOYP, !joyp.bits());
     }
 
     /**

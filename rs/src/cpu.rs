@@ -2,6 +2,150 @@ use crate::consts::*;
 use crate::ram;
 use anyhow::{anyhow, Result};
 
+pub const OP_CYCLES: [u32; 0x100] = [
+    // 1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    1, 3, 2, 2, 1, 1, 2, 1, 5, 2, 2, 2, 1, 1, 2, 1, // 0
+    0, 3, 2, 2, 1, 1, 2, 1, 3, 2, 2, 2, 1, 1, 2, 1, // 1
+    2, 3, 2, 2, 1, 1, 2, 1, 2, 2, 2, 2, 1, 1, 2, 1, // 2
+    2, 3, 2, 2, 3, 3, 3, 1, 2, 2, 2, 2, 1, 1, 2, 1, // 3
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, // 4
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, // 5
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, // 6
+    2, 2, 2, 2, 2, 2, 0, 2, 1, 1, 1, 1, 1, 1, 2, 1, // 7
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, // 8
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, // 9
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, // A
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, // B
+    2, 3, 3, 4, 3, 4, 2, 4, 2, 4, 3, 0, 3, 6, 2, 4, // C
+    2, 3, 3, 0, 3, 4, 2, 4, 2, 4, 3, 0, 3, 0, 2, 4, // D
+    3, 3, 2, 0, 0, 4, 2, 4, 4, 1, 4, 0, 0, 0, 2, 4, // E
+    3, 3, 2, 1, 0, 4, 2, 4, 3, 2, 4, 1, 0, 0, 2, 4, // F
+];
+
+pub const OP_CB_CYCLES: [u32; 0x100] = [
+    // 1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // 0
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // 1
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // 2
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // 3
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 3, 2, // 4
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 3, 2, // 5
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 3, 2, // 6
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 3, 2, // 7
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // 8
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // 9
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // A
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // B
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // C
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // D
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // E
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, // F
+];
+
+pub const OP_TYPES: [u8; 0x100] = [
+    // 1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    0, 2, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 1, 0, // 0
+    1, 2, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 0, 0, 1, 0, // 1
+    3, 2, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 0, 0, 1, 0, // 2
+    3, 2, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 0, 0, 1, 0, // 3
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 4
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 5
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 6
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 7
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 8
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 9
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // A
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // B
+    0, 0, 2, 2, 2, 0, 1, 0, 0, 0, 2, 0, 2, 2, 1, 0, // C
+    0, 0, 2, 0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 1, 0, // D
+    1, 0, 0, 0, 0, 0, 1, 0, 3, 0, 2, 0, 0, 0, 1, 0, // E
+    1, 0, 0, 0, 0, 0, 1, 0, 3, 0, 2, 0, 0, 0, 1, 0, // F
+];
+
+// no arg, u8, u16, i8
+pub const OP_LENS: [u16; 4] = [0, 1, 2, 1];
+
+#[cfg_attr(rustfmt, rustfmt_skip)]
+pub const OP_NAMES: [&str; 0x100] = [
+    "NOP", "LD BC,nn", "LD [BC],A", "INC BC", "INC B", "DEC B", "LD B,n", "RCLA", "LD [nn],SP",
+    "ADD HL,BC", "LD A,[BC]", "DEC BC", "INC C", "DEC C", "LD C,n", "RRCA", "STOP", "LD DE,nn",
+    "LD [DE],A", "INC DE", "INC D", "DEC D", "LD D,n", "RLA", "JR %+d", "ADD HL,DE", "LD A,[DE]",
+    "DEC DE", "INC E", "DEC E", "LD E,n", "RRA", "JR NZ,%+d", "LD HL,nn", "LD [HL+],A", "INC HL",
+    "INC H", "DEC H", "LD H,n", "DAA", "JR Z,%+d", "ADD HL,HL", "LD A,[HL+]", "DEC HL", "INC L",
+    "DEC L", "LD L,n", "CPL", "JR NC,%+d", "LD SP,nn", "LD [HL-],A", "INC SP", "INC [HL]",
+    "DEC [HL]", "LD [HL],n", "SCF", "JR C,%+d", "ADD HL,SP", "LD A,[HL-]", "DEC SP", "INC A",
+    "DEC A", "LD A,n", "CCF",
+    "LD B,B", "LD B,C", "LD B,D", "LD B,E", "LD B,H", "LD B,L", "LD B,[HL]", "LD B,A",
+    "LD C,B", "LD C,C", "LD C,D", "LD C,E", "LD C,H", "LD C,L", "LD C,[HL]", "LD C,A",
+    "LD D,B", "LD D,C", "LD D,D", "LD D,E", "LD D,H", "LD D,L", "LD D,[HL]", "LD D,A",
+    "LD E,B", "LD E,C", "LD E,D", "LD E,E", "LD E,H", "LD E,L", "LD E,[HL]", "LD E,A",
+    "LD H,B", "LD H,C", "LD H,D", "LD H,E", "LD H,H", "LD H,L", "LD H,[HL]", "LD H,A",
+    "LD L,B", "LD L,C", "LD L,D", "LD L,E", "LD L,H", "LD L,L", "LD L,[HL]", "LD L,A",
+    "LD [HL],B", "LD [HL],C", "LD [HL],D", "LD [HL],E", "LD [HL],H", "LD [HL],L", "HALT", "LD [HL],A",
+    "LD A,B", "LD A,C", "LD A,D", "LD A,E", "LD A,H", "LD A,L", "LD A,[HL]", "LD A,A",
+    "ADD A,B", "ADD A,C", "ADD A,D", "ADD A,E", "ADD A,H", "ADD A,L", "ADD A,[HL]", "ADD A,A",
+    "ADC A,B", "ADC A,C", "ADC A,D", "ADC A,E", "ADC A,H", "ADC A,L", "ADC A,[HL]", "ADC A,A",
+    "SUB A,B", "SUB A,C", "SUB A,D", "SUB A,E", "SUB A,H", "SUB A,L", "SUB A,[HL]", "SUB A,A",
+    "SBC A,B", "SBC A,C", "SBC A,D", "SBC A,E", "SBC A,H", "SBC A,L", "SBC A,[HL]", "SBC A,A",
+    "AND B", "AND C", "AND D", "AND E", "AND H", "AND L", "AND [HL]", "AND A",
+    "XOR B", "XOR C", "XOR D", "XOR E", "XOR H", "XOR L", "XOR [HL]", "XOR A",
+    "OR B", "OR C", "OR D", "OR E", "OR H", "OR L", "OR [HL]", "OR A",
+    "CP B", "CP C", "CP D", "CP E", "CP H", "CP L", "CP [HL]", "CP A",
+    "RET NZ", "POP BC", "JP NZ,nn", "JP nn", "CALL NZ,nn", "PUSH BC", "ADD A,n", "RST 00",
+    "RET Z", "RET", "JP Z,nn", "ERR CB", "CALL Z,nn", "CALL nn", "ADC A,n", "RST 08",
+    "RET NC", "POP DE", "JP NC,nn", "ERR D3", "CALL NC,nn", "PUSH DE", "SUB A,n", "RST 10",
+    "RET C", "RETI", "JP C,nn", "ERR DB", "CALL C,nn", "ERR DD", "SBC A,n", "RST 18",
+    "LDH [n],A", "POP HL", "LDH [C],A", "DBG", "ERR E4", "PUSH HL", "AND n", "RST 20",
+    "ADD SP %+d", "JP HL", "LD [nn],A", "ERR EB", "ERR EC", "ERR ED", "XOR n", "RST 28",
+    "LDH A,[n]", "POP AF", "LDH A,[C]", "DI", "ERR F4", "PUSH AF", "OR n", "RST 30",
+    "LD HL,SPn", "LD SP,HL", "LD A,[nn]", "EI", "ERR FC", "ERR FD", "CP n", "RST 38",
+];
+
+#[cfg_attr(rustfmt, rustfmt_skip)]
+pub const OP_CB_NAMES: [&str; 0x100] = [
+    "RLC B", "RLC C", "RLC D", "RLC E", "RLC H", "RLC L", "RLC [HL]", "RLC A",
+    "RRC B", "RRC C", "RRC D", "RRC E", "RRC H", "RRC L", "RRC [HL]", "RRC A",
+    "RL B", "RL C", "RL D", "RL E", "RL H", "RL L", "RL [HL]", "RL A",
+    "RR B", "RR C", "RR D", "RR E", "RR H", "RR L", "RR [HL]", "RR A",
+    "SLA B", "SLA C", "SLA D", "SLA E", "SLA H", "SLA L", "SLA [HL]", "SLA A",
+    "SRA B", "SRA C", "SRA D", "SRA E", "SRA H", "SRA L", "SRA [HL]", "SRA A",
+    "SWAP B", "SWAP C", "SWAP D", "SWAP E", "SWAP H", "SWAP L", "SWAP [HL]", "SWAP A",
+    "SRL B", "SRL C", "SRL D", "SRL E", "SRL H", "SRL L", "SRL [HL]", "SRL A",
+    "BIT 0,B", "BIT 0,C", "BIT 0,D", "BIT 0,E", "BIT 0,H", "BIT 0,L", "BIT 0,[HL]", "BIT 0,A",
+    "BIT 1,B", "BIT 1,C", "BIT 1,D", "BIT 1,E", "BIT 1,H", "BIT 1,L", "BIT 1,[HL]", "BIT 1,A",
+    "BIT 2,B", "BIT 2,C", "BIT 2,D", "BIT 2,E", "BIT 2,H", "BIT 2,L", "BIT 2,[HL]", "BIT 2,A",
+    "BIT 3,B", "BIT 3,C", "BIT 3,D", "BIT 3,E", "BIT 3,H", "BIT 3,L", "BIT 3,[HL]", "BIT 3,A",
+    "BIT 4,B", "BIT 4,C", "BIT 4,D", "BIT 4,E", "BIT 4,H", "BIT 4,L", "BIT 4,[HL]", "BIT 4,A",
+    "BIT 5,B", "BIT 5,C", "BIT 5,D", "BIT 5,E", "BIT 5,H", "BIT 5,L", "BIT 5,[HL]", "BIT 5,A",
+    "BIT 6,B", "BIT 6,C", "BIT 6,D", "BIT 6,E", "BIT 6,H", "BIT 6,L", "BIT 6,[HL]", "BIT 6,A",
+    "BIT 7,B", "BIT 7,C", "BIT 7,D", "BIT 7,E", "BIT 7,H", "BIT 7,L", "BIT 7,[HL]", "BIT 7,A",
+    "RES 0,B", "RES 0,C", "RES 0,D", "RES 0,E", "RES 0,H", "RES 0,L", "RES 0,[HL]", "RES 0,A",
+    "RES 1,B", "RES 1,C", "RES 1,D", "RES 1,E", "RES 1,H", "RES 1,L", "RES 1,[HL]", "RES 1,A",
+    "RES 2,B", "RES 2,C", "RES 2,D", "RES 2,E", "RES 2,H", "RES 2,L", "RES 2,[HL]", "RES 2,A",
+    "RES 3,B", "RES 3,C", "RES 3,D", "RES 3,E", "RES 3,H", "RES 3,L", "RES 3,[HL]", "RES 3,A",
+    "RES 4,B", "RES 4,C", "RES 4,D", "RES 4,E", "RES 4,H", "RES 4,L", "RES 4,[HL]", "RES 4,A",
+    "RES 5,B", "RES 5,C", "RES 5,D", "RES 5,E", "RES 5,H", "RES 5,L", "RES 5,[HL]", "RES 5,A",
+    "RES 6,B", "RES 6,C", "RES 6,D", "RES 6,E", "RES 6,H", "RES 6,L", "RES 6,[HL]", "RES 6,A",
+    "RES 7,B", "RES 7,C", "RES 7,D", "RES 7,E", "RES 7,H", "RES 7,L", "RES 7,[HL]", "RES 7,A",
+    "SET 0,B", "SET 0,C", "SET 0,D", "SET 0,E", "SET 0,H", "SET 0,L", "SET 0,[HL]", "SET 0,A",
+    "SET 1,B", "SET 1,C", "SET 1,D", "SET 1,E", "SET 1,H", "SET 1,L", "SET 1,[HL]", "SET 1,A",
+    "SET 2,B", "SET 2,C", "SET 2,D", "SET 2,E", "SET 2,H", "SET 2,L", "SET 2,[HL]", "SET 2,A",
+    "SET 3,B", "SET 3,C", "SET 3,D", "SET 3,E", "SET 3,H", "SET 3,L", "SET 3,[HL]", "SET 3,A",
+    "SET 4,B", "SET 4,C", "SET 4,D", "SET 4,E", "SET 4,H", "SET 4,L", "SET 4,[HL]", "SET 4,A",
+    "SET 5,B", "SET 5,C", "SET 5,D", "SET 5,E", "SET 5,H", "SET 5,L", "SET 5,[HL]", "SET 5,A",
+    "SET 6,B", "SET 6,C", "SET 6,D", "SET 6,E", "SET 6,H", "SET 6,L", "SET 6,[HL]", "SET 6,A",
+    "SET 7,B", "SET 7,C", "SET 7,D", "SET 7,E", "SET 7,H", "SET 7,L", "SET 7,[HL]", "SET 7,A",
+];
+
+bitflags! {
+    pub struct Flag: u8 {
+        const Z = 1<<7;
+        const N = 1<<6;
+        const H = 1<<5;
+        const C = 1<<4;
+    }
+}
+
 struct OpArg {
     u8: u8,   // B
     i8: i8,   // b
@@ -113,7 +257,7 @@ impl CPU {
      * are enabled), then the interrupt handler will be called.
      */
     pub fn interrupt(&mut self, ram: &mut ram::RAM, i: Interrupt) {
-        ram._or(IO::IF, i.bits());
+        ram._or(Mem::IF, i.bits());
         self.halt = false; // interrupts interrupt HALT state
     }
 
@@ -154,8 +298,8 @@ impl CPU {
         let c = if self.flag_c { 'C' } else { 'c' };
         let h = if self.flag_h { 'H' } else { 'h' };
 
-        let ien = Interrupt::from_bits(ram.get(IO::IE)).unwrap();
-        let ifl = Interrupt::from_bits(ram.get(IO::IF)).unwrap();
+        let ien = Interrupt::from_bits(ram.get(Mem::IE)).unwrap();
+        let ifl = Interrupt::from_bits(ram.get(Mem::IF)).unwrap();
         let flag = |i: Interrupt, c: char| -> char {
             if ien.contains(i) {
                 if ifl.contains(i) {
@@ -190,43 +334,43 @@ impl CPU {
     }
 
     /**
-     * If there is a non-zero value in `ram[IO::DMA]`, eg 0x42, then
+     * If there is a non-zero value in `ram[Mem::DMA]`, eg 0x42, then
      * we should copy memory from eg 0x4200 to OAM space.
      */
     fn tick_dma(&self, ram: &mut ram::RAM) {
         // TODO: DMA should take 26 cycles, during which main RAM is inaccessible
-        if ram.get(IO::DMA) != 0 {
-            let dma_src: u16 = (ram.get(IO::DMA) as u16) << 8;
+        if ram.get(Mem::DMA) != 0 {
+            let dma_src: u16 = (ram.get(Mem::DMA) as u16) << 8;
             for i in 0..0xA0 {
                 ram.set(Mem::OamBase as u16 + i, ram.get(dma_src + i));
             }
-            ram.set(IO::DMA, 0x00);
+            ram.set(Mem::DMA, 0x00);
         }
     }
 
     /**
      * Increment the timer registers, and send an interrupt
-     * when `ram[IO::TIMA]` wraps around.
+     * when `ram[Mem::TIMA]` wraps around.
      */
     fn tick_clock(&mut self, ram: &mut ram::RAM) {
         self.cycle += 1;
 
-        // TODO: writing any value to IO::DIV should reset it to 0x00
+        // TODO: writing any value to Mem::DIV should reset it to 0x00
         // increment at 16384Hz (each 64 cycles?)
         if self.cycle % 64 == 0 {
-            ram._inc(IO::DIV);
+            ram._inc(Mem::DIV);
         }
 
-        if ram.get(IO::TAC) & 1 << 2 == 1 << 2 {
+        if ram.get(Mem::TAC) & 1 << 2 == 1 << 2 {
             // timer enable
             let speeds: [u32; 4] = [256, 4, 16, 64]; // increment per X cycles
-            let speed = speeds[(ram.get(IO::TAC) & 0x03) as usize];
+            let speed = speeds[(ram.get(Mem::TAC) & 0x03) as usize];
             if self.cycle % speed == 0 {
-                if ram.get(IO::TIMA) == 0xFF {
-                    ram.set(IO::TIMA, ram.get(IO::TMA)); // if timer overflows, load base
+                if ram.get(Mem::TIMA) == 0xFF {
+                    ram.set(Mem::TIMA, ram.get(Mem::TMA)); // if timer overflows, load base
                     self.interrupt(ram, Interrupt::TIMER);
                 }
-                ram._inc(IO::TIMA);
+                ram._inc(Mem::TIMA);
             }
         }
     }
@@ -237,13 +381,13 @@ impl CPU {
      * clear the flag and call the handler for the first of them.
      */
     fn tick_interrupts(&mut self, ram: &mut ram::RAM) {
-        let queued_interrupts = Interrupt::from_bits(ram.get(IO::IE) & ram.get(IO::IF)).unwrap();
+        let queued_interrupts = Interrupt::from_bits(ram.get(Mem::IE) & ram.get(Mem::IF)).unwrap();
         if self.interrupts && !queued_interrupts.is_empty() {
             if self.debug {
                 println!(
                     "Handling interrupts: {:02X} & {:02X}",
-                    ram.get(IO::IE),
-                    ram.get(IO::IF)
+                    ram.get(Mem::IE),
+                    ram.get(Mem::IF)
                 );
             }
 
@@ -255,24 +399,24 @@ impl CPU {
             // TODO: one more cycle to store new PC
             if queued_interrupts.contains(Interrupt::VBLANK) {
                 self.push(self.pc, ram);
-                self.pc = InterruptHandler::VBlank as u16;
-                ram._and(IO::IF, !Interrupt::VBLANK.bits());
+                self.pc = Mem::VBlankHandler as u16;
+                ram._and(Mem::IF, !Interrupt::VBLANK.bits());
             } else if queued_interrupts.contains(Interrupt::STAT) {
                 self.push(self.pc, ram);
-                self.pc = InterruptHandler::Lcd as u16;
-                ram._and(IO::IF, !Interrupt::STAT.bits());
+                self.pc = Mem::LcdHandler as u16;
+                ram._and(Mem::IF, !Interrupt::STAT.bits());
             } else if queued_interrupts.contains(Interrupt::TIMER) {
                 self.push(self.pc, ram);
-                self.pc = InterruptHandler::Timer as u16;
-                ram._and(IO::IF, !Interrupt::TIMER.bits());
+                self.pc = Mem::TimerHandler as u16;
+                ram._and(Mem::IF, !Interrupt::TIMER.bits());
             } else if queued_interrupts.contains(Interrupt::SERIAL) {
                 self.push(self.pc, ram);
-                self.pc = InterruptHandler::Serial as u16;
-                ram._and(IO::IF, !Interrupt::SERIAL.bits());
+                self.pc = Mem::SerialHandler as u16;
+                ram._and(Mem::IF, !Interrupt::SERIAL.bits());
             } else if queued_interrupts.contains(Interrupt::JOYPAD) {
                 self.push(self.pc, ram);
-                self.pc = InterruptHandler::Joypad as u16;
-                ram._and(IO::IF, !Interrupt::JOYPAD.bits());
+                self.pc = Mem::JoypadHandler as u16;
+                ram._and(Mem::IF, !Interrupt::JOYPAD.bits());
             }
         }
     }

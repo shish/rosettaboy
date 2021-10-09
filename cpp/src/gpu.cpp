@@ -67,11 +67,11 @@ bool GPU::tick() {
     }
 
     // Check if LCD enabled at all
-    u8 lcdc = this->cpu->ram->get(IO::LCDC);
+    u8 lcdc = this->cpu->ram->get(Mem::LCDC);
     if (!(lcdc & LCDC::ENABLED)) {
         // When LCD is re-enabled, LY is 0
         // Does it become 0 as soon as disabled??
-        this->cpu->ram->set(IO::LY, 0);
+        this->cpu->ram->set(Mem::LY, 0);
         if(!debug) {
             return true;
         }
@@ -79,28 +79,28 @@ bool GPU::tick() {
 
     u8 lx = cycle % 114;
     u8 ly = (cycle / 114) % 154;
-    this->cpu->ram->set(IO::LY, ly);
+    this->cpu->ram->set(Mem::LY, ly);
 
     // LYC compare & interrupt
-    if(this->cpu->ram->get(IO::LY) == cpu->ram->get(IO::LYC)) {
-        if(this->cpu->ram->get(IO::STAT) & Stat::LYC_INTERRUPT) {
+    if(this->cpu->ram->get(Mem::LY) == cpu->ram->get(Mem::LYC)) {
+        if(this->cpu->ram->get(Mem::STAT) & Stat::LYC_INTERRUPT) {
             this->cpu->interrupt(Interrupt::STAT);
         }
-        this->cpu->ram->_or(IO::STAT, Stat::LCY_EQUAL);
+        this->cpu->ram->_or(Mem::STAT, Stat::LCY_EQUAL);
     }
     else {
-        this->cpu->ram->_and(IO::STAT, ~Stat::LCY_EQUAL);
+        this->cpu->ram->_and(Mem::STAT, ~Stat::LCY_EQUAL);
     }
 
     // Set mode
     if(lx == 0 && ly < 144) {
-        this->cpu->ram->set(IO::STAT, (this->cpu->ram->get(IO::STAT) & ~Stat::MODE_BITS) | Stat::OAM);
-        if(this->cpu->ram->get(IO::STAT) & Stat::OAM_INTERRUPT) {
+        this->cpu->ram->set(Mem::STAT, (this->cpu->ram->get(Mem::STAT) & ~Stat::MODE_BITS) | Stat::OAM);
+        if(this->cpu->ram->get(Mem::STAT) & Stat::OAM_INTERRUPT) {
             this->cpu->interrupt(Interrupt::STAT);
         }
     }
     else if(lx == 20 && ly < 144) {
-        this->cpu->ram->set(IO::STAT, (this->cpu->ram->get(IO::STAT) & ~Stat::MODE_BITS) | Stat::DRAWING);
+        this->cpu->ram->set(Mem::STAT, (this->cpu->ram->get(Mem::STAT) & ~Stat::MODE_BITS) | Stat::DRAWING);
         if(ly == 0) {
             // TODO: how often should we update palettes?
             // Should every pixel reference them directly?
@@ -123,14 +123,14 @@ bool GPU::tick() {
         }
     }
     else if(lx == 63 && ly < 144) {
-        this->cpu->ram->set(IO::STAT, (this->cpu->ram->get(IO::STAT) & ~Stat::MODE_BITS) | Stat::HBLANK);
-        if(this->cpu->ram->get(IO::STAT) & Stat::HBLANK_INTERRUPT) {
+        this->cpu->ram->set(Mem::STAT, (this->cpu->ram->get(Mem::STAT) & ~Stat::MODE_BITS) | Stat::HBLANK);
+        if(this->cpu->ram->get(Mem::STAT) & Stat::HBLANK_INTERRUPT) {
             this->cpu->interrupt(Interrupt::STAT);
         }
     }
     else if(lx == 0 && ly == 144) {
-        this->cpu->ram->set(IO::STAT, (this->cpu->ram->get(IO::STAT) & ~Stat::MODE_BITS) | Stat::VBLANK);
-        if(this->cpu->ram->get(IO::STAT) & Stat::VBLANK_INTERRUPT) {
+        this->cpu->ram->set(Mem::STAT, (this->cpu->ram->get(Mem::STAT) & ~Stat::MODE_BITS) | Stat::VBLANK);
+        if(this->cpu->ram->get(Mem::STAT) & Stat::VBLANK_INTERRUPT) {
             this->cpu->interrupt(Interrupt::STAT);
         }
         this->cpu->interrupt(Interrupt::VBLANK);
@@ -140,19 +140,19 @@ bool GPU::tick() {
 }
 
 void GPU::update_palettes() {
-    u8 raw_bgp = this->cpu->ram->get(IO::BGP);
+    u8 raw_bgp = this->cpu->ram->get(Mem::BGP);
     bgp[0] = this->colors[(raw_bgp >> 0) & 0x3];
     bgp[1] = this->colors[(raw_bgp >> 2) & 0x3];
     bgp[2] = this->colors[(raw_bgp >> 4) & 0x3];
     bgp[3] = this->colors[(raw_bgp >> 6) & 0x3];
 
-    u8 raw_obp0 = this->cpu->ram->get(IO::OBP0);
+    u8 raw_obp0 = this->cpu->ram->get(Mem::OBP0);
     obp0[0] = this->colors[(raw_obp0 >> 0) & 0x3];
     obp0[1] = this->colors[(raw_obp0 >> 2) & 0x3];
     obp0[2] = this->colors[(raw_obp0 >> 4) & 0x3];
     obp0[3] = this->colors[(raw_obp0 >> 6) & 0x3];
 
-    u8 raw_obp1 = this->cpu->ram->get(IO::OBP1);
+    u8 raw_obp1 = this->cpu->ram->get(Mem::OBP1);
     obp1[0] = this->colors[(raw_obp1 >> 0) & 0x3];
     obp1[1] = this->colors[(raw_obp1 >> 2) & 0x3];
     obp1[2] = this->colors[(raw_obp1 >> 4) & 0x3];
@@ -160,7 +160,7 @@ void GPU::update_palettes() {
 }
 
 bool GPU::draw_debug() {
-    u8 LCDC = this->cpu->ram->get(IO::LCDC);
+    u8 LCDC = this->cpu->ram->get(Mem::LCDC);
 
     // Tile data
     u8 tile_display_width = 32;
@@ -181,8 +181,8 @@ bool GPU::draw_debug() {
 
     // Window tiles
     if(LCDC & LCDC::WINDOW_ENABLED) {
-        u8 wnd_y = this->cpu->ram->get(IO::WY);
-        u8 wnd_x = this->cpu->ram->get(IO::WX);
+        u8 wnd_y = this->cpu->ram->get(Mem::WY);
+        u8 wnd_x = this->cpu->ram->get(Mem::WX);
         SDL_Rect rect = {.x=wnd_x-7, .y=wnd_y, .w=160, .h=144};
         SDL_SetRenderDrawColor(this->renderer, 0, 0, 255, 0xFF);
         SDL_RenderDrawRect(this->renderer, &rect);
@@ -192,12 +192,12 @@ bool GPU::draw_debug() {
 }
 
 void GPU::draw_line(i32 ly) {
-    auto lcdc = this->cpu->ram->get(IO::LCDC);
+    auto lcdc = this->cpu->ram->get(Mem::LCDC);
 
     // Background tiles
     if(lcdc & LCDC::BG_WIN_ENABLED) {
-        auto scroll_y = this->cpu->ram->get(IO::SCY);
-        auto scroll_x = this->cpu->ram->get(IO::SCX);
+        auto scroll_y = this->cpu->ram->get(Mem::SCY);
+        auto scroll_x = this->cpu->ram->get(Mem::SCX);
         auto tile_offset = !(lcdc & LCDC::DATA_SRC);
         auto background_map = (lcdc & LCDC::BG_MAP) ? Mem::MAP_1 : Mem::MAP_0 ;
 
@@ -226,8 +226,8 @@ void GPU::draw_line(i32 ly) {
 
     // Window tiles
     if(lcdc & LCDC::WINDOW_ENABLED) {
-        auto wnd_y = this->cpu->ram->get(IO::WY);
-        auto wnd_x = this->cpu->ram->get(IO::WX);
+        auto wnd_y = this->cpu->ram->get(Mem::WY);
+        auto wnd_x = this->cpu->ram->get(Mem::WX);
         auto tile_offset = !(lcdc & LCDC::DATA_SRC);
         auto window_map = (lcdc & LCDC::WINDOW_MAP) ? Mem::MAP_1 : Mem::MAP_0 ;
 
