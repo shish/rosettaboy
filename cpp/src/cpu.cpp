@@ -467,16 +467,7 @@ void CPU::tick_main(u8 op) {
 void CPU::tick_cb(u8 op) {
     u8 val, orig_c, bit;
 
-    switch(op & 0x07) {
-        case 0x00: val = this->B; break;
-        case 0x01: val = this->C; break;
-        case 0x02: val = this->D; break;
-        case 0x03: val = this->E; break;
-        case 0x04: val = this->H; break;
-        case 0x05: val = this->L; break;
-        case 0x06: val = this->ram->get(this->HL); break;
-        case 0x07: val = this->A; break;
-    }
+    val = this->get_reg(op & 0x07);
     switch(op & 0xF8) {
         // RLC
         case 0x00 ... 0x07:
@@ -583,16 +574,7 @@ void CPU::tick_cb(u8 op) {
             printf("Op CB %02X not implemented\n", op);
             throw std::invalid_argument("Op not implemented");
     }
-    switch(op & 0x07) {
-        case 0x00: this->B = val; break;
-        case 0x01: this->C = val; break;
-        case 0x02: this->D = val; break;
-        case 0x03: this->E = val; break;
-        case 0x04: this->H = val; break;
-        case 0x05: this->L = val; break;
-        case 0x06: this->ram->set(this->HL, val); break;
-        case 0x07: this->A = val; break;
-    }
+    this->set_reg(op & 0x07, val);
 }
 
 void CPU::_xor(u8 val) {
