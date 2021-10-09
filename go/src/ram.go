@@ -227,7 +227,7 @@ func (self *RAM) get(addr uint16) uint8 {
 }
 
 func (self *RAM) set(addr uint16, val uint8) {
-	switch true {
+	switch {
 	case addr < 0x2000:
 		self.ram_enable = val != 0
 	case addr < 0x4000:
