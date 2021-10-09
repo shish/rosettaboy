@@ -1,5 +1,7 @@
 package main
 
+import "github.com/veandco/go-sdl2/sdl"
+
 // Joypad
 const (
 	JOYPAD_MODE_BUTTONS = 1 << 5
@@ -15,25 +17,33 @@ const (
 )
 
 type Buttons struct {
-	cpu                   CPU
+	cpu                   *CPU
 	headless              bool
 	need_interrupt        bool
 	cycle                 int
 	up, down, left, right bool
 	a, b, start, select_  bool
+	turbo                 bool
 }
 
-func NewButtons(cpu CPU, headless bool) Buttons {
+func NewButtons(cpu *CPU, headless bool) Buttons {
+	if !headless {
+		if err := sdl.Init(uint32(sdl.INIT_EVENTS | sdl.INIT_GAMECONTROLLER | sdl.INIT_JOYSTICK)); err != nil {
+			panic(err)
+		}	
+	}
+
 	return Buttons{
 		cpu,
 		headless,
 		false, 0,
 		false, false, false, false,
 		false, false, false, false,
+		false,
 	}
 }
 
-func (self Buttons) tick() bool {
+func (self *Buttons) tick() bool {
 	self.cycle += 1
 	self.update_buttons()
 	if self.need_interrupt {
@@ -48,7 +58,7 @@ func (self Buttons) tick() bool {
 	}
 }
 
-func (self Buttons) update_buttons() {
+func (self *Buttons) update_buttons() {
 	// Since the hardware uses 0 for pressed and 1 for
 	// released, let's invert on read and write to keep
 	// our logic sensible....
@@ -85,7 +95,85 @@ func (self Buttons) update_buttons() {
 	self.cpu.ram.data[IO_JOYP] = ^JOYP
 }
 
-func (self Buttons) handle_inputs() bool {
-	// TODO
+func (self *Buttons) handle_inputs() bool {
+	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch t := event.(type) {
+		case *sdl.QuitEvent:
+			return false
+		case *sdl.KeyboardEvent:
+			switch t.Type {
+			case sdl.KEYDOWN:
+				if t.Keysym.Sym == sdl.K_ESCAPE {
+					return false
+				}
+				if t.Keysym.Sym == sdl.K_LSHIFT {
+					self.turbo = true
+				}
+
+				self.need_interrupt = true
+				switch t.Keysym.Sym {
+				case sdl.K_UP:
+					self.up = true
+					break
+				case sdl.K_DOWN:
+					self.down = true
+					break
+				case sdl.K_LEFT:
+					self.left = true
+					break
+				case sdl.K_RIGHT:
+					self.right = true
+					break
+				case sdl.K_z:
+					self.b = true
+					break
+				case sdl.K_x:
+					self.a = true
+					break
+				case sdl.K_RETURN:
+					self.start = true
+					break
+				case sdl.K_SPACE:
+					self.select_ = true
+					break
+				default:
+					self.need_interrupt = false
+					break
+				}
+			case sdl.KEYUP:
+				if t.Keysym.Sym == sdl.K_LSHIFT {
+					self.turbo = false
+				}
+
+				switch t.Keysym.Sym {
+				case sdl.K_UP:
+					self.up = false
+					break
+				case sdl.K_DOWN:
+					self.down = false
+					break
+				case sdl.K_LEFT:
+					self.left = false
+					break
+				case sdl.K_RIGHT:
+					self.right = false
+					break
+				case sdl.K_z:
+					self.b = false
+					break
+				case sdl.K_x:
+					self.a = false
+					break
+				case sdl.K_RETURN:
+					self.start = false
+					break
+				case sdl.K_SPACE:
+					self.select_ = false
+					break
+				}
+			}
+		}
+	}
+
 	return true
 }

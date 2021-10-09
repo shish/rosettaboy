@@ -39,20 +39,20 @@ languages, are very welcome :)
 
 Completeness
 ------------
-| Feature                            | Python    | C++       | Rust      |
-| -------                            | -------   | ---       | ----      |
-| gblargh's CPU test suite           |  &check;  |  &check;  |  &check;  |
-| silent / headless                  |  &check;  |  &check;  |  &check;  |
-| scaled output                      |  &check;  |  &check;  |  &check;  |
-| debug build fps                    |  5        |  150      |  80       |
-| release build fps                  |  5        |  350      |  500      |
-| CPU logging                        |  &check;  |  &check;  |  &check;  |
-| keyboard input                     |  &check;  |  &check;  |  &check;  |
-| gamepad input                      |  &cross;  |  &cross;  |  &check;  |
-| turbo button                       |  &cross;  |  &check;  |  &cross;  |
-| audio                              |  &cross;  |  off-key  |  glitchy  |
-| memory mapping                     |  &check;  |  &check;  |  &check;  |
-| scanline rendering                 |  &cross;  |  &check;  |  &check;  |
-| bank swapping                      |  ?        |  ?        |  ?        |
-| CPU interrupts                     |  &check;  |  &check;  |  &check;  |
-| GPU interrupts                     |  &cross;  |  &check;  |  &check;  |
+| Feature                            | Python    | C++       | Rust      | Go        |
+| -------                            | -------   | ---       | ----      | --        |
+| gblargh's CPU test suite           |  &check;  |  &check;  |  &check;  |  &cross;  |
+| silent / headless                  |  &check;  |  &check;  |  &check;  |  &cross;  |
+| scaled output                      |  &check;  |  &check;  |  &check;  |  &cross;  |
+| debug build fps                    |  5        |  150      |  80       |  &cross;  |
+| release build fps                  |  5        |  350      |  500      |  &cross;  |
+| CPU logging                        |  &check;  |  &check;  |  &check;  |  &cross;  |
+| keyboard input                     |  &check;  |  &check;  |  &check;  |  &check;  |
+| gamepad input                      |  &cross;  |  &cross;  |  &check;  |  &cross;  |
+| turbo button                       |  &cross;  |  &check;  |  &cross;  |  &cross;  |
+| audio                              |  &cross;  |  off-key  |  glitchy  |  &cross;  |
+| memory mapping                     |  &check;  |  &check;  |  &check;  |  &check;  |
+| scanline rendering                 |  &cross;  |  &check;  |  &check;  |  &cross;  |
+| bank swapping                      |  ?        |  ?        |  ?        |  &cross;  |
+| CPU interrupts                     |  &check;  |  &check;  |  &check;  |  &cross;  |
+| GPU interrupts                     |  &cross;  |  &check;  |  &check;  |  &cross;  |

@@ -47,7 +47,6 @@ bool Buttons::handle_inputs() {
 
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
-            printf("Quitting\n");
             return false;
         }
         if(event.type == SDL_KEYDOWN) {

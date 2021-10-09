@@ -5,7 +5,7 @@ import (
 )
 
 type RAM struct {
-	cart  Cart
+	cart  *Cart
 	boot  []byte
 	data  []byte
 	debug bool
@@ -18,7 +18,7 @@ type RAM struct {
 	ram_bank      uint8
 }
 
-func NewRAM(cart Cart, debug bool) RAM {
+func NewRAM(cart *Cart, debug bool) RAM {
 	var boot = get_boot()
 	var data = make([]byte, 64*1024)
 
@@ -164,7 +164,7 @@ func get_boot() []byte {
 	return data
 }
 
-func (self RAM) get(addr uint16) uint8 {
+func (self *RAM) get(addr uint16) uint8 {
 	switch {
 	case addr < 0x4000:
 		// ROM bank 0
@@ -226,7 +226,7 @@ func (self RAM) get(addr uint16) uint8 {
 	return self.data[addr]
 }
 
-func (self RAM) set(addr uint16, val uint8) {
+func (self *RAM) set(addr uint16, val uint8) {
 	switch true {
 	case addr < 0x2000:
 		self.ram_enable = val != 0
