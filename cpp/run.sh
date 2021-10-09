@@ -1,3 +1,3 @@
 #!/bin/sh
-make
+make -j
 ./rosettaboy-cpp $*
