@@ -145,6 +145,10 @@ impl Buttons {
      * store which buttons are pressed or not
      */
     fn handle_inputs(&mut self) -> Result<()> {
+        if self.headless {
+            return Ok(());
+        }
+
         for event in self
             .sdl
             .event_pump()
