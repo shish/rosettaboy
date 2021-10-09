@@ -1,6 +1,10 @@
 package main
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"fmt"
+
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 const (
 	LCDC_ENABLED        = 1 << 7
@@ -13,7 +17,6 @@ const (
 	LCDC_BG_WIN_ENABLED = 1 << 0
 )
 
-// STAT
 const (
 	STAT_LYC_INTERRUPT    = 1 << 6
 	STAT_OAM_INTERRUPT    = 1 << 5
@@ -46,7 +49,7 @@ type GPU struct {
 	bgp, obp0, obp1 []sdl.Color
 }
 
-func NewGPU(cpu *CPU, debug bool, headless bool) GPU {
+func NewGPU(cpu *CPU, title string, debug bool, headless bool) GPU {
 	var w int32 = 160
 	var h int32 = 144
 	if debug {
@@ -60,9 +63,11 @@ func NewGPU(cpu *CPU, debug bool, headless bool) GPU {
 			panic(err)
 		}
 
-		// TODO: title
-		window_, err := sdl.CreateWindow("test", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-			w, h, sdl.WINDOW_SHOWN)
+		window_, err := sdl.CreateWindow(
+			fmt.Sprintf("RosettaBoy - %s", title),
+			sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+			w, h, sdl.WINDOW_SHOWN,
+		)
 		if err != nil {
 			panic(err)
 		}
@@ -70,7 +75,6 @@ func NewGPU(cpu *CPU, debug bool, headless bool) GPU {
 	}
 
 	buffer, err := sdl.CreateRGBSurface(0, w, h, 32, rmask, gmask, bmask, amask)
-	// buffer, err := window.GetSurface()
 	if err != nil {
 		panic(err)
 	}
@@ -101,17 +105,23 @@ func (self *GPU) Destroy() {
 func (self *GPU) tick() bool {
 	self.cycle += 1
 
+	// TODO: this is just the minimal amount of code to get
+	// something on screen
 	if self.cycle%17556 == 20 {
-		println("frame")
 		rect := sdl.Rect{0, 0, 200, 200}
 		self.buffer.FillRect(&rect, 0xffff0000)
 
-		var window_surface, err = self.window.GetSurface()
-		if err != nil {
-			panic(err)
+		rect = sdl.Rect{int32(self.cycle % 100), 0, 200, 200}
+		self.buffer.FillRect(&rect, 0xffffff00)
+
+		if !self.headless {
+			var window_surface, err = self.window.GetSurface()
+			if err != nil {
+				panic(err)
+			}
+			self.buffer.BlitScaled(nil, window_surface, nil)
+			self.window.UpdateSurface()	
 		}
-		self.buffer.BlitScaled(nil, window_surface, nil)
-		self.window.UpdateSurface()
 	}
 
 	return true

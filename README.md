@@ -49,7 +49,7 @@ Completeness
 | CPU logging                        |  &check;  |  &check;  |  &check;  |  &cross;  |
 | keyboard input                     |  &check;  |  &check;  |  &check;  |  &check;  |
 | gamepad input                      |  &cross;  |  &cross;  |  &check;  |  &cross;  |
-| turbo button                       |  &cross;  |  &check;  |  &cross;  |  &cross;  |
+| turbo button                       |  &cross;  |  &check;  |  &cross;  |  &check;  |
 | audio                              |  &cross;  |  off-key  |  glitchy  |  &cross;  |
 | memory mapping                     |  &check;  |  &check;  |  &check;  |  &check;  |
 | scanline rendering                 |  &cross;  |  &check;  |  &check;  |  &cross;  |

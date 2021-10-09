@@ -30,7 +30,7 @@ func NewButtons(cpu *CPU, headless bool) Buttons {
 	if !headless {
 		if err := sdl.Init(uint32(sdl.INIT_EVENTS | sdl.INIT_GAMECONTROLLER | sdl.INIT_JOYSTICK)); err != nil {
 			panic(err)
-		}	
+		}
 	}
 
 	return Buttons{

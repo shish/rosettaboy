@@ -30,5 +30,13 @@ func NewCart(rom string) Cart {
 	}
 
 	// TODO: parse fields
-	return Cart{data, "", make([]byte, 0), make([]byte, 0), "", false, 0, false, 0, 0, 0, 0, 0, 0, 0, 0}
+	return Cart{
+		data,
+		"",
+		make([]byte, 0),
+		make([]byte, 0),
+		"TITLE",
+		false, 0, false,
+		0, 0, 0, 0, 0, 0, 0, 0,
+	}
 }

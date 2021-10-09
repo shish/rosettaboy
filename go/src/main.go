@@ -20,10 +20,10 @@ func main() {
 	var ram = NewRAM(&cart, *debug_ram)
 	var cpu = NewCPU(&ram, *debug_cpu)
 	/*var apu = */ NewAPU(&cpu, *debug_apu, *silent)
-	var gpu = NewGPU(&cpu, *debug_gpu, *headless)
+	var gpu = NewGPU(&cpu, cart.name, *debug_gpu, *headless)
 	defer gpu.Destroy()
 	var buttons = NewButtons(&cpu, *headless)
-	var clock = NewClock(*profile, *turbo, *fps)
+	var clock = NewClock(&buttons, *profile, *turbo, *fps)
 
 	for true {
 		if !cpu.tick() {
