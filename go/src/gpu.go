@@ -85,10 +85,10 @@ func NewGPU(cpu *CPU, title string, debug bool, headless bool) GPU {
 	}
 
 	colors := []sdl.Color{
-		{0x9B, 0xBC, 0x0F, 0xFF},
-		{0x8B, 0xAC, 0x0F, 0xFF},
-		{0x30, 0x62, 0x30, 0xFF},
-		{0x0F, 0x38, 0x0F, 0xFF},
+		{R: 0x9B, G: 0xBC, B: 0x0F, A: 0xFF},
+		{R: 0x8B, G: 0xAC, B: 0x0F, A: 0xFF},
+		{R: 0x30, G: 0x62, B: 0x30, A: 0xFF},
+		{R: 0x0F, G: 0x38, B: 0x0F, A: 0xFF},
 	}
 	bgp := make([]sdl.Color, 4)
 	obp0 := make([]sdl.Color, 4)
@@ -108,10 +108,10 @@ func (self *GPU) tick() bool {
 	// TODO: this is just the minimal amount of code to get
 	// something on screen
 	if self.cycle%17556 == 20 {
-		rect := sdl.Rect{0, 0, 200, 200}
+		rect := sdl.Rect{X: 0, Y: 0, W: 200, H: 200}
 		self.buffer.FillRect(&rect, 0xffff0000)
 
-		rect = sdl.Rect{int32(self.cycle % 100), 0, 200, 200}
+		rect = sdl.Rect{X: int32(self.cycle % 100), Y: 0, W: 200, H: 200}
 		self.buffer.FillRect(&rect, 0xffffff00)
 
 		if !self.headless {
