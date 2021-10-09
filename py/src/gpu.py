@@ -17,7 +17,7 @@ class LCDC:
     BG_WIN_ENABLED = 1 << 0
 
 
-class STATFlag:
+class Stat:
     LYC_INTERRUPT = 1 << 6
     OAM_INTERRUPT = 1 << 5
     VBLANK_INTERRUPT = 1 << 4
@@ -25,8 +25,6 @@ class STATFlag:
     LCY_EQUAL = 1 << 2
     MODE = 1 << 1 | 1 << 0
 
-
-class STATMode:
     HBLANK = 0x00
     VBLANK = 0x01
     OAM = 0x02
@@ -88,23 +86,23 @@ class GPU:
 
         # LYC compare & interrupt
         if self.cpu.ram[Mem.LY] == self.cpu.ram[Mem.LCY]:
-            if self.cpu.ram[Mem.STAT] & STATFlag.LYC_INTERRUPT:
+            if self.cpu.ram[Mem.STAT] & Stat.LYC_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
-            self.cpu.ram[Mem.STAT] |= STATFlag.LCY_EQUAL
+            self.cpu.ram[Mem.STAT] |= Stat.LCY_EQUAL
         else:
-            self.cpu.ram[Mem.STAT] &= ~STATFlag.LCY_EQUAL
+            self.cpu.ram[Mem.STAT] &= ~Stat.LCY_EQUAL
 
         # Set mode
         if lx == 0 and ly < 144:
             self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~STATFlag.MODE
-            ) | STATMode.OAM
-            if self.cpu.ram[Mem.STAT] & STATFlag.OAM_INTERRUPT:
+                self.cpu.ram[Mem.STAT] & ~Stat.MODE
+            ) | Stat.OAM
+            if self.cpu.ram[Mem.STAT] & Stat.OAM_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
         elif lx == 20 and ly < 144:
             self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~STATFlag.MODE
-            ) | STATMode.DRAWING
+                self.cpu.ram[Mem.STAT] & ~Stat.MODE
+            ) | Stat.DRAWING
             # TODO: really we should draw one line of pixels for each LY,
             # rather than the whole screen at LY == 0
             if ly == 0:
@@ -112,15 +110,15 @@ class GPU:
                     return False
         elif lx == 63 and ly < 144:
             self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~STATFlag.MODE
-            ) | STATMode.HBLANK
-            if self.cpu.ram[Mem.STAT] & STATFlag.HBLANK_INTERRUPT:
+                self.cpu.ram[Mem.STAT] & ~Stat.MODE
+            ) | Stat.HBLANK
+            if self.cpu.ram[Mem.STAT] & Stat.HBLANK_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
         elif lx == 0 and ly == 144:
             self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~STATFlag.MODE
-            ) | STATMode.VBLANK
-            if self.cpu.ram[Mem.STAT] & STATFlag.VBLANK_INTERRUPT:
+                self.cpu.ram[Mem.STAT] & ~Stat.MODE
+            ) | Stat.VBLANK
+            if self.cpu.ram[Mem.STAT] & Stat.VBLANK_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
             self.cpu.interrupt(Interrupt.VBLANK)
 

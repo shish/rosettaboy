@@ -22,6 +22,7 @@ namespace Stat {
     const u8 HBLANK_INTERRUPT = 1 << 3;
     const u8 LCY_EQUAL = 1 << 2;
     const u8 MODE_BITS = 1 << 1 | 1 << 0;
+    
     const u8 HBLANK = 0x00;
     const u8 VBLANK = 0x01;
     const u8 OAM = 0x02;
