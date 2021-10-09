@@ -274,19 +274,6 @@ class CPU:
 
     # </editor-fold>
 
-    # <editor-fold description="Debugger">
-    def debugger(self) -> None:
-        while True:
-            cmd = input("dbg> ").split()
-            if cmd[0] == "cpu":
-                print(self)
-            if cmd[0] == "ram":
-                print("%02X" % self.ram[int(cmd[1], 16)])
-            if cmd[0] == "run":
-                break
-
-    # </editor-fold>
-
     # <editor-fold description="Registers">
     @property
     def AF(self) -> int:
@@ -394,7 +381,7 @@ class CPU:
     opD3 = opcode("ERR D3", 4)(lambda self: self._err("D3"))
     opDB = opcode("ERR DB", 4)(lambda self: self._err("DB"))
     opDD = opcode("ERR DD", 4)(lambda self: self._err("DD"))
-    # opE3 = opcode("ERR E3", 4)(lambda self: self._err("E3"))
+    opE3 = opcode("ERR E3", 4)(lambda self: self._err("E3"))
     opE4 = opcode("ERR E4", 4)(lambda self: self._err("E4"))
     opEB = opcode("ERR EB", 4)(lambda self: self._err("EB"))
     opEC = opcode("ERR EC", 4)(lambda self: self._err("EC"))
@@ -402,11 +389,6 @@ class CPU:
     opF4 = opcode("ERR F4", 4)(lambda self: self._err("F4"))
     opFC = opcode("ERR FC", 4)(lambda self: self._err("FC"))
     opFD = opcode("ERR FD", 4)(lambda self: self._err("FD"))
-
-    @opcode("DBG", 4)
-    def opE3(self):
-        print(self)
-        self.debugger()
 
     # </editor-fold>
 

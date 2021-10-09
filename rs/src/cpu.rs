@@ -1088,9 +1088,9 @@ impl CPU {
         self.set_reg(op & 0x07, val, ram);
     }
 
-    fn _xor(&mut self, arg: u8) {
+    fn _xor(&mut self, val: u8) {
         unsafe {
-            self.regs.r8.a ^= arg;
+            self.regs.r8.a ^= val;
 
             self.flag_z = self.regs.r8.a == 0;
             self.flag_n = false;
@@ -1099,9 +1099,9 @@ impl CPU {
         }
     }
 
-    fn _or(&mut self, arg: u8) {
+    fn _or(&mut self, val: u8) {
         unsafe {
-            self.regs.r8.a |= arg;
+            self.regs.r8.a |= val;
 
             self.flag_z = self.regs.r8.a == 0;
             self.flag_n = false;
@@ -1110,9 +1110,9 @@ impl CPU {
         }
     }
 
-    fn _and(&mut self, arg: u8) {
+    fn _and(&mut self, val: u8) {
         unsafe {
-            self.regs.r8.a &= arg;
+            self.regs.r8.a &= val;
 
             self.flag_z = self.regs.r8.a == 0;
             self.flag_n = false;
@@ -1121,12 +1121,12 @@ impl CPU {
         }
     }
 
-    fn _cp(&mut self, arg: u8) {
+    fn _cp(&mut self, val: u8) {
         unsafe {
-            self.flag_z = self.regs.r8.a == arg;
+            self.flag_z = self.regs.r8.a == val;
             self.flag_n = true;
-            self.flag_h = (self.regs.r8.a & 0x0F) < (arg & 0x0F);
-            self.flag_c = self.regs.r8.a < arg;
+            self.flag_h = (self.regs.r8.a & 0x0F) < (val & 0x0F);
+            self.flag_c = self.regs.r8.a < val;
         }
     }
 

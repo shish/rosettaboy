@@ -203,7 +203,6 @@ public:
     void dump_regs();
 
 private:
-    bool tick_debugger();
     void tick_dma();
     bool tick_clock();
     bool tick_interrupts();
@@ -211,20 +210,20 @@ private:
     void tick_main(u8 op);
     void tick_cb(u8 op);
 
-    void _xor(u8 arg);
-    void _or(u8 arg);
-    void _and(u8 arg);
-    void _cp(u8 arg);
-    void _add(u8 arg);
-    void _adc(u8 arg);
-    void _sub(u8 arg);
-    void _sbc(u8 arg);
+    void _xor(u8 val);
+    void _or(u8 val);
+    void _and(u8 val);
+    void _cp(u8 val);
+    void _add(u8 val);
+    void _adc(u8 val);
+    void _sub(u8 val);
+    void _sbc(u8 val);
 
-    void push(u16 arg);
+    void push(u16 val);
     u16 pop();
 
     u8 get_reg(int n);
-    u8 set_reg(int n, u8 val);
+    void set_reg(int n, u8 val);
 };
 
 #endif //ROSETTABOY_CPU_H

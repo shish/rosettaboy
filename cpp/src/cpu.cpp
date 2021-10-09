@@ -22,39 +22,6 @@ CPU::CPU(RAM *ram, bool debug) {
     this->PC = 0x0000;
 }
 
-u8 CPU::get_reg(int n) {
-    n = n % 8;
-    switch(n) {
-        case 0: return this->B; break;
-        case 1: return this->C; break;
-        case 2: return this->D; break;
-        case 3: return this->E; break;
-        case 4: return this->H; break;
-        case 5: return this->L; break;
-        case 6: return this->ram->get(this->HL); break;
-        case 7: return this->A; break;
-        default:
-            printf("Invalid register %d\n", n);
-            return 0;
-    }
-}
-
-u8 CPU::set_reg(int n, u8 val) {
-    switch(n) {
-        case 0: this->B = val; break;
-        case 1: this->C = val; break;
-        case 2: this->D = val; break;
-        case 3: this->E = val; break;
-        case 4: this->H = val; break;
-        case 5: this->L = val; break;
-        case 6: this->ram->set(this->HL, val); break;
-        case 7: this->A = val; break;
-        default:
-            printf("Invalid register %d\n", n);
-    }
-    return 0;
-}
-
 void CPU::dump_regs() {
     u8 IE = this->ram->get(Mem::IE);
     u8 IF = this->ram->get(Mem::IF);
@@ -594,7 +561,7 @@ void CPU::tick_cb(u8 op) {
         // BIT
         case 0x40 ... 0x7F:
             bit = (op - 0x40) / 8;
-            this->FLAG_Z = (!(val & (1 << bit))) != 0;
+            this->FLAG_Z = (val & (1 << bit)) == 0;
             this->FLAG_N = false;
             this->FLAG_H = true;
             break;
@@ -628,8 +595,8 @@ void CPU::tick_cb(u8 op) {
     }
 }
 
-void CPU::_xor(u8 arg) {
-    this->A ^= arg;
+void CPU::_xor(u8 val) {
+    this->A ^= val;
 
     this->FLAG_Z = this->A == 0;
     this->FLAG_N = false;
@@ -637,8 +604,8 @@ void CPU::_xor(u8 arg) {
     this->FLAG_C = false;
 }
 
-void CPU::_or(u8 arg) {
-    this->A |= arg;
+void CPU::_or(u8 val) {
+    this->A |= val;
 
     this->FLAG_Z = this->A == 0;
     this->FLAG_N = false;
@@ -646,8 +613,8 @@ void CPU::_or(u8 arg) {
     this->FLAG_C = false;
 }
 
-void CPU::_and(u8 arg) {
-    this->A &= arg;
+void CPU::_and(u8 val) {
+    this->A &= val;
 
     this->FLAG_Z = this->A == 0;
     this->FLAG_N = false;
@@ -655,11 +622,11 @@ void CPU::_and(u8 arg) {
     this->FLAG_C = false;
 }
 
-void CPU::_cp(u8 arg) {
-    this->FLAG_Z = this->A == arg;
+void CPU::_cp(u8 val) {
+    this->FLAG_Z = this->A == val;
     this->FLAG_N = true;
-    this->FLAG_H = (this->A & 0x0F) < (arg & 0x0F);
-    this->FLAG_C = this->A < arg;
+    this->FLAG_H = (this->A & 0x0F) < (val & 0x0F);
+    this->FLAG_C = this->A < val;
 }
 
 void CPU::_add(u8 val) {
@@ -707,4 +674,36 @@ u16 CPU::pop() {
     u16 val = (this->ram->get(this->SP+1) << 8) | this->ram->get(this->SP);
     this->SP += 2;
     return val;
+}
+
+u8 CPU::get_reg(int n) {
+    n = n % 8;
+    switch(n) {
+        case 0: return this->B; break;
+        case 1: return this->C; break;
+        case 2: return this->D; break;
+        case 3: return this->E; break;
+        case 4: return this->H; break;
+        case 5: return this->L; break;
+        case 6: return this->ram->get(this->HL); break;
+        case 7: return this->A; break;
+        default:
+            printf("Invalid register %d\n", n);
+            return 0;
+    }
+}
+
+void CPU::set_reg(int n, u8 val) {
+    switch(n) {
+        case 0: this->B = val; break;
+        case 1: this->C = val; break;
+        case 2: this->D = val; break;
+        case 3: this->E = val; break;
+        case 4: this->H = val; break;
+        case 5: this->L = val; break;
+        case 6: this->ram->set(this->HL, val); break;
+        case 7: this->A = val; break;
+        default:
+            printf("Invalid register %d\n", n);
+    }
 }
