@@ -3,7 +3,7 @@ RosettaBoy
 Trying to implement a gameboy emulator in a bunch of languages for my own
 amusement and education; also giving people an opportunity to compare the
 same code written in different languages, similar to
-[Rosetta Code](https://www.rosettacode.org]) but with a non-trivial codebase :)
+[Rosetta Code](https://www.rosettacode.org) but with a non-trivial codebase :)
 
 The main goals are:
 
