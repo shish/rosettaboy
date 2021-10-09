@@ -325,3 +325,13 @@ func (self *RAM) set(addr uint16, val uint8) {
 
 	self.data[addr] = val
 }
+
+func (self *RAM) _and(addr uint16, val uint8) {
+	self.set(addr, self.get(addr)&val)
+}
+func (self *RAM) _or(addr uint16, val uint8) {
+	self.set(addr, self.get(addr)|val)
+}
+func (self *RAM) _inc(addr uint16) {
+	self.set(addr, self.get(addr)+1)
+}

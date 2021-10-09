@@ -48,7 +48,7 @@ func (self *Buttons) tick() bool {
 	self.update_buttons()
 	if self.need_interrupt {
 		self.cpu.stop = false
-		self.cpu.interrupt(INTERRUPT_JOYPAD)
+		self.cpu.interrupt(JOYPAD)
 		self.need_interrupt = false
 	}
 	if self.cycle%17556 == 20 {
