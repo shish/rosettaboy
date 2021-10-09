@@ -1,5 +1,5 @@
-#ifndef SPIGOT_GPU_H
-#define SPIGOT_GPU_H
+#ifndef ROSETTABOY_GPU_H
+#define ROSETTABOY_GPU_H
 
 #include <SDL2/SDL.h>
 #include "cpu.h"
@@ -84,4 +84,4 @@ private:
 
 SDL_Color gen_hue(u8 n);
 
-#endif //SPIGOT_GPU_H
+#endif //ROSETTABOY_GPU_H

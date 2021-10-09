@@ -1,5 +1,5 @@
-#ifndef SPIGOT_CONSTS_H
-#define SPIGOT_CONSTS_H
+#ifndef ROSETTABOY_CONSTS_H
+#define ROSETTABOY_CONSTS_H
 
 #include <string>
 
@@ -92,4 +92,4 @@ namespace Interrupt {
     };
 }
 
-#endif //SPIGOT_CONSTS_H
+#endif //ROSETTABOY_CONSTS_H

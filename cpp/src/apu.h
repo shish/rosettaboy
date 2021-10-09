@@ -1,5 +1,5 @@
-#ifndef SPIGOT_APU_H
-#define SPIGOT_APU_H
+#ifndef ROSETTABOY_APU_H
+#define ROSETTABOY_APU_H
 
 #include "cpu.h"
 
@@ -161,4 +161,4 @@ private:
 
 void audio_callback(void*, Uint8*, int);
 
-#endif //SPIGOT_APU_H
+#endif //ROSETTABOY_APU_H

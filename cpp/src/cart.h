@@ -1,5 +1,5 @@
-#ifndef SPIGOT_CART_H
-#define SPIGOT_CART_H
+#ifndef ROSETTABOY_CART_H
+#define ROSETTABOY_CART_H
 
 #include <cstdint>
 #include "consts.h"
@@ -73,4 +73,4 @@ private:
     bool debug = false;
 };
 
-#endif //SPIGOT_CART_H
+#endif //ROSETTABOY_CART_H

@@ -1,5 +1,5 @@
-#ifndef SPIGOT_CPU_H
-#define SPIGOT_CPU_H
+#ifndef ROSETTABOY_CPU_H
+#define ROSETTABOY_CPU_H
 
 #include <cstdint>
 
@@ -227,4 +227,4 @@ private:
     u8 set_reg(int n, u8 val);
 };
 
-#endif //SPIGOT_CPU_H
+#endif //ROSETTABOY_CPU_H

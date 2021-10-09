@@ -1,5 +1,5 @@
-#ifndef SPIGOT_RAM_H
-#define SPIGOT_RAM_H
+#ifndef ROSETTABOY_RAM_H
+#define ROSETTABOY_RAM_H
 
 #include <stdexcept>
 #include "consts.h"
@@ -198,4 +198,4 @@ inline void RAM::_inc(u16 addr) {
     this->set(addr, this->get(addr) + 1);
 }
 
-#endif //SPIGOT_RAM_H
+#endif //ROSETTABOY_RAM_H

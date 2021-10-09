@@ -1,5 +1,5 @@
-#ifndef SPIGOT_CLOCK_H
-#define SPIGOT_CLOCK_H
+#ifndef ROSETTABOY_CLOCK_H
+#define ROSETTABOY_CLOCK_H
 
 #include <SDL2/SDL.h>
 #include "buttons.h"
@@ -20,4 +20,4 @@ public:
     bool tick();
 };
 
-#endif //SPIGOT_CLOCK_H
+#endif //ROSETTABOY_CLOCK_H

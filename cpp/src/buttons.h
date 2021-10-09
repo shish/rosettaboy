@@ -1,5 +1,5 @@
-#ifndef SPIGOT_BUTTONS_H
-#define SPIGOT_BUTTONS_H
+#ifndef ROSETTABOY_BUTTONS_H
+#define ROSETTABOY_BUTTONS_H
 
 #include <SDL2/SDL.h>
 #include "cpu.h"
@@ -42,4 +42,4 @@ private:
     void update_buttons();
 };
 
-#endif //SPIGOT_BUTTONS_H
+#endif //ROSETTABOY_BUTTONS_H
