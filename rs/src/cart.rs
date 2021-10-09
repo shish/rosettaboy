@@ -56,8 +56,6 @@ pub struct Cart {
     pub data: Vec<u8>,
     pub ram: Vec<u8>,
 
-    // u8 rsts[0x100];
-    // u8 init[0x4];
     pub logo: [u8; 48],
     pub name: String,
     pub is_gbc: bool,

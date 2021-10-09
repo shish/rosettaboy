@@ -51,8 +51,6 @@ public:
     unsigned char *data;
     unsigned char *ram = nullptr;
 
-    // u8 rsts[0x100];
-    // u8 init[0x4];
     u8 logo[48];
     char name[15];
     bool is_gbc;
