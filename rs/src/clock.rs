@@ -63,8 +63,9 @@ impl Clock {
             // Exit if we've hit the frame limit
             if self.profile != 0 && self.frame > self.profile {
                 return Err(anyhow!(
-                    "Hit frame limit after {:?}",
+                    "Hit frame limit after {:?} ({}fps)",
                     SystemTime::now().duration_since(self.start)?,
+                    self.profile as f32 / SystemTime::now().duration_since(self.start)?.as_secs_f32()
                 ));
             }
 
