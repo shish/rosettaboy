@@ -43,8 +43,8 @@ impl Clock {
             if self.profile != 0 && self.frame > self.profile {
                 let duration = SystemTime::now().duration_since(self.start)?.as_secs_f32();
                 return Err(anyhow!(
-                    "Hit frame limit after {:.2}s ({:.2}fps)",
-                    duration,
+                    "Emulated {} frames in {:.2}s ({:.2}fps)",
+                    self.profile, duration,
                     self.profile as f32 / duration
                 ));
             }

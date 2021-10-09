@@ -24,8 +24,8 @@ class Clock:
             if self.profile != 0 and self.frame > self.profile:
                 duration = time.time() - self.start
                 print(
-                    "Hit frame limit after %.2fs (%.2ffps)\n"
-                    % (duration, self.profile / duration)
+                    "Emulated %d frames in %.2fs (%.2ffps)\n"
+                    % (self.profile, duration, self.profile / duration)
                 )
                 return False
 
