@@ -11,6 +11,7 @@ class Clock:
         self.fps = fps
         self.pyclock = pygame.time.Clock()
         self.last_report = time.time()
+        self.start = time.time()
 
     def tick(self) -> bool:
         self.cycle += 1
@@ -30,6 +31,11 @@ class Clock:
 
             # Exit if we've hit the frame limit
             if self.profile != 0 and self.frame > self.profile:
+                duration = time.time() - self.start
+                print(
+                    "Hit frame limit after %.2fs (%.2ffps)\n"
+                    % (duration, self.profile / duration)
+                )
                 return False
 
             self.frame += 1

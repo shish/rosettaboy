@@ -52,7 +52,7 @@ func (self *Clock) tick() bool {
 		if self.profile != 0 && self.frame > self.profile {
             var duration = (float32)(sdl.GetTicks() - self.start) / 1000.0;
 			fmt.Printf(
-				"Hit frame limit after %.2f (%.2ffps)\n",
+				"Hit frame limit after %.2fs (%.2ffps)\n",
 				duration,
 				float32(self.profile) / duration,
 			)
