@@ -94,9 +94,7 @@ class GPU:
 
         # Set mode
         if lx == 0 and ly < 144:
-            self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~Stat.MODE
-            ) | Stat.OAM
+            self.cpu.ram[Mem.STAT] = (self.cpu.ram[Mem.STAT] & ~Stat.MODE) | Stat.OAM
             if self.cpu.ram[Mem.STAT] & Stat.OAM_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
         elif lx == 20 and ly < 144:
@@ -109,15 +107,11 @@ class GPU:
                 if not self.draw_lcd():
                     return False
         elif lx == 63 and ly < 144:
-            self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~Stat.MODE
-            ) | Stat.HBLANK
+            self.cpu.ram[Mem.STAT] = (self.cpu.ram[Mem.STAT] & ~Stat.MODE) | Stat.HBLANK
             if self.cpu.ram[Mem.STAT] & Stat.HBLANK_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
         elif lx == 0 and ly == 144:
-            self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~Stat.MODE
-            ) | Stat.VBLANK
+            self.cpu.ram[Mem.STAT] = (self.cpu.ram[Mem.STAT] & ~Stat.MODE) | Stat.VBLANK
             if self.cpu.ram[Mem.STAT] & Stat.VBLANK_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
             self.cpu.interrupt(Interrupt.VBLANK)
