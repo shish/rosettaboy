@@ -35,20 +35,23 @@ public:
 };
 
 inline void RAM::set(u16 addr, u8 val) {
-    if(addr >= 0x0000 && addr < 0x2000) {
+    switch(addr) {
+    case 0x0000 ... 0x1FFF: {
         bool newval = (val != 0);
         //if(this->ram_enable != newval) printf("ram_enable set to %d\n", newval);
         this->ram_enable = newval;
+        break;
     }
-    else if(addr >= 0x2000 && addr < 0x4000) {
+    case 0x2000 ... 0x3FFF: {
         this->rom_bank_low = val;
         this->rom_bank = (this->rom_bank_high << 5) | this->rom_bank_low;
         if(this->debug) printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/0x2000);
         if(this->rom_bank * 0x2000 > this->cart->rom_size) {
             throw std::invalid_argument("Set rom_bank beyond the size of ROM");
         }
+        break;
     }
-    else if(addr >= 0x4000 && addr < 0x6000) {
+    case 0x4000 ... 0x5FFF: {
         if(this->ram_bank_mode) {
             this->ram_bank = val;
             if(this->debug) printf("ram_bank set to %d/%d\n", this->ram_bank, this->cart->ram_size/0x2000);
@@ -64,16 +67,18 @@ inline void RAM::set(u16 addr, u8 val) {
                 throw std::invalid_argument("Set rom_bank beyond the size of ROM");
             }
         }
+        break;
     }
-    else if(addr >= 0x6000 && addr < 0x8000) {
+    case 0x6000 ... 0x7FFF: {
         this->ram_bank_mode = (val != 0);
         //printf("ram_bank_mode set to %d\n", this->ram_bank_mode);
+        break;
     }
-    else if(addr >= 0x8000 && addr < 0xA000) {
+    case 0x8000 ... 0x9FFF:
         // VRAM
         // TODO: if writing to tile RAM, update tiles in GPU class?
-    }
-    else if(addr >= 0xA000 && addr < 0xC000) {
+        break;
+    case 0xA000 ... 0xBFFF: {
         // external RAM, bankable
         if(!this->ram_enable) {
             //printf("ERR: Writing to external ram while disabled: %04X=%02X\n", addr, val);
@@ -87,59 +92,64 @@ inline void RAM::set(u16 addr, u8 val) {
             throw std::invalid_argument("Writing beyond RAM limit");
         }
         this->cart->ram[addr_within_ram] = val;
+        break;
     }
-    else if(addr >= 0xC000 && addr < 0xD000) {
+    case 0xC000 ... 0xCFFF:
         // work RAM, bank 0
-    }
-    else if(addr >= 0xD000 && addr < 0xE000) {
+        break;
+    case 0xD000 ... 0xDFFF:
         // work RAM, bankable in CGB
-    }
-    else if(addr >= 0xE000 && addr < 0xFE00) {
+        break;
+    case 0xE000 ... 0xFDFF: {
         // ram[E000-FE00] mirrors ram[C000-DE00]
         this->data[addr - 0x2000] = val;
+        break;
     }
-    else if(addr >= 0xFE00 && addr < 0xFEA0) {
+    case 0xFE00 ... 0xFE9F:
         // Sprite attribute table
-    }
-    else if(addr >= 0xFEA0 && addr < 0xFF00) {
+        break;
+    case 0xFEA0 ... 0xFEFF:
         // Unusable
         // printf("Writing to invalid ram: %04X = %02X\n", addr, val);
         //throw std::invalid_argument("Writing to invalid RAM");
-    }
-    else if(addr >= 0xFF00 && addr < 0xFF80) {
+        break;
+    case 0xFF00 ... 0xFF7F:
         // GPU Registers
-    }
-    else if(addr >= 0xFF80 && addr < 0xFFFF) {
+        break;
+    case 0xFF80 ... 0xFFFE:
         // High RAM
-    }
-    else if(addr >= 0xFFFF && addr <= 0xFFFF) {
+        break;
+    case 0xFFFF:
         // IE Register
+        break;
     }
 
     this->data[addr] = val;
 }
 
 inline u8 RAM::get(u16 addr) {
-    if(addr >= 0x0000 && addr < 0x4000) {
+    switch(addr) {
+    case 0x0000 ... 0x3FFF: {
         // ROM bank 0
         if(this->data[Mem::BOOT] == 0 && addr < 0x0100) {
             return this->boot[addr];
         }
         return this->cart->data[addr];
+        break;
     }
-    else if(addr >= 0x4000 && addr < 0x8000) {
+    case 0x4000 ... 0x7FFF: {
         // Switchable ROM bank
         // TODO: array bounds check
         int bank = (0x4000 * this->rom_bank);
         int offset = (addr - 0x4000);
         // printf("fetching %04X from bank %04X (total = %04X)\n", offset, bank, offset + bank);
         return this->cart->data[bank + offset];
+        break;
     }
-    else if(addr >= 0x8000 && addr < 0xA000) {
+    case 0x8000 ... 0x9FFF:
         // VRAM
-
-    }
-    else if(addr >= 0xA000 && addr < 0xC000) {
+        break;
+    case 0xA000 ... 0xBFFF: {
         // 8KB Switchable RAM bank
         if(!this->ram_enable) {
             printf("ERR: Reading from external ram while disabled: %04X\n", addr);
@@ -155,32 +165,35 @@ inline u8 RAM::get(u16 addr) {
             throw std::invalid_argument("Reading beyond RAM limit");
         }
         return this->cart->ram[addr_within_ram];
+        break;
     }
-    else if(addr >= 0xC000 && addr < 0xD000) {
+    case 0xC000 ... 0xCFFF:
         // work RAM, bank 0
-    }
-    else if(addr >= 0xD000 && addr < 0xE000) {
+        break;
+    case 0xD000 ... 0xDFFF:
         // work RAM, bankable in CGB
-    }
-    else if(addr >= 0xE000 && addr < 0xFE00) {
+        break;
+    case 0xE000 ... 0xFDFF: {
         // ram[E000-FE00] mirrors ram[C000-DE00]
         return this->data[addr - 0x2000];
+        break;
     }
-    else if(addr >= 0xFE00 && addr < 0xFEA0) {
+    case 0xFE00 ... 0xFE9F:
         // Sprite attribute table
-    }
-    else if(addr >= 0xFEA0 && addr < 0xFF00) {
+        break;
+    case 0xFEA0 ... 0xFEFF:
         // Unusable
         return 0xFF;
-    }
-    else if(addr >= 0xFF00 && addr < 0xFF80) {
+        break;
+    case 0xFF00 ... 0xFF7F:
         // GPU Registers
-    }
-    else if(addr >= 0xFF80 && addr < 0xFFFF) {
+        break;
+    case 0xFF80 ... 0xFFFE:
         // High RAM
-    }
-    else if(addr >= 0xFFFF && addr <= 0xFFFF) {
+        break;
+    case 0xFFFF:
         // IE Register
+        break;
     }
 
     return this->data[addr];
