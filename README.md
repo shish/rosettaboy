@@ -1,7 +1,11 @@
 RosettaBoy
 ==========
 Trying to implement a gameboy emulator in a bunch of languages for my own
-amusement and education. The main goals are:
+amusement and education; also giving people an opportunity to compare the
+same code written in different languages, similar to
+[Rosetta Code](https://www.rosettacode.org]) but with a non-trivial codebase :)
+
+The main goals are:
 
 - Readability of the code
 - Consistency across langauges
@@ -29,6 +33,9 @@ I wrote one copy of the documentation for all the implementations:
 - [clock](docs/clock.md): timing / sleeping
 - [consts](docs/consts.md): lists of constant values
 - [ram](docs/ram.md): array access where some array values are special
+
+Pull requests to translate into new languages, or fleshing out existing
+languages, are very welcome :)
 
 Completeness
 ------------

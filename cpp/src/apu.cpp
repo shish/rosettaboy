@@ -66,7 +66,7 @@ u16 APU::get_next_sample() {
     //=================================================================
     // Control
 
-    ch_control_t *ch_control = (ch_control_t *) &this->cpu->ram->data[IO::NR50];
+    ch_control_t *ch_control = (ch_control_t *) &this->cpu->ram->data[Mem::NR50];
 
     if (!ch_control->snd_enable) {
         // TODO: wipe all registers
@@ -74,10 +74,10 @@ u16 APU::get_next_sample() {
     }
 
     u8 *ram = this->cpu->ram->data;
-    u8 ch1 = this->get_ch1_sample(ch_control, (ch1_dat_t*)&ram[IO::NR10]);
-    u8 ch2 = this->get_ch2_sample(ch_control, (ch2_dat_t*)&ram[IO::NR20]);
-    u8 ch3 = this->get_ch3_sample(ch_control, (ch3_dat_t*)&ram[IO::NR30]);
-    u8 ch4 = this->get_ch4_sample(ch_control, (ch4_dat_t*)&ram[IO::NR40]);
+    u8 ch1 = this->get_ch1_sample(ch_control, (ch1_dat_t*)&ram[Mem::NR10]);
+    u8 ch2 = this->get_ch2_sample(ch_control, (ch2_dat_t*)&ram[Mem::NR20]);
+    u8 ch3 = this->get_ch3_sample(ch_control, (ch3_dat_t*)&ram[Mem::NR30]);
+    u8 ch4 = this->get_ch4_sample(ch_control, (ch4_dat_t*)&ram[Mem::NR40]);
 
     //=================================================================
     // Mixer
@@ -245,12 +245,12 @@ u8 APU::get_ch4_sample(ch_control_t *ch_control, ch4_dat_t *ch4_dat) {
 
     // LFSR
     if(this->ch4_freq_timer == 0) {
-        u8 new_bit = ((ch4_lfsr & BIT_1) >> 1) ^ (ch4_lfsr & BIT_0);  // xor two low bits
+        u8 new_bit = ((ch4_lfsr & 0b10) >> 1) ^ (ch4_lfsr & 0b01);  // xor two low bits
         ch4_lfsr >>= 1;  // shift right
         ch4_lfsr |= new_bit << 14;  // bit15 = new
         if(ch4_dat->lfsr_mode == 1) ch4_lfsr = (ch4_lfsr & ~(1<<6)) | (new_bit<<6); // bit7 = new
     }
-    u8 ch4 = 0xFF - ((ch4_lfsr & BIT_0) * 0xFF); // bit0, inverted
+    u8 ch4 = 0xFF - ((ch4_lfsr & 0b01) * 0xFF); // bit0, inverted
 
     // Length Counter
     LENGTH_COUNTER(ch4);

@@ -8,9 +8,6 @@ use std::convert::TryFrom;
 extern crate packed_struct;
 use packed_struct::prelude::*;
 
-const BIT_0: u16 = 0b00000001;
-const BIT_1: u16 = 0b00000010;
-const BIT_6: u16 = 0b00100000;
 const WAVE_LEN: u8 = 32;
 const HZ: u16 = 48000;
 const DUTY: [[u8; 8]; 4] = [
@@ -123,7 +120,11 @@ impl APU {
             None
         };
 
-        let mut apu = APU { device, _debug: debug, ..Default::default() };
+        let mut apu = APU {
+            device,
+            _debug: debug,
+            ..Default::default()
+        };
         apu.ch4s.lfsr = 0xFFFF;
         Ok(apu)
     }
@@ -148,7 +149,7 @@ impl APU {
     }
 
     fn render_frame_audio(&mut self, ram: &mut ram::RAM) -> [u8; (HZ / 60) as usize] {
-        let audio_controls = &mut ram.data[IO::NR10 as usize..IO::NR10 as usize + 23];
+        let audio_controls = &mut ram.data[Mem::NR10 as usize..Mem::NR10 as usize + 23];
         let mut out = [0; (HZ / 60) as usize];
 
         self.ram_to_regs(audio_controls);
@@ -408,14 +409,14 @@ impl APU {
 
         // LFSR
         if self.ch4s.freq_timer == 0 {
-            let new_bit = ((self.ch4s.lfsr & BIT_1) >> 1) ^ (self.ch4s.lfsr & BIT_0); // xor two low bits
+            let new_bit = ((self.ch4s.lfsr & (1 << 1)) >> 1) ^ (self.ch4s.lfsr & (1 << 0)); // xor two low bits
             self.ch4s.lfsr >>= 1; // shift right
             self.ch4s.lfsr |= new_bit << 14; // bit15 = new
             if self.ch4.lfsr_mode {
-                self.ch4s.lfsr = (self.ch4s.lfsr & !BIT_6) | (new_bit << 6); // bit7 = new
+                self.ch4s.lfsr = (self.ch4s.lfsr & !(1 << 6)) | (new_bit << 6); // bit7 = new
             }
         }
-        let mut ch4 = 0xFF - ((self.ch4s.lfsr & BIT_0) as u8 * 0xFF); // bit0, inverted
+        let mut ch4 = 0xFF - ((self.ch4s.lfsr & (1 << 0)) as u8 * 0xFF); // bit0, inverted
 
         // Length Counter
         LENGTH_COUNTER!(ch4, self.control.ch4_active, self.ch4, self.ch4s);

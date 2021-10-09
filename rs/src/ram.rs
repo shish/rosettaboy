@@ -12,7 +12,7 @@ const BOOT: [u8; 0x100] = [
     0x31, 0xFE, 0xFF, // LD SP,$FFFE
     // enable LCD
     0x3E, 0x91, // LD A,$91
-    0xE0, 0x40, // LDH [IO::LCDC], A
+    0xE0, 0x40, // LDH [Mem::LCDC], A
     // set flags
     0x3E, 0x01, // LD A,$01
     0xCB, 0x7F, // BIT 7,A (sets Z,n,H)
@@ -194,8 +194,8 @@ impl RAM {
             }
             0xFF00..=0xFF7F => {
                 // IO Registers
-                //if addr == IO::SCX as u16 {
-                //    println!("LY = {}, SCX = {}", self.get(IO::LY), val);
+                //if addr == Mem::SCX as u16 {
+                //    println!("LY = {}, SCX = {}", self.get(Mem::LY), val);
                 //}
             }
             0xFF80..=0xFFFE => {
@@ -215,7 +215,7 @@ impl RAM {
         match addr {
             0x0000..=0x3FFF => {
                 // ROM bank 0
-                if self.data[IO::BOOT as usize] == 0 && addr < 0x0100 {
+                if self.data[Mem::BOOT as usize] == 0 && addr < 0x0100 {
                     return self.boot[addr as usize];
                 }
                 return self.cart.data[addr as usize];

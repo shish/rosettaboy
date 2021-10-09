@@ -4,6 +4,30 @@
 #include <SDL2/SDL.h>
 #include "cpu.h"
 
+namespace LCDC {
+    const u8 ENABLED = 1 << 7;
+    const u8 WINDOW_MAP = 1 << 6;
+    const u8 WINDOW_ENABLED = 1 << 5;
+    const u8 DATA_SRC = 1 << 4;
+    const u8 BG_MAP = 1 << 3;
+    const u8 OBJ_SIZE = 1 << 2;
+    const u8 OBJ_ENABLED = 1 << 1;
+    const u8 BG_WIN_ENABLED = 1 << 0;
+}
+
+namespace Stat {
+    const u8 LYC_INTERRUPT = 1 << 6;
+    const u8 OAM_INTERRUPT = 1 << 5;
+    const u8 VBLANK_INTERRUPT = 1 << 4;
+    const u8 HBLANK_INTERRUPT = 1 << 3;
+    const u8 LCY_EQUAL = 1 << 2;
+    const u8 MODE_BITS = 1 << 1 | 1 << 0;
+    const u8 HBLANK = 0x00;
+    const u8 VBLANK = 0x01;
+    const u8 OAM = 0x02;
+    const u8 DRAWING = 0x03;
+};
+
 struct Sprite {
     u8 y;
     u8 x;

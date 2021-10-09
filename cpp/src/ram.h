@@ -2,6 +2,7 @@
 #define SPIGOT_RAM_H
 
 #include <stdexcept>
+#include "consts.h"
 #include "cart.h"
 
 class RAM {
@@ -121,7 +122,7 @@ inline void RAM::set(u16 addr, u8 val) {
 inline u8 RAM::get(u16 addr) {
     if(addr >= 0x0000 && addr < 0x4000) {
         // ROM bank 0
-        if(this->data[IO::BOOT] == 0 && addr < 0x0100) {
+        if(this->data[Mem::BOOT] == 0 && addr < 0x0100) {
             return this->boot[addr];
         }
         return this->cart->data[addr];

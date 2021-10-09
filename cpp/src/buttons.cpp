@@ -25,7 +25,7 @@ void Buttons::update_buttons() {
     // Since the hardware uses 0 for pressed and 1 for
     // released, let's invert on read and write to keep
     // our logic sensible....
-    u8 JOYP = ~this->cpu->ram->get(IO::JOYP);
+    u8 JOYP = ~this->cpu->ram->get(Mem::JOYP);
     JOYP &= 0xF0;
     if(JOYP & Joypad::MODE_DPAD) {
         if(this->up) JOYP |= Joypad::UP;
@@ -39,7 +39,7 @@ void Buttons::update_buttons() {
         if(this->start) JOYP |= Joypad::START;
         if(this->select) JOYP |= Joypad::SELECT;
     }
-    this->cpu->ram->set(IO::JOYP, ~JOYP);
+    this->cpu->ram->set(Mem::JOYP, ~JOYP);
 }
 
 bool Buttons::handle_inputs() {

@@ -46,7 +46,7 @@ class RAM:
         # Empty
         # 0xFEA0 - 0xFF00
 
-        # IO Ports
+        # Mem.Ports
         # 0xFF00 - 0xFF4C
         self.data[0xFF00] = 0x00  # BUTTONS
 
@@ -123,7 +123,7 @@ class RAM:
 
                 # enable LCD
                 0x3E, 0x91, # LD A,$91
-                0xE0, 0x40, # LDH [IO::LCDC], A
+                0xE0, 0x40, # LDH [Mem.:LCDC], A
 
                 # set flags
                 0x3E, 0x01,  # LD A,$00
@@ -155,7 +155,7 @@ class RAM:
     def __getitem__(self, addr: int) -> int:
         if addr < 0x4000:
             # ROM bank 0
-            if self.data[IO_BOOT] == 0 and addr < 0x100:
+            if self.data[Mem.BOOT] == 0 and addr < 0x100:
                 return self.boot[addr]
             return self.data[addr]
         elif addr < 0x8000:
@@ -208,7 +208,7 @@ class RAM:
             # Unusable
             return 0xFF
         elif addr < 0xFF80:
-            # IO Registers
+            # Mem.Registers
             pass
         elif addr < 0xFFFF:
             # High RAM
@@ -259,7 +259,7 @@ class RAM:
                 print("ram_bank_mode set to {}", self.ram_bank_mode)
         elif addr < 0xA000:
             # VRAM
-            # TODO: if writing to tile RAM, update tiles in IO class?
+            # TODO: if writing to tile RAM, update tiles in Mem.class?
             pass
         elif addr < 0xC000:
             # external RAM, bankable
@@ -298,9 +298,9 @@ class RAM:
             if self.debug:
                 print("Writing to invalid ram: {:04x} = {:02x}", addr, val)
         elif addr < 0xFF80:
-            # IO Registers
-            # if addr == IO::SCX as u16 {
-            #     println!("LY = {}, SCX = {}", self.get(IO::LY), val);
+            # Mem.Registers
+            # if addr == Mem.:SCX as u16 {
+            #     println!("LY = {}, SCX = {}", self.get(Mem.:LY), val);
             # }
             pass
         elif addr < 0xFFFF:

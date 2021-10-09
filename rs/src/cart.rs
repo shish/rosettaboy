@@ -1,8 +1,56 @@
-use crate::consts::*;
 use anyhow::Result;
+use num_enum::TryFromPrimitive;
 use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Read;
+
+#[repr(u8)]
+#[derive(Debug, Eq, PartialEq, TryFromPrimitive)]
+pub enum CartType {
+    RomOnly = 0x00,
+    RomMbc1 = 0x01,
+    RomMbc1Ram = 0x02,
+    RomMbc1RamBatt = 0x03,
+    RomMbc2 = 0x05,
+    RomMbc2Batt = 0x06,
+    RomRam = 0x08,
+    RomRamBatt = 0x09,
+    RomMmm01 = 0x0B,
+    RomMmm01Sram = 0x0C,
+    RomMmm01SramBatt = 0x0D,
+    RomMbc3TimerBatt = 0x0F,
+    RomMbc3TimerRamBatt = 0x10,
+    RomMbc3 = 0x11,
+    RomMbc3Ram = 0x12,
+    RomMbc3RamBatt = 0x13,
+    RomMbc5 = 0x19,
+    RomMbc5Ram = 0x1A,
+    RomMbc5RamBatt = 0x1B,
+    RomMbc5Rumble = 0x1C,
+    RomMbc5RumbleRam = 0x1D,
+    RomMbc5RumbleRamBatt = 0x1E,
+    PocketCamera = 0x1F,
+    BandaiTama5 = 0xFD,
+    HudsonHuc3 = 0xFE,
+    HudsonHuc1 = 0xFF,
+}
+
+#[repr(u8)]
+#[derive(Debug, Eq, PartialEq, TryFromPrimitive)]
+pub enum Destination {
+    Japan = 0,
+    Other = 1,
+}
+
+#[repr(u8)]
+#[derive(Debug, Eq, PartialEq, TryFromPrimitive)]
+pub enum OldLicensee {
+    MaybeNobody = 0x00,
+    MaybeNintendo = 0x01,
+    CheckNew = 0x33,
+    Accolade = 0x79,
+    Konami = 0xA4,
+}
 
 pub struct Cart {
     pub data: Vec<u8>,
