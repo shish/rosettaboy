@@ -14,7 +14,6 @@ impl Clock {
     pub fn init(profile: u32, turbo: bool) -> Clock {
         let start = SystemTime::now();
         let last_frame_start = SystemTime::now();
-        let last_report = SystemTime::now();
 
         Clock {
             cycle: 0,
