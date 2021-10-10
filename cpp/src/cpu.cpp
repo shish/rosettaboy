@@ -621,7 +621,7 @@ void CPU::_add(u8 val) {
 
 void CPU::_adc(u8 val) {
     int carry = this->FLAG_C ? 1 : 0;
-    this->FLAG_C = bool(this->A + val + carry > 0xFF);
+    this->FLAG_C = this->A + val + carry > 0xFF;
     this->FLAG_H = (this->A & 0x0F) + (val & 0x0F) + carry > 0x0F;
     this->FLAG_N = false;
     this->A += val + carry;

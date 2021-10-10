@@ -91,6 +91,84 @@ impl RAM {
     }
 
     #[inline(always)]
+    pub fn get<T: Address>(&self, addr: T) -> u8 {
+        let addr = addr.to_u16();
+        match addr {
+            0x0000..=0x3FFF => {
+                // ROM bank 0
+                if self.data[Mem::BOOT as usize] == 0 && addr < 0x0100 {
+                    return self.boot[addr as usize];
+                }
+                return self.cart.data[addr as usize];
+            }
+            0x4000..=0x7FFF => {
+                // Switchable ROM bank
+                // TODO: array bounds check
+                let bank = 0x4000 * self.rom_bank as usize;
+                let offset = addr as usize - 0x4000;
+                if self.debug {
+                    println!(
+                        "fetching {:04x} from bank {:04x} (total = {:04x})",
+                        offset,
+                        bank,
+                        offset + bank
+                    );
+                }
+                return self.cart.data[offset + bank];
+            }
+            0x8000..=0x9FFF => {
+                // VRAM
+            }
+            0xA000..=0xBFFF => {
+                // 8KB Switchable RAM bank
+                if !self.ram_enable {
+                    panic!("Reading from external ram while disabled: {:04X}", addr);
+                }
+                let addr_within_ram = (self.ram_bank as usize * 0x2000) + (addr as usize - 0xA000);
+                if addr_within_ram > self.cart.ram_size as usize {
+                    // this should never happen because we die on ram_bank being
+                    // set to a too-large value
+                    panic!(
+                        "Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})",
+                        addr_within_ram,
+                        self.ram_bank,
+                        (addr - 0xA000)
+                    );
+                }
+                return self.cart.ram[addr_within_ram];
+            }
+            0xC000..=0xCFFF => {
+                // work RAM, bank 0
+            }
+            0xD000..=0xDFFF => {
+                // work RAM, bankable in CGB
+            }
+            0xE000..=0xFDFF => {
+                // ram[E000-FE00] mirrors ram[C000-DE00]
+                return self.data[addr as usize - 0x2000];
+            }
+            0xFE00..=0xFE9F => {
+                // Sprite attribute table
+            }
+            0xFEA0..=0xFEFF => {
+                // Unusable
+                return 0xFF;
+            }
+            0xFF00..=0xFF7F => {
+                // IO Registers
+            }
+            0xFF80..=0xFFFE => {
+                // High RAM
+            }
+            0xFFFF => {
+                // IE Register
+            }
+        };
+
+        return self.data[addr as usize];
+    }
+
+    #[inline(always)]
     pub fn set<T: Address>(&mut self, addr: T, val: u8) {
         let addr = addr.to_u16();
         match addr {
@@ -207,84 +285,6 @@ impl RAM {
         }
 
         self.data[addr as usize] = val;
-    }
-
-    #[inline(always)]
-    pub fn get<T: Address>(&self, addr: T) -> u8 {
-        let addr = addr.to_u16();
-        match addr {
-            0x0000..=0x3FFF => {
-                // ROM bank 0
-                if self.data[Mem::BOOT as usize] == 0 && addr < 0x0100 {
-                    return self.boot[addr as usize];
-                }
-                return self.cart.data[addr as usize];
-            }
-            0x4000..=0x7FFF => {
-                // Switchable ROM bank
-                // TODO: array bounds check
-                let bank = 0x4000 * self.rom_bank as usize;
-                let offset = addr as usize - 0x4000;
-                if self.debug {
-                    println!(
-                        "fetching {:04x} from bank {:04x} (total = {:04x})",
-                        offset,
-                        bank,
-                        offset + bank
-                    );
-                }
-                return self.cart.data[offset + bank];
-            }
-            0x8000..=0x9FFF => {
-                // VRAM
-            }
-            0xA000..=0xBFFF => {
-                // 8KB Switchable RAM bank
-                if !self.ram_enable {
-                    panic!("Reading from external ram while disabled: {:04X}", addr);
-                }
-                let addr_within_ram = (self.ram_bank as usize * 0x2000) + (addr as usize - 0xA000);
-                if addr_within_ram > self.cart.ram_size as usize {
-                    // this should never happen because we die on ram_bank being
-                    // set to a too-large value
-                    panic!(
-                        "Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})",
-                        addr_within_ram,
-                        self.ram_bank,
-                        (addr - 0xA000)
-                    );
-                }
-                return self.cart.ram[addr_within_ram];
-            }
-            0xC000..=0xCFFF => {
-                // work RAM, bank 0
-            }
-            0xD000..=0xDFFF => {
-                // work RAM, bankable in CGB
-            }
-            0xE000..=0xFDFF => {
-                // ram[E000-FE00] mirrors ram[C000-DE00]
-                return self.data[addr as usize - 0x2000];
-            }
-            0xFE00..=0xFE9F => {
-                // Sprite attribute table
-            }
-            0xFEA0..=0xFEFF => {
-                // Unusable
-                return 0xFF;
-            }
-            0xFF00..=0xFF7F => {
-                // IO Registers
-            }
-            0xFF80..=0xFFFE => {
-                // High RAM
-            }
-            0xFFFF => {
-                // IE Register
-            }
-        };
-
-        return self.data[addr as usize];
     }
 
     #[inline(always)]
