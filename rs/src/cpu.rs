@@ -1073,13 +1073,13 @@ impl CPU {
                 self.flag_h = true;
             }
 
-            // SET
+            // RES
             0x80..=0xBF => {
                 let bit = (op - 0x80) / 8;
                 val &= (1 << bit) ^ 0xFF;
             }
 
-            // RES
+            // SET
             0xC0..=0xFF => {
                 let bit = (op - 0xC0) / 8;
                 val |= 1 << bit;

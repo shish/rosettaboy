@@ -1283,7 +1283,7 @@ class CPU:
             )
 
     # ===================================
-    # 2. SET b,r
+    # 3. RES b,r
     for b in range(8):
         for offset, arg in enumerate(GEN_REGS):
             op = 0x80 + b * 0x08 + offset
@@ -1300,7 +1300,7 @@ class CPU:
             )
 
     # ===================================
-    # 3. RES b,r
+    # 2. SET b,r
     for b in range(8):
         for offset, arg in enumerate(GEN_REGS):
             op = 0xC0 + b * 0x08 + offset

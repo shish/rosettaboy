@@ -557,13 +557,13 @@ void CPU::tick_cb(u8 op) {
             this->FLAG_H = true;
             break;
 
-        // SET
+        // RES
         case 0x80 ... 0xBF:
             bit = (op - 0x80) / 8;
             val &= ((1 << bit) ^ 0xFF);
             break;
 
-        // RES
+        // SET
         case 0xC0 ... 0xFF:
             bit = (op - 0xC0) / 8;
             val |= (1 << bit);
