@@ -77,9 +77,9 @@ const (
 
 // Interrupt
 const (
-	VBLANK uint8 = 1 << 0
-	STAT   uint8 = 1 << 1
-	TIMER  uint8 = 1 << 2
-	SERIAL uint8 = 1 << 3
-	JOYPAD uint8 = 1 << 4
+	INT_VBLANK uint8 = 1 << 0
+	INT_STAT   uint8 = 1 << 1
+	INT_TIMER  uint8 = 1 << 2
+	INT_SERIAL uint8 = 1 << 3
+	INT_JOYPAD uint8 = 1 << 4
 )

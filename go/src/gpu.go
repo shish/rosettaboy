@@ -18,12 +18,12 @@ const (
 )
 
 const (
-	STAT_LYC_INTERRUPT    = 1 << 6
-	STAT_OAM_INTERRUPT    = 1 << 5
-	STAT_VBLANK_INTERRUPT = 1 << 4
-	STAT_HBLANK_INTERRUPT = 1 << 3
-	STAT_LCY_EQUAL        = 1 << 2
-	STAT_MODE             = 1<<1 | 1<<0
+	STAT_LYC_INTERRUPT    uint8 = 1 << 6
+	STAT_OAM_INTERRUPT    uint8 = 1 << 5
+	STAT_VBLANK_INTERRUPT uint8 = 1 << 4
+	STAT_HBLANK_INTERRUPT uint8 = 1 << 3
+	STAT_LCY_EQUAL        uint8 = 1 << 2
+	STAT_MODE_BITS        uint8 = 1<<1 | 1<<0
 
 	STAT_HBLANK  = 0x00
 	STAT_VBLANK  = 0x01
@@ -103,26 +103,119 @@ func (self *GPU) Destroy() {
 }
 
 func (self *GPU) tick() bool {
-	self.cycle += 1
-
 	// TODO: this is just the minimal amount of code to get
 	// something on screen
-	if self.cycle%17556 == 20 {
-		rect := sdl.Rect{X: 0, Y: 0, W: 200, H: 200}
-		self.buffer.FillRect(&rect, 0xffff0000)
+	/*
+		if self.cycle%17556 == 20 {
+			rect := sdl.Rect{X: 0, Y: 0, W: 200, H: 200}
+			self.buffer.FillRect(&rect, 0xffff0000)
 
-		rect = sdl.Rect{X: int32(self.cycle % 100), Y: 0, W: 200, H: 200}
-		self.buffer.FillRect(&rect, 0xffffff00)
+			rect = sdl.Rect{X: int32(self.cycle % 100), Y: 0, W: 200, H: 200}
+			self.buffer.FillRect(&rect, 0xffffff00)
 
-		if !self.headless {
-			var window_surface, err = self.window.GetSurface()
-			if err != nil {
-				panic(err)
-			}
-			self.buffer.BlitScaled(nil, window_surface, nil)
-			self.window.UpdateSurface()
+		}
+	*/
+
+	self.cycle += 1
+
+	// CPU STOP stops all LCD activity until a button is pressed
+	if self.cpu.stop {
+		return true
+	}
+
+	// Check if LCD enabled at all
+	var lcdc = self.cpu.ram.get(IO_LCDC)
+	if ^lcdc&LCDC_ENABLED > 0 {
+		// When LCD is re-enabled, LY is 0
+		// Does it become 0 as soon as disabled??
+		self.cpu.ram.set(IO_LY, 0)
+		if !self.debug {
+			return true
 		}
 	}
 
+	var lx = self.cycle % 114
+	var ly = (self.cycle / 114) % 154
+	self.cpu.ram.set(IO_LY, uint8(ly))
+
+	var stat = self.cpu.ram.get(IO_STAT)
+
+	// LYC compare & interrupt
+	if self.cpu.ram.get(IO_LY) == self.cpu.ram.get(IO_LCY) {
+		if stat&STAT_LYC_INTERRUPT > 0 {
+			self.cpu.interrupt(INT_STAT)
+		}
+		self.cpu.ram._or(IO_STAT, STAT_LCY_EQUAL)
+	} else {
+		self.cpu.ram._and(IO_STAT, ^STAT_LCY_EQUAL)
+	}
+
+	// Set `ram[STAT].bit{0,1}` to `OAM / Drawing / HBlank / VBlank`
+	if lx == 0 && ly < 144 {
+		self.cpu.ram.set(IO_STAT, ((stat & ^STAT_MODE_BITS) | STAT_OAM))
+		if stat&(STAT_OAM_INTERRUPT) > 0 {
+			self.cpu.interrupt(INT_STAT)
+		}
+	} else if lx == 20 && ly < 144 {
+		self.cpu.ram.set(
+			IO_STAT,
+			((stat & ^STAT_MODE_BITS) | STAT_DRAWING),
+		)
+		if ly == 0 {
+			// TODO: how often should we update palettes?
+			// Should every pixel reference them directly?
+			self.update_palettes()
+			if self.renderer != nil {
+				// TODO: do we need to clear if we write every pixel?
+				self.renderer.SetDrawColor(self.bgp[0].R, self.bgp[0].G, self.bgp[0].B, self.bgp[0].A)
+				self.renderer.Clear()
+			}
+		}
+		self.draw_line(int32(ly))
+		if ly == 143 {
+			if self.debug {
+				self.draw_debug()
+			}
+			if !self.headless {
+				var window_surface, err = self.window.GetSurface()
+				if err != nil {
+					panic(err)
+				}
+				self.buffer.BlitScaled(nil, window_surface, nil)
+				self.window.UpdateSurface()
+			}
+		}
+	} else if lx == 63 && ly < 144 {
+		self.cpu.ram.set(IO_STAT, ((stat & ^STAT_MODE_BITS) | STAT_HBLANK))
+		if stat&STAT_HBLANK_INTERRUPT > 0 {
+			self.cpu.interrupt(INT_STAT)
+		}
+	} else if lx == 0 && ly == 144 {
+		self.cpu.ram.set(IO_STAT, ((stat & ^STAT_MODE_BITS) | STAT_VBLANK))
+		if stat&STAT_VBLANK_INTERRUPT > 0 {
+			self.cpu.interrupt(INT_STAT)
+		}
+		self.cpu.interrupt(INT_VBLANK)
+	}
+
 	return true
+}
+
+func (self *GPU) update_palettes()   {}
+func (self *GPU) draw_debug() bool   { return true }
+func (self *GPU) draw_line(ly int32) {}
+func (self *GPU) paint_tile(
+	tile_id int16,
+	offset *sdl.Point,
+	palette *sdl.Color,
+	flip_x bool,
+	flip_y bool) {
+}
+func (self *GPU) paint_tile_line(
+	tile_id int16,
+	offset *sdl.Point,
+	palette *sdl.Color,
+	flip_x bool,
+	flip_y bool,
+	y int32) {
 }

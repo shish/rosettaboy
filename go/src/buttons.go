@@ -48,7 +48,7 @@ func (self *Buttons) tick() bool {
 	self.update_buttons()
 	if self.need_interrupt {
 		self.cpu.stop = false
-		self.cpu.interrupt(JOYPAD)
+		self.cpu.interrupt(INT_JOYPAD)
 		self.need_interrupt = false
 	}
 	if self.cycle%17556 == 20 {
@@ -115,31 +115,22 @@ func (self *Buttons) handle_inputs() bool {
 				switch t.Keysym.Sym {
 				case sdl.K_UP:
 					self.up = true
-					break
 				case sdl.K_DOWN:
 					self.down = true
-					break
 				case sdl.K_LEFT:
 					self.left = true
-					break
 				case sdl.K_RIGHT:
 					self.right = true
-					break
 				case sdl.K_z:
 					self.b = true
-					break
 				case sdl.K_x:
 					self.a = true
-					break
 				case sdl.K_RETURN:
 					self.start = true
-					break
 				case sdl.K_SPACE:
 					self.select_ = true
-					break
 				default:
 					self.need_interrupt = false
-					break
 				}
 			case sdl.KEYUP:
 				if t.Keysym.Sym == sdl.K_LSHIFT {
@@ -149,28 +140,20 @@ func (self *Buttons) handle_inputs() bool {
 				switch t.Keysym.Sym {
 				case sdl.K_UP:
 					self.up = false
-					break
 				case sdl.K_DOWN:
 					self.down = false
-					break
 				case sdl.K_LEFT:
 					self.left = false
-					break
 				case sdl.K_RIGHT:
 					self.right = false
-					break
 				case sdl.K_z:
 					self.b = false
-					break
 				case sdl.K_x:
 					self.a = false
-					break
 				case sdl.K_RETURN:
 					self.start = false
-					break
 				case sdl.K_SPACE:
 					self.select_ = false
-					break
 				}
 			}
 		}

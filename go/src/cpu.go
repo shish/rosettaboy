@@ -204,7 +204,7 @@ func split16(val uint16) (uint8, uint8) {
 	return uint8(val >> 8), uint8(val & 0xFF)
 }
 func join16(a, b uint8) uint16 {
-	return uint16(a) << 8 & uint16(b)
+	return (uint16(a) << 8) | uint16(b)
 }
 
 func (self *CPU) dump_regs() {
@@ -228,16 +228,12 @@ func (self *CPU) dump_regs() {
 		switch OP_ARG_TYPES[op] {
 		case 0:
 			op_str = OP_NAMES[op]
-			break
 		case 1:
 			op_str = fmt.Sprintf(OP_NAMES[op], self.ram.get(self.PC+1))
-			break
 		case 2:
 			op_str = fmt.Sprintf(OP_NAMES[op], uint16(self.ram.get(self.PC+2))<<8|uint16(self.ram.get(self.PC+1)))
-			break
 		case 3:
 			op_str = fmt.Sprintf(OP_NAMES[op], int8(self.ram.get(self.PC+1)))
-			break
 		}
 	}
 	// if(cycle % 10 == 0)
@@ -277,7 +273,7 @@ func (self *CPU) tick_clock() bool {
 		if self.cycle%int(speed) == 0 {
 			if self.ram.get(IO_TIMA) == 0xFF {
 				self.ram.set(IO_TIMA, self.ram.get(IO_TMA)) // if timer overflows, load base
-				self.interrupt(TIMER)
+				self.interrupt(INT_TIMER)
 			}
 			self.ram._inc(IO_TIMA)
 		}
@@ -294,26 +290,26 @@ func (self *CPU) tick_interrupts() bool {
 		// TODO: wait two cycles
 		// TODO: push16(PC) should also take two cycles
 		// TODO: one more cycle to store new PC
-		if queued_interrupts&VBLANK > 0 {
+		if queued_interrupts&INT_VBLANK > 0 {
 			self.push(self.PC)
 			self.PC = VBLANK_HANDLER
-			self.ram._and(IO_IF, ^VBLANK)
-		} else if queued_interrupts&STAT > 0 {
+			self.ram._and(IO_IF, ^INT_VBLANK)
+		} else if queued_interrupts&INT_STAT > 0 {
 			self.push(self.PC)
 			self.PC = LCD_HANDLER
-			self.ram._and(IO_IF, ^STAT)
-		} else if queued_interrupts&TIMER > 0 {
+			self.ram._and(IO_IF, ^INT_STAT)
+		} else if queued_interrupts&INT_TIMER > 0 {
 			self.push(self.PC)
 			self.PC = TIMER_HANDLER
-			self.ram._and(IO_IF, ^TIMER)
-		} else if queued_interrupts&SERIAL > 0 {
+			self.ram._and(IO_IF, ^INT_TIMER)
+		} else if queued_interrupts&INT_SERIAL > 0 {
 			self.push(self.PC)
 			self.PC = SERIAL_HANDLER
-			self.ram._and(IO_IF, ^SERIAL)
-		} else if queued_interrupts&JOYPAD > 0 {
+			self.ram._and(IO_IF, ^INT_SERIAL)
+		} else if queued_interrupts&INT_JOYPAD > 0 {
 			self.push(self.PC)
 			self.PC = JOYPAD_HANDLER
-			self.ram._and(IO_IF, ^JOYPAD)
+			self.ram._and(IO_IF, ^INT_JOYPAD)
 		}
 	}
 	return true
@@ -341,6 +337,24 @@ func (self *CPU) tick_instructions() bool {
 		self.tick_main(op)
 		self.owed_cycles = OP_CYCLES[op] - 1
 	}
+
+	// Flags should be union'ed with the F register, but go doesn't
+	// support that, so let's manually sync from flags to register
+	// after every instruction...
+	self.F = 0
+	if self.FLAG_Z {
+		self.F |= 1 << 7
+	}
+	if self.FLAG_N {
+		self.F |= 1 << 6
+	}
+	if self.FLAG_H {
+		self.F |= 1 << 5
+	}
+	if self.FLAG_C {
+		self.F |= 1 << 4
+	}
+
 	// HALT has cycles=0
 	if self.owed_cycles < 0 {
 		self.owed_cycles = 0
@@ -351,7 +365,7 @@ func (self *CPU) tick_instructions() bool {
 func (self *CPU) tick_main(op uint8) {
 	// Load args
 	var arg oparg
-	arg.as_u16 = 0xCA75
+	arg.as_u16 = 0
 	var nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]]
 	if nargs == 1 {
 		arg.as_u8 = self.ram.get(self.PC)
@@ -375,68 +389,51 @@ func (self *CPU) tick_main(op uint8) {
 		break
 	case 0x01:
 		self.B, self.C = split16(arg.as_u16)
-		break
 	case 0x02:
 		self.ram.set(join16(self.B, self.C), self.A)
-		break
 	case 0x03:
 		self.B, self.C = split16(join16(self.B, self.C) + 1)
-		break
 	case 0x08:
 		self.ram.set(arg.as_u16+1, uint8((self.SP>>8)&0xFF))
 		self.ram.set(arg.as_u16, uint8(self.SP&0xFF))
-		break // how does this fit?
 	case 0x0A:
 		self.A = self.ram.get(join16(self.B, self.C))
-		break
 	case 0x0B:
 		self.B, self.C = split16(join16(self.B, self.C) - 1)
-		break
 
 	case 0x10:
 		self.stop = true
-		break
 	case 0x11:
 		self.D, self.E = split16(arg.as_u16)
-		break
 	case 0x12:
 		self.ram.set(join16(self.D, self.E), self.A)
-		break
 	case 0x13:
 		self.D, self.E = split16(join16(self.D, self.E) + 1)
-		break
 	case 0x18:
 		self.PC += uint16(arg.as_i8)
-		break
 	case 0x1A:
 		self.A = self.ram.get(join16(self.D, self.E))
-		break
 	case 0x1B:
 		self.D, self.E = split16(join16(self.D, self.E) - 1)
-		break
 
 	case 0x20:
 		if !self.FLAG_Z {
 			self.PC += uint16(arg.as_i8)
 		}
-		break
 	case 0x21:
 		self.HL = arg.as_u16
-		break
 	case 0x22:
 		self.ram.set(self.HL, self.A)
 		self.HL++
-		break
 	case 0x23:
 		self.HL++
-		break
 	case 0x27:
 		val16 = uint16(self.A)
 		if !self.FLAG_N {
 			if self.FLAG_H || (val16&0x0F) > 9 {
 				val16 += 6
 			}
-			if self.FLAG_C || val16 > 0x5F {
+			if self.FLAG_C || val16 > 0x9F {
 				val16 += 0x60
 			}
 		} else {
@@ -456,110 +453,73 @@ func (self *CPU) tick_main(op uint8) {
 		}
 		self.A = uint8(val16 & 0xFF)
 		self.FLAG_Z = self.A == 0
-		break
 	case 0x28:
 		if self.FLAG_Z {
 			self.PC += uint16(arg.as_i8)
 		}
-		break
 	case 0x2A:
 		self.A = self.ram.get(self.HL)
 		self.HL++
-		break
 	case 0x2B:
 		self.HL--
-		break
 	case 0x2F:
 		self.A ^= 0xFF
 		self.FLAG_N = true
 		self.FLAG_H = true
-		break
 
 	case 0x30:
 		if !self.FLAG_C {
 			self.PC += uint16(arg.as_i8)
 		}
-		break
 	case 0x31:
 		self.SP = arg.as_u16
-		break
 	case 0x32:
 		self.ram.set(self.HL, self.A)
 		self.HL--
-		break
 	case 0x33:
 		self.SP++
-		break
 	case 0x37:
 		self.FLAG_N = false
 		self.FLAG_H = false
 		self.FLAG_C = true
-		break
 	case 0x38:
 		if self.FLAG_C {
 			self.PC += uint16(arg.as_i8)
 		}
-		break
 	case 0x3A:
 		self.A = self.ram.get(self.HL)
 		self.HL--
-		break
 	case 0x3B:
 		self.SP--
-		break
 	case 0x3F:
 		self.FLAG_C = !self.FLAG_C
 		self.FLAG_N = false
 		self.FLAG_H = false
-		break
 
-	case 0x04:
-	case 0x0C: // INC r
-	case 0x14:
-	case 0x1C:
-	case 0x24:
-	case 0x2C:
-	case 0x34:
-	case 0x3C:
+	// INC r
+	case 0x04, 0x0C, 0x14, 0x1C, 0x24, 0x2C, 0x34, 0x3C:
 		val = self.get_reg((op - 0x04) / 8)
 		self.FLAG_H = (val & 0x0F) == 0x0F
 		val++
 		self.FLAG_Z = val == 0
 		self.FLAG_N = false
 		self.set_reg((op-0x04)/8, val)
-		break
 
-	case 0x05:
-	case 0x0D: // DEC r
-	case 0x15:
-	case 0x1D:
-	case 0x25:
-	case 0x2D:
-	case 0x35:
-	case 0x3D:
+	// DEC r
+	case 0x05, 0x0D, 0x15, 0x1D, 0x25, 0x2D, 0x35, 0x3D:
 		val = self.get_reg((op - 0x05) / 8)
 		val--
 		self.FLAG_H = (val & 0x0F) == 0x0F
 		self.FLAG_Z = val == 0
 		self.FLAG_N = true
 		self.set_reg((op-0x05)/8, val)
-		break
 
-	case 0x06:
-	case 0x0E: // LD r,n
-	case 0x16:
-	case 0x1E:
-	case 0x26:
-	case 0x2E:
-	case 0x36:
-	case 0x3E:
+	// LD r,n
+	case 0x06, 0x0E, 0x16, 0x1E, 0x26, 0x2E, 0x36, 0x3E:
 		self.set_reg((op-0x06)/8, arg.as_u8)
-		break
 
-	case 0x07: // RCLA
-	case 0x17: // RLA
-	case 0x0F: // RRCA
-	case 0x1F: // RRA
+	// RCLA, RLA, RRCA, RRA
+	case 0x07, 0x17, 0x0F, 0x1F:
 		if self.FLAG_C {
 			carry = 1
 		} else {
@@ -584,12 +544,9 @@ func (self *CPU) tick_main(op uint8) {
 		self.FLAG_N = false
 		self.FLAG_H = false
 		self.FLAG_Z = false
-		break
 
-	case 0x09: // ADD HL,rr
-	case 0x19:
-	case 0x29:
-	case 0x39:
+	// ADD HL,rr
+	case 0x09, 0x19, 0x29, 0x39:
 		if op == 0x09 {
 			val16 = join16(self.B, self.C)
 		}
@@ -603,204 +560,160 @@ func (self *CPU) tick_main(op uint8) {
 			val16 = self.SP
 		}
 		self.FLAG_H = ((self.HL&0x0FFF)+(val16&0x0FFF) > 0x0FFF)
-		self.FLAG_C = (self.HL+val16 > 0xFFFF)
+		self.FLAG_C = (int(self.HL)+int(val16) > 0xFFFF)
 		self.HL += val16
 		self.FLAG_N = false
-		break
 
 	// LD r,r
-	case 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47:
-	case 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F:
-	case 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57:
-	case 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E, 0x5F:
-	case 0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67:
-	case 0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F:
-	case 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77:
-	case 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F:
+	case 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
+		0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F,
+		0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57,
+		0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E, 0x5F,
+		0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67,
+		0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F,
+		0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
+		0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F:
 		if op == 0x76 {
 			// FIXME: weird timing side effects
 			self.halt = true
 			break
 		}
 		self.set_reg((op-0x40)/8, self.get_reg((op-0x40)%8))
-		break
 
 	case 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87:
 		self._add(self.get_reg(op))
-		break
 	case 0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F:
 		self._adc(self.get_reg(op))
-		break
 	case 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97:
 		self._sub(self.get_reg(op))
-		break
 	case 0x98, 0x99, 0x9A, 0x9B, 0x9C, 0x9D, 0x9E, 0x9F:
 		self._sbc(self.get_reg(op))
-		break
 	case 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7:
 		self._and(self.get_reg(op))
-		break
 	case 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF:
 		self._xor(self.get_reg(op))
-		break
 	case 0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7:
 		self._or(self.get_reg(op))
-		break
 	case 0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBE, 0xBF:
 		self._cp(self.get_reg(op))
-		break
 
 	case 0xC0:
 		if !self.FLAG_Z {
 			self.PC = self.pop()
 		}
-		break
 	case 0xC1:
 		self.B, self.C = split16(self.pop())
-		break
 	case 0xC2:
 		if !self.FLAG_Z {
 			self.PC = arg.as_u16
 		}
-		break
 	case 0xC3:
 		self.PC = arg.as_u16
-		break
 	case 0xC4:
 		if !self.FLAG_Z {
 			self.push(self.PC)
 			self.PC = arg.as_u16
 		}
-		break
 	case 0xC5:
 		self.push(join16(self.B, self.C))
-		break
 	case 0xC6:
 		self._add(arg.as_u8)
-		break
 	case 0xC7:
 		self.push(self.PC)
 		self.PC = 0x00
-		break
 	case 0xC8:
 		if self.FLAG_Z {
 			self.PC = self.pop()
 		}
-		break
 	case 0xC9:
 		self.PC = self.pop()
-		break
 	case 0xCA:
 		if self.FLAG_Z {
 			self.PC = arg.as_u16
 		}
-		break
 	// case 0xCB: break;
 	case 0xCC:
 		if self.FLAG_Z {
 			self.push(self.PC)
 			self.PC = arg.as_u16
 		}
-		break
 	case 0xCD:
 		self.push(self.PC)
 		self.PC = arg.as_u16
-		break
 	case 0xCE:
 		self._adc(arg.as_u8)
-		break
 	case 0xCF:
 		self.push(self.PC)
 		self.PC = 0x08
-		break
 
 	case 0xD0:
 		if !self.FLAG_C {
 			self.PC = self.pop()
 		}
-		break
 	case 0xD1:
 		self.D, self.E = split16(self.pop())
-		break
 	case 0xD2:
 		if !self.FLAG_C {
 			self.PC = arg.as_u16
 		}
-		break
 	// case 0xD3: break;
 	case 0xD4:
 		if !self.FLAG_C {
 			self.push(self.PC)
 			self.PC = arg.as_u16
 		}
-		break
 	case 0xD5:
 		self.push(join16(self.D, self.E))
-		break
 	case 0xD6:
 		self._sub(arg.as_u8)
-		break
 	case 0xD7:
 		self.push(self.PC)
 		self.PC = 0x10
-		break
 	case 0xD8:
 		if self.FLAG_C {
 			self.PC = self.pop()
 		}
-		break
 	case 0xD9:
 		self.PC = self.pop()
 		self.interrupts = true
-		break
 	case 0xDA:
 		if self.FLAG_C {
 			self.PC = arg.as_u16
 		}
-		break
 	// case 0xDB: break;
 	case 0xDC:
 		if self.FLAG_C {
 			self.push(self.PC)
 			self.PC = arg.as_u16
 		}
-		break
 	// case 0xDD: break;
 	case 0xDE:
 		self._sbc(arg.as_u8)
-		break
 	case 0xDF:
 		self.push(self.PC)
 		self.PC = 0x18
-		break
 
 	case 0xE0:
 		self.ram.set(0xFF00+uint16(arg.as_u8), self.A)
 		if arg.as_u8 == 0x01 {
-			print(self.A)
+			fmt.Printf("%c", self.A)
 		}
-		break
 	case 0xE1:
 		self.HL = self.pop()
-		break
 	case 0xE2:
 		self.ram.set(0xFF00+uint16(self.C), self.A)
 		if self.C == 0x01 {
-			print(self.A)
+			fmt.Printf("%c", self.A)
 		}
-		break
 	// case 0xE3: break;
 	// case 0xE4: break;
 	case 0xE5:
 		self.push(self.HL)
-		break
 	case 0xE6:
 		self._and(arg.as_u8)
-		break
 	case 0xE7:
 		self.push(self.PC)
 		self.PC = 0x20
-		break
 	case 0xE8:
 		val16 = self.SP + uint16(arg.as_i8)
 		//self.FLAG_H = ((self.SP & 0x0FFF) + (arg.as_i8 & 0x0FFF) > 0x0FFF);
@@ -810,47 +723,39 @@ func (self *CPU) tick_main(op uint8) {
 		self.SP += uint16(arg.as_i8)
 		self.FLAG_Z = false
 		self.FLAG_N = false
-		break
 	case 0xE9:
 		self.PC = self.HL
-		break
 	case 0xEA:
 		self.ram.set(arg.as_u16, self.A)
-		break
 	// case 0xEB: break;
 	// case 0xEC: break;
 	// case 0xED: break;
 	case 0xEE:
 		self._xor(arg.as_u8)
-		break
 	case 0xEF:
 		self.push(self.PC)
 		self.PC = 0x28
-		break
 
 	case 0xF0:
 		self.A = self.ram.get(0xFF00 + uint16(arg.as_u8))
-		break
 	case 0xF1:
 		self.A, self.F = split16(self.pop() & 0xFFF0)
-		break
+		self.FLAG_Z = self.F&(1<<7) > 0
+		self.FLAG_N = self.F&(1<<6) > 0
+		self.FLAG_H = self.F&(1<<5) > 0
+		self.FLAG_C = self.F&(1<<4) > 0
 	case 0xF2:
 		self.A = self.ram.get(0xFF00 + uint16(self.C))
-		break
 	case 0xF3:
 		self.interrupts = false
-		break
 	// case 0xF4: break;
 	case 0xF5:
 		self.push(join16(self.A, self.F))
-		break
 	case 0xF6:
 		self._or(arg.as_u8)
-		break
 	case 0xF7:
 		self.push(self.PC)
 		self.PC = 0x30
-		break
 	case 0xF8:
 		if arg.as_i8 >= 0 {
 			self.FLAG_C = (int(self.SP&0xFF) + (int(arg.as_i8) & 0xFF)) > 0xFF
@@ -864,25 +769,19 @@ func (self *CPU) tick_main(op uint8) {
 		self.HL = self.SP + uint16(arg.as_i8)
 		self.FLAG_Z = false
 		self.FLAG_N = false
-		break
 	case 0xF9:
 		self.SP = self.HL
-		break
 	case 0xFA:
 		self.A = self.ram.get(arg.as_u16)
-		break
 	case 0xFB:
 		self.interrupts = true
-		break
 	// case 0xFC: break;
 	// case 0xFD: break;
 	case 0xFE:
 		self._cp(arg.as_u8)
-		break
 	case 0xFF:
 		self.push(self.PC)
 		self.PC = 0x38
-		break
 
 	// missing ops
 	default:
@@ -894,7 +793,7 @@ func (self *CPU) tick_cb(op uint8) {
 	var val, bit uint8
 	var orig_c bool
 
-	val = self.get_reg(op & 0x07);
+	val = self.get_reg(op & 0x07)
 	switch {
 	// RLC
 	case op <= 0x07:
@@ -906,7 +805,6 @@ func (self *CPU) tick_cb(op uint8) {
 		self.FLAG_N = false
 		self.FLAG_H = false
 		self.FLAG_Z = val == 0
-		break
 
 	// RRC
 	case op <= 0x0F:
@@ -918,7 +816,6 @@ func (self *CPU) tick_cb(op uint8) {
 		self.FLAG_N = false
 		self.FLAG_H = false
 		self.FLAG_Z = val == 0
-		break
 
 	// RL
 	case op <= 0x17:
@@ -931,7 +828,6 @@ func (self *CPU) tick_cb(op uint8) {
 		self.FLAG_N = false
 		self.FLAG_H = false
 		self.FLAG_Z = val == 0
-		break
 
 	// RR
 	case op <= 0x1F:
@@ -944,7 +840,6 @@ func (self *CPU) tick_cb(op uint8) {
 		self.FLAG_N = false
 		self.FLAG_H = false
 		self.FLAG_Z = val == 0
-		break
 
 	// SLA
 	case op <= 0x27:
@@ -954,7 +849,6 @@ func (self *CPU) tick_cb(op uint8) {
 		self.FLAG_N = false
 		self.FLAG_H = false
 		self.FLAG_Z = val == 0
-		break
 
 	// SRA
 	case op <= 0x2F:
@@ -966,7 +860,6 @@ func (self *CPU) tick_cb(op uint8) {
 		self.FLAG_N = false
 		self.FLAG_H = false
 		self.FLAG_Z = val == 0
-		break
 
 	// SWAP
 	case op <= 0x37:
@@ -975,7 +868,6 @@ func (self *CPU) tick_cb(op uint8) {
 		self.FLAG_N = false
 		self.FLAG_H = false
 		self.FLAG_Z = val == 0
-		break
 
 	// SRL
 	case op <= 0x3F:
@@ -984,7 +876,6 @@ func (self *CPU) tick_cb(op uint8) {
 		self.FLAG_N = false
 		self.FLAG_H = false
 		self.FLAG_Z = val == 0
-		break
 
 	// BIT
 	case op <= 0x7F:
@@ -992,26 +883,23 @@ func (self *CPU) tick_cb(op uint8) {
 		self.FLAG_Z = (val & (1 << bit)) == 0
 		self.FLAG_N = false
 		self.FLAG_H = true
-		break
 
 	// SET
-	case op <= 0x7F:
+	case op <= 0xBF:
 		bit = (op - 0x40) / 8
 		val &= ((1 << bit) ^ 0xFF)
-		break
 
 	// RES
 	case op <= 0xFF:
 		bit = (op - 0xC0) / 8
 		val |= (1 << bit)
-		break
 
 	// Should never get here
 	default:
 		println("Op CB %02X not implemented\n", op)
 		panic("Op not implemented")
 	}
-	self.set_reg(op & 0x07, val);
+	self.set_reg(op&0x07, val)
 }
 
 func (self *CPU) _xor(val uint8) {
@@ -1046,7 +934,7 @@ func (self *CPU) _cp(val uint8) {
 	self.FLAG_C = self.A < val
 }
 func (self *CPU) _add(val uint8) {
-	self.FLAG_C = self.A+val > 0xFF
+	self.FLAG_C = uint16(self.A)+uint16(val) > 0xFF
 	self.FLAG_H = (self.A&0x0F)+(val&0x0F) > 0x0F
 	self.FLAG_N = false
 	self.A += val
@@ -1059,7 +947,7 @@ func (self *CPU) _adc(val uint8) {
 	} else {
 		carry = 0
 	}
-	self.FLAG_C = bool(self.A+val+carry > 0xFF)
+	self.FLAG_C = uint16(self.A)+uint16(val)+uint16(carry) > 0xFF
 	self.FLAG_H = (self.A&0x0F)+(val&0x0F)+carry > 0x0F
 	self.FLAG_N = false
 	self.A += val + carry
