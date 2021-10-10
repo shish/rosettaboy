@@ -884,12 +884,12 @@ func (self *CPU) tick_cb(op uint8) {
 		self.FLAG_N = false
 		self.FLAG_H = true
 
-	// SET
+	// RES
 	case op <= 0xBF:
-		bit = (op - 0x40) / 8
+		bit = (op - 0x80) / 8
 		val &= ((1 << bit) ^ 0xFF)
 
-	// RES
+	// SET
 	case op <= 0xFF:
 		bit = (op - 0xC0) / 8
 		val |= (1 << bit)
@@ -967,8 +967,8 @@ func (self *CPU) _sbc(val uint8) {
 	} else {
 		carry = 0
 	}
-	var res = self.A - val - carry
-	self.FLAG_H = ((self.A ^ val ^ (res & 0xff)) & (1 << 4)) != 0
+	var res int = int(self.A) - int(val) - int(carry)
+	self.FLAG_H = ((self.A ^ val ^ (uint8(res) & 0xff)) & (1 << 4)) != 0
 	self.FLAG_C = res < 0
 	self.A -= val + carry
 	self.FLAG_Z = self.A == 0
