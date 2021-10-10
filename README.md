@@ -41,10 +41,10 @@ Completeness
 ------------
 | Feature                            | Python    | C++       | Rust      | Go        |
 | -------                            | -------   | ---       | ----      | --        |
-| gblargh's CPU test suite           |  &check;  |  &check;  |  &check;  |  &cross;  |
-| silent / headless                  |  &check;  |  &check;  |  &check;  |  &cross;  |
+| gblargh's CPU test suite           |  &check;  |  &check;  |  &check;  |  &check;  |
+| silent / headless                  |  &check;  |  &check;  |  &check;  |  &check;  |
 | scaled output                      |  &check;  |  &check;  |  &check;  |  &cross;  |
-| CPU logging                        |  &check;  |  &check;  |  &check;  |  &cross;  |
+| CPU logging                        |  &check;  |  &check;  |  &check;  |  &check;  |
 | keyboard input                     |  &check;  |  &check;  |  &check;  |  &check;  |
 | gamepad input                      |  &cross;  |  &cross;  |  &check;  |  &cross;  |
 | turbo button                       |  &cross;  |  &check;  |  &cross;  |  &check;  |
@@ -52,8 +52,8 @@ Completeness
 | memory mapping                     |  &check;  |  &check;  |  &check;  |  &check;  |
 | scanline rendering                 |  &cross;  |  &check;  |  &check;  |  &cross;  |
 | bank swapping                      |  ?        |  ?        |  ?        |  &cross;  |
-| CPU interrupts                     |  &check;  |  &check;  |  &check;  |  &cross;  |
-| GPU interrupts                     |  &cross;  |  &check;  |  &check;  |  &cross;  |
+| CPU interrupts                     |  &check;  |  &check;  |  &check;  |  &check;  |
+| GPU interrupts                     |  &cross;  |  &check;  |  &check;  |  &check;  |
 
 Benchmarks
 ----------
