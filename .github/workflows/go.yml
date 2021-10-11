@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - 'go/**'
+  workflow_dispatch:
 
 jobs:
   build:
