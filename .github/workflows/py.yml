@@ -8,7 +8,7 @@ on:
 
 jobs:
   format:
-    name: Black
+    name: Format
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -25,7 +25,18 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y python3-venv
     - name: Checkout
       uses: actions/checkout@v2
+    - name: Set Up Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          venv
+        key: ${{ runner.os }}-python
     - name: Setup venv
       run: python3 -m venv venv && ./venv/bin/pip install pygame
-    - name: gblargh
+    - name: CPU Integration Tests
       run: ./gblargh.py py
+    - name: Benchmark
+      run: |
+        cd py
+        wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
+        ./run.sh --silent --headless --profile 600 --turbo opus5.gb

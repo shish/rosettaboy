@@ -16,25 +16,35 @@ jobs:
     steps:
     - name: Install deps
       run: sudo apt-get update && sudo apt-get install -y gcc libsdl2-dev
+    - name: Set Up Toolchain Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.rustup/toolchains
+          ~/.rustup/update-hashes
+          ~/.rustup/settings.toml
+        key: ${{ runner.os }}-rust-toolchain-${{ matrix.toolchain }}
+    - name: Set Up Toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.toolchain }}
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Set Up Cache
+    - name: Set Up Build Cache
       uses: actions/cache@v2
       with:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
           rs/target
-          ~/.rustup/toolchains
-          ~/.rustup/update-hashes
-          ~/.rustup/settings.toml
         key: ${{ runner.os }}-rust-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
-    - name: Set Up Toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: ${{ matrix.toolchain }}
     - name: Build
       working-directory: rs
       run: cargo build --release
-    - name: gblargh
+    - name: CPU Integration Tests
       run: ./gblargh.py rs
+    - name: Benchmark
+      run: |
+        cd rs
+        wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
+        ./run.sh --silent --headless --profile 600 --turbo opus5.gb

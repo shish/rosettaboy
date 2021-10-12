@@ -17,9 +17,14 @@ jobs:
       uses: actions/checkout@v2
     - name: CMake
       working-directory: cpp
-      run: cmake -DCMAKE_BUILD_TYPE=Debug .
+      run: cmake -DCMAKE_BUILD_TYPE=Release .
     - name: Build
       working-directory: cpp
       run: make
-    - name: gblargh
+    - name: CPU Integration Tests
       run: ./gblargh.py cpp
+    - name: Benchmark
+      run: |
+        cd cpp
+        wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
+        ./run.sh --silent --headless --profile 600 --turbo opus5.gb

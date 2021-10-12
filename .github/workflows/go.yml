@@ -20,5 +20,10 @@ jobs:
     - name: Build
       working-directory: go
       run: go build -o rosettaboy-go src/*.go
-    - name: gblargh
+    - name: CPU Integration Tests
       run: ./gblargh.py go
+    - name: Benchmark
+      run: |
+        cd go
+        wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
+        ./run.sh --silent --headless --profile 600 --turbo opus5.gb
