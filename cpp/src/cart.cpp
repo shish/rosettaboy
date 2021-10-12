@@ -84,8 +84,10 @@ Cart::Cart(const char *filename) {
     if(this->ram_size) {
         string fn2 = filename;
         fn2.replace(fn2.end() - 2,fn2.end(), "sav");
-        truncate(fn2.c_str(), this->ram_size);
-        int ram_fd = open(fn2.c_str(), O_RDWR|O_CREAT);
+        int ram_fd = open(fn2.c_str(), O_RDWR|O_CREAT, 0600);
+        if(ftruncate(ram_fd, this->ram_size) != 0) {
+            cout << "Truncate for .sav file failed\n";
+        }
         this->ram = (unsigned char*)mmap(nullptr, (size_t)statbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, ram_fd, 0);
     }
 
