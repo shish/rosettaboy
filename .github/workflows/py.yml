@@ -21,7 +21,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-    - name: Install deps
+    - name: Install Deps
       run: sudo apt-get update && sudo apt-get install -y python3-venv
     - name: Checkout
       uses: actions/checkout@v2
@@ -31,7 +31,7 @@ jobs:
         path: |
           venv
         key: ${{ runner.os }}-python
-    - name: Setup venv
+    - name: Setup Virtualenv
       run: python3 -m venv venv && ./venv/bin/pip install pygame
     - name: CPU Integration Tests
       run: ./gblargh.py py

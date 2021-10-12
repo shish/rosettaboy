@@ -11,7 +11,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: Install deps
+    - name: Install Deps
       run: sudo apt-get update && sudo apt-get install -y gcc cmake libsdl2-dev
     - name: Checkout
       uses: actions/checkout@v2

@@ -11,7 +11,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: Install deps
+    - name: Install Deps
       run: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
     - name: Set Up Build Cache
       uses: actions/cache@v2
@@ -19,7 +19,7 @@ jobs:
         path: |
           ~/go
         key: ${{ runner.os }}-go
-    - name: Install go deps
+    - name: Install Go Deps
       run: go get github.com/veandco/go-sdl2/sdl
     - name: Checkout
       uses: actions/checkout@v2
