@@ -100,6 +100,8 @@ impl<'a> GPU<'a> {
             let window = video_subsystem
                 .window(&format!("RosettaBoy - {}", title)[..], w * SCALE, h * SCALE)
                 .position_centered()
+                .allow_highdpi()
+                .resizable()
                 .build()
                 .map_err(anyhow::Error::msg)?;
 
@@ -108,7 +110,7 @@ impl<'a> GPU<'a> {
                 .software()
                 .build()
                 .map_err(anyhow::Error::msg)?;
-            sdl2::hint::set("SDL_HINT_RENDER_SCALE_QUALITY", "nearest");
+            sdl2::hint::set("SDL_RENDER_SCALE_QUALITY", "nearest");
             hw_renderer.set_logical_size(w, h)?;
             let hw_buffer = hw_renderer
                 .create_texture(
