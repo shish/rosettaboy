@@ -42,7 +42,9 @@ type GPU struct {
 	headless bool
 	cycle    int
 
-	window          *sdl.Window
+	hw_window       *sdl.Window
+	hw_buffer       *sdl.Texture
+	hw_renderer     *sdl.Renderer
 	buffer          *sdl.Surface
 	renderer        *sdl.Renderer
 	colors          []sdl.Color
@@ -57,26 +59,33 @@ func NewGPU(cpu *CPU, title string, debug bool, headless bool) (*GPU, error) {
 		h = 144
 	}
 
-	var window *sdl.Window
+	var hw_window *sdl.Window
+	var hw_renderer *sdl.Renderer
+	var hw_buffer *sdl.Texture
 	if !headless {
-		if err := sdl.Init(uint32(sdl.INIT_VIDEO)); err != nil {
+		var err error
+		if err = sdl.Init(uint32(sdl.INIT_VIDEO)); err != nil {
 			return nil, err
 		}
 
-		// TODO: if I do
-		//   window, err :=
-		// then it complains "window is not used", but
-		//   window, err =
-		// complains "err is not defined"
-		window_, err := sdl.CreateWindow(
+		hw_window, err = sdl.CreateWindow(
 			fmt.Sprintf("RosettaBoy - %s", title),
 			sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-			w * SCALE, h * SCALE, sdl.WINDOW_SHOWN,
+			w*SCALE, h*SCALE, sdl.WINDOW_ALLOW_HIGHDPI|sdl.WINDOW_RESIZABLE,
 		)
 		if err != nil {
 			return nil, err
 		}
-		window = window_
+		hw_renderer, err = sdl.CreateRenderer(hw_window, -1, 0)
+		if err != nil {
+			return nil, err
+		}
+		sdl.SetHint(sdl.HINT_RENDER_SCALE_QUALITY, "nearest") // vs "linear"
+		hw_renderer.SetLogicalSize(w, h)
+		hw_renderer.CreateTexture(
+			sdl.PIXELFORMAT_ABGR8888,
+			sdl.TEXTUREACCESS_STREAMING,
+			w, h)
 	}
 
 	buffer, err := sdl.CreateRGBSurface(0, w, h, 32, rmask, gmask, bmask, amask)
@@ -99,11 +108,15 @@ func NewGPU(cpu *CPU, title string, debug bool, headless bool) (*GPU, error) {
 	obp0 := make([]sdl.Color, 4)
 	obp1 := make([]sdl.Color, 4)
 
-	return &GPU{debug, cpu, headless, 0, window, buffer, renderer, colors, bgp, obp0, obp1}, nil
+	return &GPU{
+		debug, cpu, headless, 0,
+		hw_window, hw_buffer, hw_renderer, buffer, renderer,
+		colors, bgp, obp0, obp1,
+	}, nil
 }
 
 func (self *GPU) Destroy() {
-	self.window.Destroy()
+	self.hw_window.Destroy()
 	self.renderer.Destroy()
 }
 
@@ -157,24 +170,24 @@ func (self *GPU) tick() bool {
 			// TODO: how often should we update palettes?
 			// Should every pixel reference them directly?
 			self.update_palettes()
-			if self.renderer != nil {
-				// TODO: do we need to clear if we write every pixel?
-				self.renderer.SetDrawColor(self.bgp[0].R, self.bgp[0].G, self.bgp[0].B, self.bgp[0].A)
-				self.renderer.Clear()
-			}
+			// TODO: do we need to clear if we write every pixel?
+			self.renderer.SetDrawColor(self.bgp[0].R, self.bgp[0].G, self.bgp[0].B, self.bgp[0].A)
+			self.renderer.Clear()
 		}
 		self.draw_line(int32(ly))
 		if ly == 143 {
 			if self.debug {
 				self.draw_debug()
 			}
-			if !self.headless {
-				var window_surface, err = self.window.GetSurface()
-				if err != nil {
-					panic(err)
+			if self.hw_window != nil {
+				var w int32 = 160
+				if self.debug {
+					w = 160 + 256
 				}
-				self.buffer.BlitScaled(nil, window_surface, nil)
-				self.window.UpdateSurface()
+				self.hw_buffer.Update(nil, self.buffer.Pixels(), int(w))
+				self.hw_renderer.Clear()
+				self.hw_renderer.Copy(self.hw_buffer, nil, nil)
+				self.hw_renderer.Present()
 			}
 		}
 	} else if lx == 63 && ly < 144 {
