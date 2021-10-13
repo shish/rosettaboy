@@ -73,11 +73,6 @@ measure CPU instructions instead of clock time, that seems fairer; especially
 if we can get the measurement included automatically via github actions. Pull
 requests welcome :)
 
-I also wonder if there's something happening in SDL which is capping frame
-rates to 60fps when a window is displayed...
-
 | Feature                            | Python | C++  | Rust | Go      |
 | -------                            | ------ | ---  | ---- | --      |
-| release, silent, headless          |  5     | 1000 | 1800 | &cross; |
-| debug, silent, headless            |  5     | 220  | 80   | &cross; |
-| release, silent                    |  5     | 60   | 60   | &cross; |
+| release, silent, headless          |  5     | 700  | 700  | &cross; |
