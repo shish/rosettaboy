@@ -191,7 +191,7 @@ pub struct CPU {
 }
 
 impl CPU {
-    pub fn init(debug: bool) -> CPU {
+    pub fn new(debug: bool) -> CPU {
         CPU {
             stop: false,
 

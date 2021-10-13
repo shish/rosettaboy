@@ -61,7 +61,7 @@ pub struct RAM {
 }
 
 impl RAM {
-    pub fn init(cart: cart::Cart, debug: bool) -> RAM {
+    pub fn new(cart: cart::Cart, debug: bool) -> RAM {
         let boot = match ::std::fs::File::open("boot.gb") {
             Ok(mut fp) => {
                 // println!("Loading boot code from boot.gb");

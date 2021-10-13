@@ -71,17 +71,17 @@ struct Gameboy<'a> {
 }
 impl<'a> Gameboy<'a> {
     #[inline(never)]
-    fn init(args: Args) -> Result<Gameboy<'a>> {
+    fn new(args: Args) -> Result<Gameboy<'a>> {
         let sdl = sdl2::init().map_err(anyhow::Error::msg)?;
 
-        let cart = cart::Cart::init(args.rom.as_str())?;
+        let cart = cart::Cart::new(args.rom.as_str())?;
         let cart_name = cart.name.clone();
-        let ram = ram::RAM::init(cart, args.debug_ram);
-        let cpu = cpu::CPU::init(args.debug_cpu);
-        let gpu = gpu::GPU::init(&sdl, cart_name.as_str(), args.headless, args.debug_gpu)?;
-        let apu = apu::APU::init(&sdl, args.silent, args.debug_apu)?;
-        let buttons = buttons::Buttons::init(sdl, args.headless)?;
-        let clock = clock::Clock::init(args.profile, args.turbo);
+        let ram = ram::RAM::new(cart, args.debug_ram);
+        let cpu = cpu::CPU::new(args.debug_cpu);
+        let gpu = gpu::GPU::new(&sdl, cart_name.as_str(), args.headless, args.debug_gpu)?;
+        let apu = apu::APU::new(&sdl, args.silent, args.debug_apu)?;
+        let buttons = buttons::Buttons::new(sdl, args.headless)?;
+        let clock = clock::Clock::new(args.profile, args.turbo);
 
         Ok(Gameboy {
             ram,
@@ -106,7 +106,7 @@ impl<'a> Gameboy<'a> {
 }
 
 fn main() -> Result<()> {
-    Gameboy::init(Args::from_args())?.run()?;
+    Gameboy::new(Args::from_args())?.run()?;
 
     // because debug ROMs print to stdout without newline
     println!();

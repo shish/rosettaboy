@@ -102,7 +102,7 @@ pub struct APU {
 }
 
 impl APU {
-    pub fn init(sdl: &sdl2::Sdl, silent: bool, debug: bool) -> Result<APU> {
+    pub fn new(sdl: &sdl2::Sdl, silent: bool, debug: bool) -> Result<APU> {
         let device = if !silent {
             let audio = sdl.audio().map_err(anyhow::Error::msg)?;
             let spec = AudioSpecDesired {

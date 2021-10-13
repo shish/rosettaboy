@@ -41,7 +41,7 @@ pub struct Buttons {
 }
 
 impl Buttons {
-    pub fn init(sdl: sdl2::Sdl, headless: bool) -> Result<Buttons> {
+    pub fn new(sdl: sdl2::Sdl, headless: bool) -> Result<Buttons> {
         let game_controller_subsystem = sdl.game_controller().map_err(anyhow::Error::msg)?;
 
         let available = game_controller_subsystem

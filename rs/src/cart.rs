@@ -105,7 +105,7 @@ fn parse_ram_size(val: u8) -> u32 {
 }
 
 impl Cart {
-    pub fn init(filename: &str) -> Result<Cart> {
+    pub fn new(filename: &str) -> Result<Cart> {
         let mut fp = File::open(filename)?;
         let mut data: Vec<u8> = Vec::new();
         fp.read_to_end(&mut data)?;
