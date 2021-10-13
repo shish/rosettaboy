@@ -32,7 +32,7 @@ GPU::GPU(CPU *cpu, char *title, bool headless, bool debug) {
         SDL_InitSubSystem(SDL_INIT_VIDEO);
         char title_buf[64];
         snprintf(title_buf, 64, "RosettaBoy - %s", title);
-        this->window = SDL_CreateWindow(
+        this->hw_window = SDL_CreateWindow(
                 title_buf, // window title
                 SDL_WINDOWPOS_UNDEFINED,   // initial x position
                 SDL_WINDOWPOS_UNDEFINED,   // initial y position
@@ -40,6 +40,13 @@ GPU::GPU(CPU *cpu, char *title, bool headless, bool debug) {
                 h * SCALE,                 // height, in pixels
                 SDL_WINDOW_ALLOW_HIGHDPI|SDL_WINDOW_RESIZABLE   // flags - see below
         );
+        this->hw_renderer = SDL_CreateRenderer(this->hw_window, -1, 0);
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");  // vs "linear"
+        SDL_RenderSetLogicalSize(this->hw_renderer, w, h);
+        this->hw_buffer = SDL_CreateTexture(this->hw_renderer,
+                               SDL_PIXELFORMAT_ABGR8888,
+                               SDL_TEXTUREACCESS_STREAMING,
+                               w, h);
     }
     this->buffer = SDL_CreateRGBSurface(0, w, h, 32, rmask, gmask, bmask, amask);
     this->renderer = SDL_CreateSoftwareRenderer(this->buffer);
@@ -54,7 +61,7 @@ GPU::GPU(CPU *cpu, char *title, bool headless, bool debug) {
 
 GPU::~GPU() {
     SDL_FreeSurface(this->buffer);
-    if(this->window) SDL_DestroyWindow(this->window);
+    if(this->hw_window) SDL_DestroyWindow(this->hw_window);
     SDL_Quit();
 }
 
@@ -115,10 +122,11 @@ bool GPU::tick() {
             if (this->debug) {
                 this->draw_debug();
             }
-            if(this->window) {
-                SDL_Surface *window_surface = SDL_GetWindowSurface(window);
-                SDL_BlitScaled(this->buffer, nullptr, window_surface, nullptr);
-                SDL_UpdateWindowSurface(window);
+            if(this->hw_window) {
+                SDL_UpdateTexture(this->hw_buffer, NULL, this->buffer->pixels, (this->debug ? 160+256 : 160) * sizeof (Uint32));
+                SDL_RenderClear(this->hw_renderer);
+                SDL_RenderCopy(this->hw_renderer, this->hw_buffer, NULL, NULL);
+                SDL_RenderPresent(this->hw_renderer);
             }
         }
     }

@@ -50,7 +50,9 @@ struct Sprite {
 class GPU {
 private:
     bool debug;
-    SDL_Window *window;
+    SDL_Window *hw_window;
+    SDL_Texture *hw_buffer;
+    SDL_Renderer *hw_renderer;
     SDL_Surface *buffer;
     SDL_Renderer *renderer;
     SDL_Color colors[4];
