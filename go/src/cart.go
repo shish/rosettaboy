@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io/ioutil"
 )
 
@@ -74,10 +75,10 @@ func parse_ram_size(val uint8) uint32 {
 	}
 }
 
-func NewCart(rom string) Cart {
+func NewCart(rom string) (*Cart, error) {
 	var data, err = ioutil.ReadFile(rom)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var logo = data[0x0104 : 0x0104+48]
@@ -99,7 +100,7 @@ func NewCart(rom string) Cart {
 		logo_checksum += uint16(i)
 	}
 	if logo_checksum != 5446 {
-		println("Logo checksum failed")
+		return nil, errors.New("Logo checksum failed")
 	}
 
 	var header_checksum uint16 = 25
@@ -107,10 +108,10 @@ func NewCart(rom string) Cart {
 		header_checksum += uint16(data[i])
 	}
 	if (header_checksum & 0xFF) != 0 {
-		println("Header checksum failed")
+		return nil, errors.New("Header checksum failed")
 	}
 
-	return Cart{
+	return &Cart{
 		data,
 		logo,
 		string(name),
@@ -125,5 +126,5 @@ func NewCart(rom string) Cart {
 		int(rom_version),
 		int(complement_check),
 		int(checksum),
-	}
+	}, nil
 }

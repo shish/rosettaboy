@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow,Result};
 use num_enum::TryFromPrimitive;
 use std::convert::TryFrom;
 use std::fs::File;
@@ -136,7 +136,7 @@ impl Cart {
             logo_checksum += i as u16;
         }
         if logo_checksum != 5446 {
-            panic!("Logo checksum failed\n")
+            return Err(anyhow!("Logo checksum failed"))
         }
 
         let mut header_checksum: u16 = 25;
@@ -144,11 +144,11 @@ impl Cart {
             header_checksum += *i as u16;
         }
         if (header_checksum & 0xFF) != 0 {
-            panic!("Header checksum failed\n")
+            return Err(anyhow!("Header checksum failed"))
         }
 
         //if cart_type != CartType::RomOnly {
-        //    panic!("Only RomOnly cartridges are supported, got {:?}", cart_type);
+        //    return Err(anyhow!("Only RomOnly cartridges are supported, got {:?}", cart_type))
         //}
 
         // FIXME: ram should be synced with .sav file

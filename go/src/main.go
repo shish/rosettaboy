@@ -1,5 +1,6 @@
 package main
 
+import "log"
 import "flag"
 import "github.com/veandco/go-sdl2/sdl"
 
@@ -15,14 +16,29 @@ func main() {
 	flag.Parse()
 	var rom = flag.Arg(0)
 
-	var cart = NewCart(rom)
-	var ram = NewRAM(&cart, *debug_ram)
-	var cpu = NewCPU(&ram, *debug_cpu)
-	/*var apu = */ NewAPU(&cpu, *debug_apu, *silent)
-	var gpu = NewGPU(&cpu, cart.name, *debug_gpu, *headless)
+	cart, err := NewCart(rom)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	ram := NewRAM(cart, *debug_ram)
+	cpu := NewCPU(&ram, *debug_cpu)
+	_, err = NewAPU(&cpu, *debug_apu, *silent)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	gpu, err := NewGPU(&cpu, cart.name, *debug_gpu, *headless)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	defer gpu.Destroy()
-	var buttons = NewButtons(&cpu, *headless)
-	var clock = NewClock(&buttons, *profile, *turbo)
+	buttons, err := NewButtons(&cpu, *headless)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	clock, err := NewClock(buttons, *profile, *turbo)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	for true {
 		if !cpu.tick() {

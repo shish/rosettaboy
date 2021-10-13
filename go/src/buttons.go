@@ -26,21 +26,21 @@ type Buttons struct {
 	turbo                 bool
 }
 
-func NewButtons(cpu *CPU, headless bool) Buttons {
+func NewButtons(cpu *CPU, headless bool) (*Buttons, error) {
 	if !headless {
 		if err := sdl.Init(uint32(sdl.INIT_EVENTS | sdl.INIT_GAMECONTROLLER | sdl.INIT_JOYSTICK)); err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 
-	return Buttons{
+	return &Buttons{
 		cpu,
 		headless,
 		false, 0,
 		false, false, false, false,
 		false, false, false, false,
 		false,
-	}
+	}, nil
 }
 
 func (self *Buttons) tick() bool {

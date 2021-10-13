@@ -13,12 +13,12 @@ type Clock struct {
 	turbo            bool
 }
 
-func NewClock(buttons *Buttons, profile int, turbo bool) Clock {
+func NewClock(buttons *Buttons, profile int, turbo bool) (*Clock, error) {
 	if err := sdl.Init(uint32(sdl.INIT_TIMER)); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return Clock{buttons, 0, 0, sdl.GetTicks(), sdl.GetTicks(), profile, turbo}
+	return &Clock{buttons, 0, 0, sdl.GetTicks(), sdl.GetTicks(), profile, turbo}, nil
 }
 
 func (self *Clock) tick() bool {

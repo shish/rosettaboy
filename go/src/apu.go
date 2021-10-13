@@ -8,12 +8,12 @@ type APU struct {
 	silent bool
 }
 
-func NewAPU(cpu *CPU, debug bool, silent bool) APU {
+func NewAPU(cpu *CPU, debug bool, silent bool) (*APU, error) {
 	if !silent {
 		if err := sdl.Init(uint32(sdl.INIT_AUDIO)); err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 
-	return APU{debug, cpu, silent}
+	return &APU{debug, cpu, silent}, nil
 }
