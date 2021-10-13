@@ -1,4 +1,4 @@
-use anyhow::{anyhow,Result};
+use anyhow::{anyhow, Result};
 use num_enum::TryFromPrimitive;
 use std::convert::TryFrom;
 use std::fs::File;
@@ -136,7 +136,7 @@ impl Cart {
             logo_checksum += i as u16;
         }
         if logo_checksum != 5446 {
-            return Err(anyhow!("Logo checksum failed"))
+            return Err(anyhow!("Logo checksum failed"));
         }
 
         let mut header_checksum: u16 = 25;
@@ -144,7 +144,7 @@ impl Cart {
             header_checksum += *i as u16;
         }
         if (header_checksum & 0xFF) != 0 {
-            return Err(anyhow!("Header checksum failed"))
+            return Err(anyhow!("Header checksum failed"));
         }
 
         //if cart_type != CartType::RomOnly {

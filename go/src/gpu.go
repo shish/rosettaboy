@@ -179,12 +179,8 @@ func (self *GPU) tick() bool {
 			if self.debug {
 				self.draw_debug()
 			}
-			if self.hw_window != nil {
-				var w int32 = 160
-				if self.debug {
-					w = 160 + 256
-				}
-				self.hw_buffer.Update(nil, self.buffer.Pixels(), int(w))
+			if self.hw_renderer != nil {
+				self.hw_buffer.Update(nil, self.buffer.Pixels(), int(self.buffer.Pitch))
 				self.hw_renderer.Clear()
 				self.hw_renderer.Copy(self.hw_buffer, nil, nil)
 				self.hw_renderer.Present()

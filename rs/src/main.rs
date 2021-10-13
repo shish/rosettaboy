@@ -61,17 +61,17 @@ struct Args {
     turbo: bool,
 }
 
-struct Gameboy {
+struct Gameboy<'a> {
     ram: ram::RAM,
     cpu: cpu::CPU,
-    gpu: gpu::GPU,
+    gpu: gpu::GPU<'a>,
     apu: apu::APU,
     buttons: buttons::Buttons,
     clock: clock::Clock,
 }
-impl Gameboy {
+impl<'a> Gameboy<'a> {
     #[inline(never)]
-    fn init(args: Args) -> Result<Gameboy> {
+    fn init(args: Args) -> Result<Gameboy<'a>> {
         let sdl = sdl2::init().map_err(anyhow::Error::msg)?;
 
         let cart = cart::Cart::init(args.rom.as_str())?;

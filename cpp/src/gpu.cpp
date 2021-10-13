@@ -122,8 +122,8 @@ bool GPU::tick() {
             if (this->debug) {
                 this->draw_debug();
             }
-            if(this->hw_window) {
-                SDL_UpdateTexture(this->hw_buffer, NULL, this->buffer->pixels, (this->debug ? 160+256 : 160) * sizeof (Uint32));
+            if(this->hw_renderer) {
+                SDL_UpdateTexture(this->hw_buffer, NULL, this->buffer->pixels, this->buffer->pitch);
                 SDL_RenderClear(this->hw_renderer);
                 SDL_RenderCopy(this->hw_renderer, this->hw_buffer, NULL, NULL);
                 SDL_RenderPresent(this->hw_renderer);
