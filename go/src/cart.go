@@ -97,7 +97,7 @@ func NewCart(rom string) (*Cart, error) {
 
 	var logo_checksum uint16 = 0
 	for i := range logo {
-		logo_checksum += uint16(i)
+		logo_checksum += uint16(logo[i])
 	}
 	if logo_checksum != 5446 {
 		return nil, errors.New("Logo checksum failed")
