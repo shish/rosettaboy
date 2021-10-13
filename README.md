@@ -18,7 +18,10 @@ weigh up whether or not the feature is worth the complexity.
 
 Also yes, "consistent across languages" and "idiomatic" can be at odds -
 there are subjective compromises to be made, but for the most part that
-doesn't seem to be a huge problem.
+doesn't seem to be a huge problem. Rust uses `Result`, Python uses
+`Exception`, Go uses `error` - but so far it's always been pretty obvious
+that eg `NewCart()` in go and `Cart.new()` in rust are doing fundamentally
+the same thing in the same way.
 
 So far all the implementations follow a fairly standard layout, with each
 module teaching me how to do a new thing. In fact they're all so similar,
