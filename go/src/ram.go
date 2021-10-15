@@ -177,14 +177,6 @@ func (self *RAM) get(addr uint16) uint8 {
 		// TODO: array bounds check
 		var offset = addr - 0x4000
 		var bank = 0x4000 * int(self.rom_bank)
-		if self.debug {
-			print(
-				"fetching {:04x} from bank {:04x} (total = {:04x})",
-				offset,
-				bank,
-				int(offset)+int(bank),
-			)
-		}
 		return self.cart.data[int(bank)+int(offset)]
 	case addr < 0xA000:
 		// VRAM

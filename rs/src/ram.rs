@@ -106,14 +106,6 @@ impl RAM {
                 // TODO: array bounds check
                 let bank = 0x4000 * self.rom_bank as usize;
                 let offset = addr as usize - 0x4000;
-                if self.debug {
-                    println!(
-                        "fetching {:04x} from bank {:04x} (total = {:04x})",
-                        offset,
-                        bank,
-                        offset + bank
-                    );
-                }
                 return self.cart.data[offset + bank];
             }
             0x8000..=0x9FFF => {

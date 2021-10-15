@@ -163,13 +163,6 @@ class RAM:
             # TODO: array bounds check
             offset = addr - 0x4000
             bank = 0x4000 * self.rom_bank
-            if self.debug:
-                print(
-                    "fetching {:04x} from bank {:04x} (total = {:04x})",
-                    offset,
-                    bank,
-                    offset + bank,
-                )
             return self.cart.data[bank + offset]
         elif addr < 0xA000:
             # VRAM
