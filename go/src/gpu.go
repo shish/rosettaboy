@@ -236,7 +236,7 @@ func (self *GPU) update_palettes() {
 	self.obp1[3] = self.colors[(raw_obp1>>6)&0x3]
 }
 
-func (self *GPU) draw_debug() bool {
+func (self *GPU) draw_debug() {
 	var LCDC = self.cpu.ram.get(IO_LCDC)
 
 	// Tile data
@@ -264,8 +264,6 @@ func (self *GPU) draw_debug() bool {
 		self.renderer.SetDrawColor(0, 0, 255, 0xFF)
 		self.renderer.DrawRect(&rect)
 	}
-
-	return true
 }
 
 func (self *GPU) draw_line(ly int32) {

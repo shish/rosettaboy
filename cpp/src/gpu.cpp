@@ -167,7 +167,7 @@ void GPU::update_palettes() {
     obp1[3] = this->colors[(raw_obp1 >> 6) & 0x3];
 }
 
-bool GPU::draw_debug() {
+void GPU::draw_debug() {
     u8 LCDC = this->cpu->ram->get(Mem::LCDC);
 
     // Tile data
@@ -195,8 +195,6 @@ bool GPU::draw_debug() {
         SDL_SetRenderDrawColor(this->renderer, 0, 0, 255, 0xFF);
         SDL_RenderDrawRect(this->renderer, &rect);
     }
-
-    return true;
 }
 
 void GPU::draw_line(i32 ly) {

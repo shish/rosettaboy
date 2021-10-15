@@ -67,7 +67,7 @@ public:
 
 private:
     void update_palettes();
-    bool draw_debug();
+    void draw_debug();
     void draw_line(i32 ly);
     void paint_tile(
         i16 tile_id,
