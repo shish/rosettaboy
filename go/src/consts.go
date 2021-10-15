@@ -11,10 +11,8 @@ const (
 	VRAM_BASE         = 0x8000
 	TILE_DATA_TABLE_0 = 0x8800
 	TILE_DATA_TABLE_1 = 0x8000
-	BACKGROUND_MAP_0  = 0x9800
-	BACKGROUND_MAP_1  = 0x9C00
-	WINDOW_MAP_0      = 0x9800
-	WINDOW_MAP_1      = 0x9C00
+	MAP_0             = 0x9800
+	MAP_1             = 0x9C00
 	OAM_BASE          = 0xFE00
 
 	IO_JOYP = 0xFF00
