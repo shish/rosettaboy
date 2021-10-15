@@ -42,21 +42,25 @@ languages, are very welcome :)
 
 Completeness
 ------------
-| Feature                            | Python    | C++       | Rust      | Go        |
-| -------                            | -------   | ---       | ----      | --        |
-| gblargh's CPU test suite           |  &check;  |  &check;  |  &check;  |  &check;  |
-| silent / headless                  |  &check;  |  &check;  |  &check;  |  &check;  |
-| scaled output                      |  &check;  |  &check;  |  &check;  |  &cross;  |
-| CPU logging                        |  &check;  |  &check;  |  &check;  |  &check;  |
-| keyboard input                     |  &check;  |  &check;  |  &check;  |  &check;  |
-| gamepad input                      |  &cross;  |  &cross;  |  &check;  |  &cross;  |
-| turbo button                       |  &cross;  |  &check;  |  &cross;  |  &check;  |
-| audio                              |  &cross;  |  off-key  |  glitchy  |  &cross;  |
-| memory mapping                     |  &check;  |  &check;  |  &check;  |  &check;  |
-| scanline rendering                 |  &cross;  |  &check;  |  &check;  |  &cross;  |
-| bank swapping                      |  ?        |  ?        |  ?        |  &cross;  |
-| CPU interrupts                     |  &check;  |  &check;  |  &check;  |  &check;  |
-| GPU interrupts                     |  &cross;  |  &check;  |  &check;  |  &check;  |
+| Feature                       | Python  | C++     | Rust    | Go      |
+| -------                       | ------- | ---     | ----    | --      |
+| *CPU*                         |         |         |         |         |
+| gblargh's test suite          | &check; | &check; | &check; | &check; |
+| interrupts                    | &check; | &check; | &check; | &check; |
+| logging                       | &check; | &check; | &check; | &check; |
+| *Graphics*                    |         |         |         |         |
+| scaled output                 | &check; | &check; | &check; | &check; |
+| scanline rendering            | &cross; | &check; | &check; | &check; |
+| GPU interrupts                | &cross; | &check; | &check; | &check; |
+| *Audio*                       |         |         |         |         |
+| audio                         | &cross; | off-key | glitchy | &cross; |
+| *Inputs*                      |         |         |         |         |
+| keyboard input                | &check; | &check; | &check; | &check; |
+| gamepad input                 | &cross; | &cross; | &check; | &cross; |
+| turbo button                  | &cross; | &check; | &cross; | &check; |
+| *Memory*                      |         |         |         |         |
+| memory mapping                | &check; | &check; | &check; | &check; |
+| bank swapping                 | &cross; | &cross; | &cross; | &cross; |
 
 Benchmarks
 ----------
@@ -73,6 +77,6 @@ measure CPU instructions instead of clock time, that seems fairer; especially
 if we can get the measurement included automatically via github actions. Pull
 requests welcome :)
 
-| Feature                            | Python | C++  | Rust | Go      |
-| -------                            | ------ | ---  | ---- | --      |
-| release, silent, headless          |  5     | 700  | 700  | &cross; |
+| Feature                            | Python | C++  | Rust | Go  |
+| -------                            | ------ | ---  | ---- | --  |
+| release, silent, headless          |  5     | 700  | 700  | 60  |
