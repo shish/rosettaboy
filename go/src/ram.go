@@ -227,10 +227,10 @@ func (self *RAM) set(addr uint16, val uint8) {
 		self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low
 		if self.debug {
 			print(
-				"rom_bank set to {}/{}", self.rom_bank, self.cart.rom_size/0x2000,
+				"rom_bank set to {}/{}", self.rom_bank, self.cart.rom_size/0x4000,
 			)
 		}
-		if int(self.rom_bank)*0x2000 > int(self.cart.rom_size) {
+		if int(self.rom_bank)*0x4000 > int(self.cart.rom_size) {
 			panic("Set rom_bank beyond the size of ROM")
 		}
 	case addr < 0x6000:
@@ -253,10 +253,10 @@ func (self *RAM) set(addr uint16, val uint8) {
 				print(
 					"rom_bank set to {}/{}",
 					self.rom_bank,
-					self.cart.rom_size/0x2000,
+					self.cart.rom_size/0x4000,
 				)
 			}
-			if int(self.rom_bank)*0x2000 > int(self.cart.rom_size) {
+			if int(self.rom_bank)*0x4000 > int(self.cart.rom_size) {
 				panic("Set rom_bank beyond the size of ROM")
 			}
 		}
