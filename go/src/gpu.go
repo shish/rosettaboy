@@ -122,6 +122,11 @@ func NewGPU(cpu *CPU, title string, debug bool, headless bool) (*GPU, error) {
 	obp0 := make([]sdl.Color, 4)
 	obp1 := make([]sdl.Color, 4)
 
+	// FIXME: draw to buffer then blit to screen doesn't work??
+	// Drawing directly to screen works though
+	if !headless {
+		renderer = hw_renderer
+	}
 	return &GPU{
 		debug, cpu, headless, 0,
 		hw_window, hw_buffer, hw_renderer, buffer, renderer,
@@ -194,9 +199,10 @@ func (self *GPU) tick() bool {
 				self.draw_debug()
 			}
 			if self.hw_renderer != nil {
-				self.hw_buffer.Update(nil, self.buffer.Pixels(), int(self.buffer.Pitch))
-				self.hw_renderer.Clear()
-				self.hw_renderer.Copy(self.hw_buffer, nil, nil)
+				// FIXME: drawing to a buffer then blit to screen doesn't work??
+				//self.hw_buffer.Update(nil, self.buffer.Pixels(), int(self.buffer.Pitch))
+				//self.hw_renderer.Clear()
+				//self.hw_renderer.Copy(self.hw_buffer, nil, nil)
 				self.hw_renderer.Present()
 			}
 		}
