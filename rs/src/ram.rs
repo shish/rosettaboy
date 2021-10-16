@@ -46,6 +46,8 @@ const BOOT: [u8; 0x100] = [
     // after these finish executing, PC needs to be 0x100
     0xE0, 0x50, // LDH 50,A (disable boot rom)
 ];
+const ROM_BANK_SIZE: u16 = 0x4000;
+const RAM_BANK_SIZE: u16 = 0x2000;
 
 pub struct RAM {
     cart: cart::Cart,
@@ -104,7 +106,7 @@ impl RAM {
             0x4000..=0x7FFF => {
                 // Switchable ROM bank
                 // TODO: array bounds check
-                let bank = 0x4000 * self.rom_bank as usize;
+                let bank = self.rom_bank as usize * ROM_BANK_SIZE as usize;
                 let offset = addr as usize - 0x4000;
                 return self.cart.data[offset + bank];
             }
@@ -116,18 +118,19 @@ impl RAM {
                 if !self.ram_enable {
                     panic!("Reading from external ram while disabled: {:04X}", addr);
                 }
-                let addr_within_ram = (self.ram_bank as usize * 0x2000) + (addr as usize - 0xA000);
-                if addr_within_ram > self.cart.ram_size as usize {
+                let bank = self.ram_bank as usize * RAM_BANK_SIZE as usize;
+                let offset = addr as usize - 0xA000;
+                if bank + offset > self.cart.ram_size as usize {
                     // this should never happen because we die on ram_bank being
                     // set to a too-large value
                     panic!(
                         "Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})",
-                        addr_within_ram,
+                        bank + offset,
                         self.ram_bank,
                         (addr - 0xA000)
                     );
                 }
-                return self.cart.ram[addr_within_ram];
+                return self.cart.ram[bank + offset];
             }
             0xC000..=0xCFFF => {
                 // work RAM, bank 0
@@ -174,10 +177,10 @@ impl RAM {
                     println!(
                         "rom_bank set to {}/{}",
                         self.rom_bank,
-                        self.cart.rom_size / 0x4000
+                        self.cart.rom_size / ROM_BANK_SIZE as u32
                     );
                 }
-                if self.rom_bank as u32 * 0x4000 > self.cart.rom_size {
+                if self.rom_bank as u32 * ROM_BANK_SIZE as u32 > self.cart.rom_size {
                     panic!("Set rom_bank beyond the size of ROM");
                 }
             }
@@ -188,10 +191,10 @@ impl RAM {
                         println!(
                             "ram_bank set to {}/{}",
                             self.ram_bank,
-                            self.cart.ram_size / 0x2000
+                            self.cart.ram_size / RAM_BANK_SIZE as u32
                         );
                     }
-                    if self.ram_bank as u32 * 0x2000 > self.cart.ram_size {
+                    if self.ram_bank as u32 * RAM_BANK_SIZE as u32 > self.cart.ram_size {
                         panic!("Set ram_bank beyond the size of RAM");
                     }
                 } else {
@@ -201,10 +204,10 @@ impl RAM {
                         println!(
                             "rom_bank set to {}/{}",
                             self.rom_bank,
-                            self.cart.rom_size / 0x4000
+                            self.cart.rom_size / ROM_BANK_SIZE as u32
                         );
                     }
-                    if self.rom_bank as u32 * 0x4000 > self.cart.rom_size {
+                    if self.rom_bank as u32 * ROM_BANK_SIZE as u32 > self.cart.rom_size {
                         panic!("Set rom_bank beyond the size of ROM");
                     }
                 }
@@ -227,21 +230,22 @@ impl RAM {
                         addr, val
                     );
                 }
-                let addr_within_ram: u32 = (self.ram_bank as u32 * 0x2000) + (addr as u32 - 0xA000);
+                let bank = self.ram_bank as u32 * RAM_BANK_SIZE as u32;
+                let offset = addr as u32 - 0xA000;
                 if self.debug {
                     println!(
                         "Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",
-                        addr_within_ram,
+                        bank + offset,
                         val,
                         self.ram_bank,
                         (addr - 0xA000)
                     );
                 }
-                if addr_within_ram >= self.cart.ram_size {
+                if bank + offset >= self.cart.ram_size {
                     //panic!("Writing beyond RAM limit");
                     return;
                 }
-                self.cart.ram[addr_within_ram as usize] = val;
+                self.cart.ram[(bank + offset) as usize] = val;
             }
             0xC000..=0xCFFF => {
                 // work RAM, bank 0

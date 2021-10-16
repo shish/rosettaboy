@@ -2,6 +2,8 @@ from typing import List
 from .cart import Cart
 from .consts import *
 
+ROM_BANK_SIZE = 0x4000
+RAM_BANK_SIZE = 0x2000
 
 class RAM:
     def __init__(self, cart: Cart, debug: bool = False) -> None:
@@ -162,7 +164,7 @@ class RAM:
             # Switchable ROM bank
             # TODO: array bounds check
             offset = addr - 0x4000
-            bank = 0x4000 * self.rom_bank
+            bank = self.rom_bank * ROM_BANK_SIZE
             return self.cart.data[bank + offset]
         elif addr < 0xA000:
             # VRAM
@@ -173,18 +175,18 @@ class RAM:
                 raise Exception(
                     "Reading from external ram while disabled: {:04X}", addr
                 )
-            addr_within_ram = (self.ram_bank * 0x2000) + (addr - 0xA000)
-            if addr_within_ram > self.cart.ram_size:
+            bank = self.ram_bank * RAM_BANK_SIZE
+            offset = addr - 0xA000
+            if bank + offset > self.cart.ram_size:
                 # this should never happen because we die on ram_bank being
                 # set to a too-large value
                 raise Exception(
                     "Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})",
-                    addr_within_ram,
+                    bank + offset,
                     self.ram_bank,
                     (addr - 0xA000),
                 )
-            raise Exception("Cart RAM not supported")  # TODO
-            # return self.cart.ram[addr_within_ram]
+            return self.cart.ram[bank + offset]
         elif addr < 0xD000:
             # work RAM, bank 0
             pass
@@ -220,9 +222,9 @@ class RAM:
             self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low
             if self.debug:
                 print(
-                    "rom_bank set to {}/{}", self.rom_bank, self.cart.rom_size / 0x4000
+                    "rom_bank set to {}/{}", self.rom_bank, self.cart.rom_size / ROM_BANK_SIZE
                 )
-            if self.rom_bank * 0x4000 > self.cart.rom_size:
+            if self.rom_bank * ROM_BANK_SIZE > self.cart.rom_size:
                 raise Exception("Set rom_bank beyond the size of ROM")
         elif addr < 0x6000:
             if self.ram_bank_mode:
@@ -231,9 +233,9 @@ class RAM:
                     print(
                         "ram_bank set to {}/{}",
                         self.ram_bank,
-                        self.cart.ram_size / 0x2000,
+                        self.cart.ram_size / RAM_BANK_SIZE,
                     )
-                if self.ram_bank * 0x2000 > self.cart.ram_size:
+                if self.ram_bank * RAM_BANK_SIZE > self.cart.ram_size:
                     raise Exception("Set ram_bank beyond the size of RAM")
             else:
                 self.rom_bank_high = val
@@ -242,9 +244,9 @@ class RAM:
                     print(
                         "rom_bank set to {}/{}",
                         self.rom_bank,
-                        self.cart.rom_size / 0x4000,
+                        self.cart.rom_size / ROM_BANK_SIZE,
                     )
-                if self.rom_bank * 0x4000 > self.cart.rom_size:
+                if self.rom_bank * ROM_BANK_SIZE > self.cart.rom_size:
                     raise Exception("Set rom_bank beyond the size of ROM")
         elif addr < 0x8000:
             self.ram_bank_mode = val != 0
@@ -260,20 +262,20 @@ class RAM:
                 raise Exception(
                     "Writing to external ram while disabled: {:04x}={:02x}", addr, val
                 )
-            addr_within_ram = (self.ram_bank * 0x2000) + (addr - 0xA000)
+            bank = self.ram_bank * RAM_BANK_SIZE
+            offset = addr - 0xA000
             if self.debug:
                 print(
                     "Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",
-                    addr_within_ram,
+                    bank + offset,
                     val,
                     self.ram_bank,
                     (addr - 0xA000),
                 )
-            if addr_within_ram >= self.cart.ram_size:
+            if bank + offset >= self.cart.ram_size:
                 # raise Exception!("Writing beyond RAM limit")
                 return
-            raise Exception("Cart RAM not supported")  # TODO
-            # self.cart.ram[addr_within_ram] = val
+            self.cart.ram[bank + offset] = val
         elif addr < 0xD000:
             # work RAM, bank 0
             pass

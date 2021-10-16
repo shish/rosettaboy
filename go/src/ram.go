@@ -4,6 +4,9 @@ import (
 	"io/ioutil"
 )
 
+const ROM_BANK_SIZE = 0x4000
+const RAM_BANK_SIZE = 0x2000
+
 type RAM struct {
 	cart  *Cart
 	boot  []byte
@@ -176,7 +179,7 @@ func (self *RAM) get(addr uint16) uint8 {
 		// Switchable ROM bank
 		// TODO: array bounds check
 		var offset = addr - 0x4000
-		var bank = 0x4000 * int(self.rom_bank)
+		var bank = int(self.rom_bank) * ROM_BANK_SIZE
 		return self.cart.data[int(bank)+int(offset)]
 	case addr < 0xA000:
 		// VRAM
@@ -185,7 +188,7 @@ func (self *RAM) get(addr uint16) uint8 {
 		if !self.ram_enable {
 			panic("Reading from external ram while disabled: {:04X}") // addr,
 		}
-		var addr_within_ram = (int(self.ram_bank) * 0x2000) + (int(addr) - 0xA000)
+		var addr_within_ram = (int(self.ram_bank) * RAM_BANK_SIZE) + (int(addr) - 0xA000)
 		if addr_within_ram > self.cart.ram_size {
 			// this should never happen because we die on ram_bank being
 			// set to a too-large value
@@ -227,10 +230,10 @@ func (self *RAM) set(addr uint16, val uint8) {
 		self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low
 		if self.debug {
 			print(
-				"rom_bank set to {}/{}", self.rom_bank, self.cart.rom_size/0x4000,
+				"rom_bank set to {}/{}", self.rom_bank, self.cart.rom_size/ROM_BANK_SIZE,
 			)
 		}
-		if int(self.rom_bank)*0x4000 > int(self.cart.rom_size) {
+		if int(self.rom_bank)*ROM_BANK_SIZE > int(self.cart.rom_size) {
 			panic("Set rom_bank beyond the size of ROM")
 		}
 	case addr < 0x6000:
@@ -240,10 +243,10 @@ func (self *RAM) set(addr uint16, val uint8) {
 				print(
 					"ram_bank set to {}/{}",
 					self.ram_bank,
-					self.cart.ram_size/0x2000,
+					self.cart.ram_size/RAM_BANK_SIZE,
 				)
 			}
-			if int(self.ram_bank)*0x2000 > int(self.cart.ram_size) {
+			if int(self.ram_bank)*RAM_BANK_SIZE > int(self.cart.ram_size) {
 				panic("Set ram_bank beyond the size of RAM")
 			}
 		} else {
@@ -253,10 +256,10 @@ func (self *RAM) set(addr uint16, val uint8) {
 				print(
 					"rom_bank set to {}/{}",
 					self.rom_bank,
-					self.cart.rom_size/0x4000,
+					self.cart.rom_size/ROM_BANK_SIZE,
 				)
 			}
-			if int(self.rom_bank)*0x4000 > int(self.cart.rom_size) {
+			if int(self.rom_bank)*ROM_BANK_SIZE > int(self.cart.rom_size) {
 				panic("Set rom_bank beyond the size of ROM")
 			}
 		}
@@ -274,7 +277,7 @@ func (self *RAM) set(addr uint16, val uint8) {
 			panic("Writing to external ram while disabled: {:04x}={:02x}")
 			// , addr, val,
 		}
-		var addr_within_ram = (int(self.ram_bank) * 0x2000) + (int(addr) - 0xA000)
+		var addr_within_ram = (int(self.ram_bank) * RAM_BANK_SIZE) + (int(addr) - 0xA000)
 		if self.debug {
 			print(
 				"Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",

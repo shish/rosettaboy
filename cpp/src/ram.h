@@ -5,6 +5,9 @@
 #include "consts.h"
 #include "cart.h"
 
+const u16 ROM_BANK_SIZE = 0x4000;
+const u16 RAM_BANK_SIZE = 0x2000;
+
 class RAM {
 private:
     Cart *cart;
@@ -46,9 +49,8 @@ inline u8 RAM::get(u16 addr) {
     }
     case 0x4000 ... 0x7FFF: {
         // Switchable ROM bank
-        // TODO: array bounds check
-        int bank = (0x4000 * this->rom_bank);
-        int offset = (addr - 0x4000);
+        int bank = this->rom_bank * ROM_BANK_SIZE;
+        int offset = addr - 0x4000;
         // printf("fetching %04X from bank %04X (total = %04X)\n", offset, bank, offset + bank);
         return this->cart->data[bank + offset];
         break;
@@ -62,16 +64,9 @@ inline u8 RAM::get(u16 addr) {
             printf("ERR: Reading from external ram while disabled: %04X\n", addr);
             return 0;
         }
-        u32 addr_within_ram = (this->ram_bank * 0x2000) + (addr - 0xA000);
-        if(addr_within_ram > this->cart->ram_size) {
-            // this should never happen because we die on ram_bank being
-            // set to a too-large value
-            printf(
-                    "ERR: Reading from external ram beyond limit: %04X (%02X:%04X)\n",
-                    addr_within_ram, this->ram_bank, (addr - 0xA000));
-            throw std::invalid_argument("Reading beyond RAM limit");
-        }
-        return this->cart->ram[addr_within_ram];
+        int bank = this->ram_bank * RAM_BANK_SIZE;
+        int offset = addr - 0xA000;
+        return this->cart->ram[bank + offset];
         break;
     }
     case 0xC000 ... 0xCFFF:
@@ -117,8 +112,8 @@ inline void RAM::set(u16 addr, u8 val) {
     case 0x2000 ... 0x3FFF: {
         this->rom_bank_low = val;
         this->rom_bank = (this->rom_bank_high << 5) | this->rom_bank_low;
-        if(this->debug) printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/0x4000);
-        if(this->rom_bank * 0x4000 > this->cart->rom_size) {
+        if(this->debug) printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/ROM_BANK_SIZE);
+        if(this->rom_bank * ROM_BANK_SIZE > this->cart->rom_size) {
             throw std::invalid_argument("Set rom_bank beyond the size of ROM");
         }
         break;
@@ -126,16 +121,16 @@ inline void RAM::set(u16 addr, u8 val) {
     case 0x4000 ... 0x5FFF: {
         if(this->ram_bank_mode) {
             this->ram_bank = val;
-            if(this->debug) printf("ram_bank set to %d/%d\n", this->ram_bank, this->cart->ram_size/0x2000);
-            if(this->ram_bank * 0x2000 > this->cart->ram_size) {
+            if(this->debug) printf("ram_bank set to %d/%d\n", this->ram_bank, this->cart->ram_size/RAM_BANK_SIZE);
+            if(this->ram_bank * RAM_BANK_SIZE > this->cart->ram_size) {
                 throw std::invalid_argument("Set ram_bank beyond the size of RAM");
             }
         }
         else {
             this->rom_bank_high = val;
             this->rom_bank = (this->rom_bank_high << 5) | this->rom_bank_low;
-            if(this->debug) printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/0x4000);
-            if(this->rom_bank * 0x4000 > this->cart->rom_size) {
+            if(this->debug) printf("rom_bank set to %d/%d\n", this->rom_bank, this->cart->rom_size/ROM_BANK_SIZE);
+            if(this->rom_bank * ROM_BANK_SIZE > this->cart->rom_size) {
                 throw std::invalid_argument("Set rom_bank beyond the size of ROM");
             }
         }
@@ -156,14 +151,15 @@ inline void RAM::set(u16 addr, u8 val) {
             //printf("ERR: Writing to external ram while disabled: %04X=%02X\n", addr, val);
             return;
         }
-        u32 addr_within_ram = (this->ram_bank * 0x2000) + (addr - 0xA000);
+        int bank = this->ram_bank * RAM_BANK_SIZE;
+        int offset = addr - 0xA000;
         if(this->debug) printf(
                 "Writing external RAM: %04X=%02X (%02X:%04X)\n",
-                addr_within_ram, val, this->ram_bank, (addr - 0xA000));
-        if(addr_within_ram > this->cart->ram_size) {
+                bank + offset, val, this->ram_bank, (addr - 0xA000));
+        if(bank + offset > this->cart->ram_size) {
             throw std::invalid_argument("Writing beyond RAM limit");
         }
-        this->cart->ram[addr_within_ram] = val;
+        this->cart->ram[bank + offset] = val;
         break;
     }
     case 0xC000 ... 0xCFFF:
