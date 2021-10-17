@@ -48,6 +48,11 @@ GPU::GPU(CPU *cpu, char *title, bool headless, bool debug) {
                                SDL_TEXTUREACCESS_STREAMING,
                                w, h);
     }
+    else {
+        this->hw_window = nullptr;
+        this->hw_renderer = nullptr;
+        this->hw_buffer = nullptr;
+    }
     this->buffer = SDL_CreateRGBSurface(0, w, h, 32, rmask, gmask, bmask, amask);
     this->renderer = SDL_CreateSoftwareRenderer(this->buffer);
 
