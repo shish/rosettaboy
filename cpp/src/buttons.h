@@ -2,8 +2,9 @@
 #define ROSETTABOY_BUTTONS_H
 
 #include <SDL2/SDL.h>
-#include "cpu.h"
+
 #include "consts.h"
+#include "cpu.h"
 
 namespace Joypad {
     const u8 MODE_BUTTONS = 1 << 5;
@@ -16,7 +17,7 @@ namespace Joypad {
     const u8 B = 1 << 1;
     const u8 RIGHT = 1 << 0;
     const u8 A = 1 << 0;
-}
+} // namespace Joypad
 
 class Buttons {
 private:
@@ -43,4 +44,4 @@ private:
     void update_buttons();
 };
 
-#endif //ROSETTABOY_BUTTONS_H
+#endif // ROSETTABOY_BUTTONS_H

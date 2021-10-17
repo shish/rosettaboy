@@ -22,16 +22,12 @@ bool Clock::tick() {
         // Exit if we've hit the frame limit
         if(this->profile != 0 && this->frame > this->profile) {
             auto duration = (double)(SDL_GetTicks() - this->start) / 1000.0;
-            printf(
-                "Emulated %d frames in %.2fs (%.2ffps)\n",
-                this->profile, duration,
-                this->profile / duration
-            );
+            printf("Emulated %d frames in %.2fs (%.2ffps)\n", this->profile, duration, this->profile / duration);
             return false;
         }
 
         this->frame++;
     }
-    
+
     return true;
 }

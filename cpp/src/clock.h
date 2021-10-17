@@ -2,6 +2,7 @@
 #define ROSETTABOY_CLOCK_H
 
 #include <SDL2/SDL.h>
+
 #include "buttons.h"
 #include "consts.h"
 
@@ -14,10 +15,11 @@ private:
     int start = SDL_GetTicks();
     int profile = 0;
     bool turbo = false;
+
 public:
     Clock(Buttons *buttons, int profile, bool turbo);
     ~Clock();
     bool tick();
 };
 
-#endif //ROSETTABOY_CLOCK_H
+#endif // ROSETTABOY_CLOCK_H

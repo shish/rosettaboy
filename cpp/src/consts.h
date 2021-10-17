@@ -3,14 +3,13 @@
 
 #include <string>
 
-typedef unsigned char   u8;
-typedef unsigned short  u16;
-typedef unsigned int    u32;
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned int u32;
 
-typedef char            i8;
-typedef short           i16;
-typedef int             i32;
-
+typedef char i8;
+typedef short i16;
+typedef int i32;
 
 namespace Mem {
     const u16 VBLANK_HANDLER = 0x40;
@@ -25,7 +24,7 @@ namespace Mem {
     const u16 OAM_BASE = 0xFE00;
 
     const u16 JOYP = 0xFF00;
-    
+
     const u16 SB = 0xFF01; // Serial Data
     const u16 SC = 0xFF02; // Serial Control
 
@@ -66,8 +65,8 @@ namespace Mem {
 
     const u16 LCDC = 0xFF40;
     const u16 STAT = 0xFF41;
-    const u16 SCY = 0xFF42;  // SCROLL_Y
-    const u16 SCX = 0xFF43;  // SCROLL_X
+    const u16 SCY = 0xFF42; // SCROLL_Y
+    const u16 SCX = 0xFF43; // SCROLL_X
     const u16 LY = 0xFF44;  // LY aka currently drawn line, 0-153, >144 = vblank
     const u16 LYC = 0xFF45;
     const u16 DMA = 0xFF46;
@@ -80,7 +79,7 @@ namespace Mem {
     const u16 BOOT = 0xFF50;
 
     const u16 IE = 0xFFFF;
-}
+} // namespace Mem
 
 namespace Interrupt {
     enum Interrupt {
@@ -92,4 +91,4 @@ namespace Interrupt {
     };
 }
 
-#endif //ROSETTABOY_CONSTS_H
+#endif // ROSETTABOY_CONSTS_H

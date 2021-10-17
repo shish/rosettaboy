@@ -7,6 +7,17 @@ on:
   workflow_dispatch:
 
 jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Deps
+      run: sudo apt-get update && sudo apt-get install -y clang-format-10
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Check
+      working-directory: cpp
+      run: clang-format-10 $(find src -type f | grep -v args.h) --dry-run --ferror-limit 10 -Werror
   build:
     name: Build
     runs-on: ubuntu-latest

@@ -6,31 +6,30 @@
  * logo scrolling or DRM.
  */
 u8 BOOT[0x100] = {
-        // prod memory
-        0x31, 0xFE, 0xFF,  // LD SP,$FFFE
+    // prod memory
+    0x31, 0xFE, 0xFF, // LD SP,$FFFE
 
-        // enable LCD
-        0x3E, 0x91, // LD A,$91
-        0xE0, 0x40, // LDH [Mem::LCDC], A
+    // enable LCD
+    0x3E, 0x91, // LD A,$91
+    0xE0, 0x40, // LDH [Mem::LCDC], A
 
-        // set flags
-        0x3E, 0x01,  // LD A,$01
-        0xCB, 0x7F,  // BIT 7,A (sets Z,n,H)
-        0x37,        // SCF (sets C)
+    // set flags
+    0x3E, 0x01, // LD A,$01
+    0xCB, 0x7F, // BIT 7,A (sets Z,n,H)
+    0x37,       // SCF (sets C)
 
-        // set registers
-        0x3E, 0x01,  // LD A,$01
-        0x06, 0x00,  // LD B,$00
-        0x0E, 0x13,  // LD C,$13
-        0x16, 0x00,  // LD D,$00
-        0x1E, 0xD8,  // LD E,$D8
-        0x26, 0x01,  // LD H,$01
-        0x2E, 0x4D,  // LD L,$4D
+    // set registers
+    0x3E, 0x01, // LD A,$01
+    0x06, 0x00, // LD B,$00
+    0x0E, 0x13, // LD C,$13
+    0x16, 0x00, // LD D,$00
+    0x1E, 0xD8, // LD E,$D8
+    0x26, 0x01, // LD H,$01
+    0x2E, 0x4D, // LD L,$4D
 
-        // skip to the end of the bootloader
-        0xC3, 0xFD, 0x00,  // JP 0x00FD
+    // skip to the end of the bootloader
+    0xC3, 0xFD, 0x00, // JP 0x00FD
 };
-
 
 RAM::RAM(Cart *cart) {
     this->cart = cart;
@@ -57,6 +56,6 @@ RAM::RAM(Cart *cart) {
 
 void RAM::dump() {
     FILE *fp = fopen("mem.dat", "wb");
-    fwrite(this->data, sizeof(u8), 0xFFFF+1, fp);
+    fwrite(this->data, sizeof(u8), 0xFFFF + 1, fp);
     fclose(fp);
 }

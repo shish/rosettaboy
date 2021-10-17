@@ -2,6 +2,7 @@
 #define ROSETTABOY_CART_H
 
 #include <cstdint>
+
 #include "consts.h"
 
 enum CartType {
@@ -52,7 +53,7 @@ public:
     unsigned char *ram = nullptr;
 
     u8 logo[48];
-    char name[15];
+    char name[16];
     bool is_gbc;
     u16 licensee;
     bool is_sgb;
@@ -71,4 +72,4 @@ private:
     bool debug = false;
 };
 
-#endif //ROSETTABOY_CART_H
+#endif // ROSETTABOY_CART_H

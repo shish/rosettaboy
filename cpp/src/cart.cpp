@@ -1,12 +1,12 @@
 #include <cstring>
-#include <iostream>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <iostream>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
-#include "consts.h"
 #include "cart.h"
+#include "consts.h"
 
 using namespace std;
 
@@ -49,11 +49,11 @@ Cart::Cart(const char *filename) {
 
     if(debug) cout << "Reading " << statbuf.st_size << " bytes of cart data from " << filename << "\n";
     int fd = open(filename, O_RDONLY);
-    this->data = (unsigned char*)mmap(nullptr, (size_t)statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    this->data = (unsigned char *)mmap(nullptr, (size_t)statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
 
     memcpy(this->logo, this->data + 0x0104, 48);
     memcpy(this->name, this->data + 0x0134, 16);
-    this->is_gbc = this->data[0x143] == 0x80;  // 0x80 = works on both, 0xC0 = colour only
+    this->is_gbc = this->data[0x143] == 0x80; // 0x80 = works on both, 0xC0 = colour only
     this->licensee = this->data[0x144] << 8 | this->data[0x145];
     this->is_sgb = this->data[0x146] == 0x03;
     this->cart_type = CartType(this->data[0x147]);
@@ -74,7 +74,7 @@ Cart::Cart(const char *filename) {
     }
 
     u16 header_checksum = 25;
-    for(int i=0x0134; i<0x014E; i++) {
+    for(int i = 0x0134; i < 0x014E; i++) {
         header_checksum += this->data[i];
     }
     if((header_checksum & 0xFF) != 0) {
@@ -83,12 +83,13 @@ Cart::Cart(const char *filename) {
 
     if(this->ram_size) {
         string fn2 = filename;
-        fn2.replace(fn2.end() - 2,fn2.end(), "sav");
-        int ram_fd = open(fn2.c_str(), O_RDWR|O_CREAT, 0600);
+        fn2.replace(fn2.end() - 2, fn2.end(), "sav");
+        int ram_fd = open(fn2.c_str(), O_RDWR | O_CREAT, 0600);
         if(ftruncate(ram_fd, this->ram_size) != 0) {
             cout << "Truncate for .sav file failed\n";
         }
-        this->ram = (unsigned char*)mmap(nullptr, (size_t)statbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, ram_fd, 0);
+        this->ram =
+            (unsigned char *)mmap(nullptr, (size_t)statbuf.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, ram_fd, 0);
     }
 
     if(debug) {
@@ -99,8 +100,8 @@ Cart::Cart(const char *filename) {
         printf("old_licensee : %d\n", old_licensee);
         printf("destination  : %d\n", destination);
         printf("cart_type    : %d\n", cart_type);
-        printf("rom_size     : %d\n", rom_size);
-        printf("ram_size     : %d\n", ram_size);
+        printf("rom_size     : %u\n", rom_size);
+        printf("ram_size     : %u\n", ram_size);
         printf("rom_version  : %d\n", rom_version);
         printf("ccheck       : %d\n", complement_check);
         printf("checksum     : %d\n", checksum);

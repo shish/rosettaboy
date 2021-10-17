@@ -2,12 +2,12 @@
 
 #include "args.h"
 
+#include "apu.h"
+#include "buttons.h"
 #include "cart.h"
+#include "clock.h"
 #include "cpu.h"
 #include "gpu.h"
-#include "buttons.h"
-#include "apu.h"
-#include "clock.h"
 
 using namespace std;
 
@@ -23,10 +23,18 @@ int main(int argc, char *argv[]) {
     args::Flag turbo(parser, "turbo", "No sleep between frames", {'t', "turbo"});
     args::Positional<std::string> rom(parser, "rom", "Path to a .gb file");
     args::CompletionFlag completion(parser, {"complete"});
-    try { parser.ParseCLI(argc, argv); }
-    catch (args::Completion e) { std::cout << e.what(); return 0; }
-    catch (args::Help) { std::cout << parser; return 0; }
-    catch (args::ParseError e) { std::cerr << e.what() << std::endl << parser; return 1; }
+    try {
+        parser.ParseCLI(argc, argv);
+    } catch(args::Completion e) {
+        std::cout << e.what();
+        return 0;
+    } catch(args::Help) {
+        std::cout << parser;
+        return 0;
+    } catch(args::ParseError e) {
+        std::cerr << e.what() << std::endl << parser;
+        return 1;
+    }
 
     Cart *cart = nullptr;
     RAM *ram = nullptr;

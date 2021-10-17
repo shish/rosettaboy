@@ -10,12 +10,12 @@ Buttons::Buttons(CPU *cpu, bool headless) {
 bool Buttons::tick() {
     this->cycle++;
     this->update_buttons();
-    if (this->need_interrupt) {
+    if(this->need_interrupt) {
         this->cpu->stop = false;
         this->cpu->interrupt(Interrupt::JOYPAD);
         this->need_interrupt = false;
     }
-    if (this->cycle % 17556 == 20) {
+    if(this->cycle % 17556 == 20) {
         return this->handle_inputs();
     } else {
         return true;
@@ -47,8 +47,8 @@ bool Buttons::handle_inputs() {
 
     SDL_Event event;
 
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) {
+    while(SDL_PollEvent(&event)) {
+        if(event.type == SDL_QUIT) {
             return false;
         }
         if(event.type == SDL_KEYDOWN) {
@@ -56,7 +56,7 @@ bool Buttons::handle_inputs() {
             if(event.key.keysym.sym == SDLK_LSHIFT) this->turbo = true;
 
             this->need_interrupt = true;
-            switch (event.key.keysym.sym) {
+            switch(event.key.keysym.sym) {
                 case SDLK_UP: this->up = true; break;
                 case SDLK_DOWN: this->down = true; break;
                 case SDLK_LEFT: this->left = true; break;
@@ -71,7 +71,7 @@ bool Buttons::handle_inputs() {
         if(event.type == SDL_KEYUP) {
             if(event.key.keysym.sym == SDLK_LSHIFT) this->turbo = false;
 
-            switch (event.key.keysym.sym) {
+            switch(event.key.keysym.sym) {
                 case SDLK_UP: this->up = false; break;
                 case SDLK_DOWN: this->down = false; break;
                 case SDLK_LEFT: this->left = false; break;
