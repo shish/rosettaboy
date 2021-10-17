@@ -430,8 +430,8 @@ func (self *GPU) paint_tile_line(
 	var low_byte uint8 = self.cpu.ram.get(addr)
 	var high_byte uint8 = self.cpu.ram.get(addr + 1)
 	for x := 0; x < 8; x++ {
-		var low_bit uint8 = (low_byte >> (7 - x)) & 0x01
-		var high_bit uint8 = (high_byte >> (7 - x)) & 0x01
+		var low_bit uint8 = (low_byte >> (7 - uint8(x))) & 0x01
+		var high_bit uint8 = (high_byte >> (7 - uint8(x))) & 0x01
 		var px uint8 = (high_bit << 1) | low_bit
 		// pallette #0 = transparent, so don't draw anything
 		if px > 0 {
