@@ -232,8 +232,8 @@ private:
     void push(u16 val);
     u16 pop();
 
-    u8 get_reg(int n);
-    void set_reg(int n, u8 val);
+    u8 get_reg(u8 n);
+    void set_reg(u8 n, u8 val);
 };
 
 #endif // ROSETTABOY_CPU_H

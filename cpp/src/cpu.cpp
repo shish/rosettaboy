@@ -344,7 +344,7 @@ void CPU::tick_main(u8 op) {
                 this->halt = true;
                 break;
             }
-            this->set_reg((op - 0x40)/8, this->get_reg((op - 0x40)%8));
+            this->set_reg((op - 0x40)/8, this->get_reg(op - 0x40));
             break;
 
         case 0x80 ... 0x87: this->_add(this->get_reg(op)); break;
@@ -468,7 +468,7 @@ void CPU::tick_main(u8 op) {
 void CPU::tick_cb(u8 op) {
     u8 val, orig_c, bit;
 
-    val = this->get_reg(op & 0x07);
+    val = this->get_reg(op);
     switch(op & 0xF8) {
         // RLC
         case 0x00 ... 0x07:
@@ -573,7 +573,7 @@ void CPU::tick_cb(u8 op) {
         // Should never get here
         default: printf("Op CB %02X not implemented\n", op); throw std::invalid_argument("Op not implemented");
     }
-    this->set_reg(op & 0x07, val);
+    this->set_reg(op, val);
 }
 
 void CPU::_xor(u8 val) {
@@ -657,9 +657,8 @@ u16 CPU::pop() {
     return val;
 }
 
-u8 CPU::get_reg(int n) {
-    n = n % 8;
-    switch(n) {
+u8 CPU::get_reg(u8 n) {
+    switch(n & 0x07) {
         case 0: return this->B; break;
         case 1: return this->C; break;
         case 2: return this->D; break;
@@ -672,8 +671,8 @@ u8 CPU::get_reg(int n) {
     }
 }
 
-void CPU::set_reg(int n, u8 val) {
-    switch(n) {
+void CPU::set_reg(u8 n, u8 val) {
+    switch(n & 0x07) {
         case 0: this->B = val; break;
         case 1: this->C = val; break;
         case 2: this->D = val; break;

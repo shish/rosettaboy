@@ -578,7 +578,7 @@ func (self *CPU) tick_main(op uint8) {
 			self.halt = true
 			break
 		}
-		self.set_reg((op-0x40)/8, self.get_reg((op-0x40)%8))
+		self.set_reg((op-0x40)/8, self.get_reg(op-0x40))
 
 	case 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87:
 		self._add(self.get_reg(op))
@@ -793,7 +793,7 @@ func (self *CPU) tick_cb(op uint8) {
 	var val, bit uint8
 	var orig_c bool
 
-	val = self.get_reg(op & 0x07)
+	val = self.get_reg(op)
 	switch {
 	// RLC
 	case op <= 0x07:
@@ -899,7 +899,7 @@ func (self *CPU) tick_cb(op uint8) {
 		println("Op CB %02X not implemented\n", op)
 		panic("Op not implemented")
 	}
-	self.set_reg(op&0x07, val)
+	self.set_reg(op, val)
 }
 
 func (self *CPU) _xor(val uint8) {
@@ -987,8 +987,7 @@ func (self *CPU) pop() uint16 {
 }
 
 func (self *CPU) get_reg(n uint8) uint8 {
-	n = n % 8
-	switch n {
+	switch n & 0x07 {
 	case 0:
 		return self.B
 	case 1:
@@ -1011,7 +1010,7 @@ func (self *CPU) get_reg(n uint8) uint8 {
 	}
 }
 func (self *CPU) set_reg(n uint8, val uint8) {
-	switch n {
+	switch n & 0x07 {
 	case 0:
 		self.B = val
 		break

@@ -219,38 +219,6 @@ impl CPU {
         }
     }
 
-    fn get_reg(&self, n: u8, ram: &ram::RAM) -> u8 {
-        unsafe {
-            match n % 8 {
-                0 => self.regs.r8.b,
-                1 => self.regs.r8.c,
-                2 => self.regs.r8.d,
-                3 => self.regs.r8.e,
-                4 => self.regs.r8.h,
-                5 => self.regs.r8.l,
-                6 => ram.get(self.regs.r16.hl),
-                7 => self.regs.r8.a,
-                _ => panic!("Invalid register {}", n),
-            }
-        }
-    }
-
-    fn set_reg(&mut self, n: u8, val: u8, ram: &mut ram::RAM) {
-        unsafe {
-            match n % 8 {
-                0 => self.regs.r8.b = val,
-                1 => self.regs.r8.c = val,
-                2 => self.regs.r8.d = val,
-                3 => self.regs.r8.e = val,
-                4 => self.regs.r8.h = val,
-                5 => self.regs.r8.l = val,
-                6 => ram.set(self.regs.r16.hl, val),
-                7 => self.regs.r8.a = val,
-                _ => panic!("Invalid register {}", n),
-            }
-        }
-    }
-
     /**
      * Set a given interrupt bit - on the next tick, if the interrupt
      * handler for this interrupt is enabled (and interrupts in general
@@ -722,7 +690,7 @@ impl CPU {
                         // FIXME: weird timing side effects
                         self.halt = true;
                     }
-                    self.set_reg((op - 0x40) / 8, self.get_reg((op - 0x40) % 8, ram), ram);
+                    self.set_reg((op - 0x40) / 8, self.get_reg(op - 0x40, ram), ram);
                 }
 
                 // <math> <reg>
@@ -973,7 +941,7 @@ impl CPU {
      * data based on the 3 again.
      */
     fn tick_cb(&mut self, ram: &mut ram::RAM, op: u8) {
-        let mut val = self.get_reg(op & 0x07, ram);
+        let mut val = self.get_reg(op, ram);
         match op & 0xF8 {
             // RLC
             0x00..=0x07 => {
@@ -1085,7 +1053,7 @@ impl CPU {
                 val |= 1 << bit;
             }
         }
-        self.set_reg(op & 0x07, val, ram);
+        self.set_reg(op, val, ram);
     }
 
     fn _xor(&mut self, val: u8) {
@@ -1197,5 +1165,37 @@ impl CPU {
         let val = ((ram.get(self.sp + 1) as u16) << 8) | ram.get(self.sp) as u16;
         self.sp += 2;
         return val;
+    }
+
+    fn get_reg(&self, n: u8, ram: &ram::RAM) -> u8 {
+        unsafe {
+            match n & 0x07 {
+                0 => self.regs.r8.b,
+                1 => self.regs.r8.c,
+                2 => self.regs.r8.d,
+                3 => self.regs.r8.e,
+                4 => self.regs.r8.h,
+                5 => self.regs.r8.l,
+                6 => ram.get(self.regs.r16.hl),
+                7 => self.regs.r8.a,
+                _ => panic!("Invalid register {}", n),
+            }
+        }
+    }
+
+    fn set_reg(&mut self, n: u8, val: u8, ram: &mut ram::RAM) {
+        unsafe {
+            match n & 0x07 {
+                0 => self.regs.r8.b = val,
+                1 => self.regs.r8.c = val,
+                2 => self.regs.r8.d = val,
+                3 => self.regs.r8.e = val,
+                4 => self.regs.r8.h = val,
+                5 => self.regs.r8.l = val,
+                6 => ram.set(self.regs.r16.hl, val),
+                7 => self.regs.r8.a = val,
+                _ => panic!("Invalid register {}", n),
+            }
+        }
     }
 }
