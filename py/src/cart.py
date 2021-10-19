@@ -50,30 +50,15 @@ class OldLicensee(Enum):
 
 
 KB: int = 1024
-MB: int = 1024 * 1024
 
 
 def parse_rom_size(val: int) -> int:
-    return {
-        0: 32 * KB,
-        1: 64 * KB,
-        2: 128 * KB,
-        3: 256 * KB,
-        4: 512 * KB,
-        5: 1 * MB,
-        6: 2 * MB,
-        7: 4 * MB,
-        8: 8 * MB,
-        0x52: 1 * MB + 128 * KB,
-        0x53: 1 * MB + 256 * KB,
-        0x54: 1 * MB + 512 * KB,
-    }.get(val, 0)
+    return (32 * KB) << val
 
 
 def parse_ram_size(val: int) -> int:
     return {
         0: 0,
-        1: 2 * KB,
         2: 8 * KB,
         3: 32 * KB,
         4: 128 * KB,

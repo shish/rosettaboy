@@ -23,45 +23,15 @@ type Cart struct {
 }
 
 const KB = 1024
-const MB = 1024 * 1024
 
 func parse_rom_size(val uint8) uint32 {
-	switch val {
-	case 0:
-		return 32 * KB
-	case 1:
-		return 64 * KB
-	case 2:
-		return 128 * KB
-	case 3:
-		return 256 * KB
-	case 4:
-		return 512 * KB
-	case 5:
-		return 1 * MB
-	case 6:
-		return 2 * MB
-	case 7:
-		return 4 * MB
-	case 8:
-		return 8 * MB
-	case 0x52:
-		return 1*MB + 128*KB
-	case 0x53:
-		return 1*MB + 256*KB
-	case 0x54:
-		return 1*MB + 512*KB
-	default:
-		return 0
-	}
+	return (32 * KB) << val;
 }
 
 func parse_ram_size(val uint8) uint32 {
 	switch val {
 	case 0:
 		return 0
-	case 1:
-		return 2 * KB
 	case 2:
 		return 8 * KB
 	case 3:

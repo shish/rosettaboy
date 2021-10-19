@@ -72,30 +72,14 @@ pub struct Cart {
 }
 
 const KB: u32 = 1024;
-const MB: u32 = 1024 * 1024;
 
 fn parse_rom_size(val: u8) -> u32 {
-    match val {
-        0 => 32 * KB,
-        1 => 64 * KB,
-        2 => 128 * KB,
-        3 => 256 * KB,
-        4 => 512 * KB,
-        5 => 1 * MB,
-        6 => 2 * MB,
-        7 => 4 * MB,
-        8 => 8 * MB,
-        0x52 => 1 * MB + 128 * KB,
-        0x53 => 1 * MB + 256 * KB,
-        0x54 => 1 * MB + 512 * KB,
-        _ => 0,
-    }
+    (32 * KB) << val
 }
 
 fn parse_ram_size(val: u8) -> u32 {
     match val {
         0 => 0,
-        1 => 2 * KB,
         2 => 8 * KB,
         3 => 32 * KB,
         4 => 128 * KB,
@@ -154,7 +138,7 @@ impl Cart {
         // FIXME: ram should be synced with .sav file
         let ram = vec![0; ram_size as usize];
 
-        let debug = false;
+        let debug = true;
         if debug {
             println!(
                 "name         : {:<16} rom_version  : {:<16}",

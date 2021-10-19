@@ -11,30 +11,14 @@
 using namespace std;
 
 #define KB 1024
-#define MB 1024 * 1024
 
 u32 parse_rom_size(u8 val) {
-    switch(val) {
-        case 0: return 32 * KB;
-        case 1: return 64 * KB;
-        case 2: return 128 * KB;
-        case 3: return 256 * KB;
-        case 4: return 512 * KB;
-        case 5: return 1 * MB;
-        case 6: return 2 * MB;
-        case 7: return 4 * MB;
-        case 8: return 8 * MB;
-        case 0x52: return 1.1 * MB;
-        case 0x53: return 1.2 * MB;
-        case 0x54: return 1.5 * MB;
-        default: return 0;
-    }
+    return (32 * KB) << val;
 }
 
 u32 parse_ram_size(u8 val) {
     switch(val) {
         case 0: return 0;
-        case 1: return 2 * KB;
         case 2: return 8 * KB;
         case 3: return 32 * KB;
         case 4: return 128 * KB;
