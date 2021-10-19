@@ -10,16 +10,16 @@ type Cart struct {
 	logo             []byte
 	name             string
 	is_gbc           bool
-	licensee         int
+	licensee         uint16
 	is_sgb           bool
-	cart_type        int // CartType
-	rom_size         int
-	ram_size         int
-	destination      int // Destination
-	old_licensee     int // OldLicensee
-	rom_version      int
-	complement_check int
-	checksum         int
+	cart_type        uint8 // CartType
+	rom_size         uint32
+	ram_size         uint32
+	destination      uint8 // Destination
+	old_licensee     uint8 // OldLicensee
+	rom_version      uint8
+	complement_check uint8
+	checksum         uint16
 }
 
 const KB = 1024
@@ -86,15 +86,15 @@ func NewCart(rom string) (*Cart, error) {
 		logo,
 		string(name),
 		is_gbc,
-		int(licensee),
+		licensee,
 		is_sgb,
-		int(cart_type),
-		int(rom_size),
-		int(ram_size),
-		int(destination),
-		int(old_licensee),
-		int(rom_version),
-		int(complement_check),
-		int(checksum),
+		cart_type,
+		rom_size,
+		ram_size,
+		destination,
+		old_licensee,
+		rom_version,
+		complement_check,
+		checksum,
 	}, nil
 }
