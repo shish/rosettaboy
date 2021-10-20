@@ -9,10 +9,8 @@ on:
 jobs:
   format:
     name: Format
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y clang-format-12
     - name: Checkout
       uses: actions/checkout@v2
     - name: Check

@@ -1,0 +1,10 @@
+BasedOnStyle: llvm
+IndentWidth: 4
+ColumnLimit: 120
+AllowShortIfStatementsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+NamespaceIndentation: All
+IndentCaseLabels: true
+AccessModifierOffset: -4
+AlignAfterOpenBracket: AlwaysBreak
+SpaceBeforeParens: Never
