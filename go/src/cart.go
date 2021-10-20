@@ -25,7 +25,7 @@ type Cart struct {
 const KB = 1024
 
 func parse_rom_size(val uint8) uint32 {
-	return (32 * KB) << val;
+	return (32 * KB) << val
 }
 
 func parse_ram_size(val uint8) uint32 {
