@@ -36,19 +36,6 @@ class CartType(Enum):
     HUDSON_HUC1 = 0xFF
 
 
-class Destination(Enum):
-    JP = 0
-    OTHER = 1
-
-
-class OldLicensee(Enum):
-    MAYBE_NOBODY = 0x00
-    MAYBE_NINTENDO = 0x01
-    CHECK_NEW = 0x33
-    ACCOLADE = 0x79
-    KONAMI = 0xA4
-
-
 KB: int = 1024
 
 
@@ -81,8 +68,8 @@ class Cart:
         self.cart_type: CartType
         self.rom_size: int
         self.ram_size: int
-        self.destination: Destination
-        self.old_licensee: OldLicensee
+        self.destination: int
+        self.old_licensee: int
         self.rom_version: int
         self.complement_check: int
         self.checksum: int
@@ -98,8 +85,8 @@ class Cart:
             ("B", "cart_type", lambda x: CartType(x)),
             ("B", "rom_size", lambda x: parse_rom_size(x)),
             ("B", "ram_size", lambda x: parse_ram_size(x)),
-            ("B", "destination", lambda x: Destination(x)),
-            ("B", "old_licensee", lambda x: OldLicensee(x)),
+            ("B", "destination", None),
+            ("B", "old_licensee", None),
             ("B", "rom_version", None),
             ("B", "complement_check", None),
             # Checksum (higher byte first) produced by

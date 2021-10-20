@@ -43,8 +43,8 @@ Cart::Cart(const char *filename) {
     this->cart_type = CartType(this->data[0x147]);
     this->rom_size = parse_rom_size(this->data[0x148]);
     this->ram_size = parse_ram_size(this->data[0x149]);
-    this->destination = Destination(this->data[0x14A]);
-    this->old_licensee = OldLicensee(this->data[0x14B]);
+    this->destination = this->data[0x14A];
+    this->old_licensee = this->data[0x14B];
     this->rom_version = this->data[0x14C];
     this->complement_check = this->data[0x14D];
     this->checksum = this->data[0x14E] << 8 | this->data[0x14F];

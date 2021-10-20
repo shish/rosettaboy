@@ -34,19 +34,6 @@ enum CartType {
     HUDSON_HUC1 = 0xFF,
 };
 
-enum Destination {
-    JP = 0,
-    OTHER = 1,
-};
-
-enum OldLicensee {
-    MAYBE_NOBODY = 0x00,
-    MAYBE_NINTENDO = 0x01,
-    CHECK_NEW = 0x33,
-    ACCOLADE = 0x79,
-    KONAMI = 0xA4,
-};
-
 class Cart {
 public:
     unsigned char *data;
@@ -60,8 +47,8 @@ public:
     CartType cart_type;
     u32 rom_size;
     u32 ram_size;
-    Destination destination;
-    OldLicensee old_licensee;
+    u8 destination;
+    u8 old_licensee;
     u8 rom_version;
     u8 complement_check;
     u16 checksum;

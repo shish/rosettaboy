@@ -12,11 +12,11 @@ type Cart struct {
 	is_gbc           bool
 	licensee         uint16
 	is_sgb           bool
-	cart_type        uint8 // CartType
+	cart_type        uint8 // TODO: CartType enum
 	rom_size         uint32
 	ram_size         uint32
-	destination      uint8 // Destination
-	old_licensee     uint8 // OldLicensee
+	destination      uint8
+	old_licensee     uint8
 	rom_version      uint8
 	complement_check uint8
 	checksum         uint16
