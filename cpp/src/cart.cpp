@@ -12,9 +12,7 @@ using namespace std;
 
 #define KB 1024
 
-u32 parse_rom_size(u8 val) {
-    return (32 * KB) << val;
-}
+u32 parse_rom_size(u8 val) { return (32 * KB) << val; }
 
 u32 parse_ram_size(u8 val) {
     switch(val) {
