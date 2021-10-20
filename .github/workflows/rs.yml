@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         toolchain: ["1.53.0"]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - name: Install Deps
       run: sudo apt-get update && sudo apt-get install -y gcc libsdl2-dev
