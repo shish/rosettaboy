@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - 'go/**'
+    - '.github/workflows/go.yml'
   workflow_dispatch:
 
 jobs:

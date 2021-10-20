@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - 'cpp/**'
+    - '.github/workflows/cpp.yml'
   workflow_dispatch:
 
 jobs:

@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - 'rs/**'
+    - '.github/workflows/rs.yml'
   workflow_dispatch:
 
 jobs:
