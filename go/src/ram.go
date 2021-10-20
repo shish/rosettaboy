@@ -188,9 +188,9 @@ func (self *RAM) get(addr uint16) uint8 {
 		if !self.ram_enable {
 			panic("Reading from external ram while disabled: {:04X}") // addr,
 		}
-		var bank = uint32(self.ram_bank) * RAM_BANK_SIZE;
+		var bank = uint32(self.ram_bank) * RAM_BANK_SIZE
 		var offset = uint32(addr) - 0xA000
-		if bank + offset > self.cart.ram_size {
+		if bank+offset > self.cart.ram_size {
 			// this should never happen because we die on ram_bank being
 			// set to a too-large value
 			panic("Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})")
@@ -278,18 +278,18 @@ func (self *RAM) set(addr uint16, val uint8) {
 			panic("Writing to external ram while disabled: {:04x}={:02x}")
 			// , addr, val,
 		}
-		var bank = uint32(self.ram_bank) * RAM_BANK_SIZE;
-		var offset = uint32(addr) - 0xA000;
+		var bank = uint32(self.ram_bank) * RAM_BANK_SIZE
+		var offset = uint32(addr) - 0xA000
 		if self.debug {
 			print(
 				"Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",
-				bank + offset,
+				bank+offset,
 				val,
 				self.ram_bank,
 				(addr - 0xA000),
 			)
 		}
-		if bank + offset >= self.cart.ram_size {
+		if bank+offset >= self.cart.ram_size {
 			// panic!("Writing beyond RAM limit")
 			return
 		}
