@@ -99,8 +99,8 @@ impl Cart {
         let checksum: u16 = (data[0x14E] as u16) << 8 | (data[0x14F] as u16);
 
         let mut logo_checksum: u16 = 0;
-        for i in logo {
-            logo_checksum += i as u16;
+        for i in logo.iter() {
+            logo_checksum += *i as u16;
         }
         if logo_checksum != 5446 {
             return Err(anyhow!("Logo checksum failed"));

@@ -10,25 +10,10 @@ on:
 jobs:
   build:
     name: Build
-    strategy:
-      matrix:
-        toolchain: ["1.53.0"]
     runs-on: ubuntu-20.04
     steps:
     - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y gcc libsdl2-dev
-    - name: Set Up Toolchain Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.rustup/toolchains
-          ~/.rustup/update-hashes
-          ~/.rustup/settings.toml
-        key: ${{ runner.os }}-rust-toolchain-${{ matrix.toolchain }}
-    - name: Set Up Toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: ${{ matrix.toolchain }}
+      run: sudo apt-get update && sudo apt-get install -y gcc libsdl2-dev cargo
     - name: Checkout
       uses: actions/checkout@v2
     - name: Set Up Build Cache
@@ -38,7 +23,7 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           rs/target
-        key: ${{ runner.os }}-rust-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
     - name: Build
       working-directory: rs
       run: cargo build --release
