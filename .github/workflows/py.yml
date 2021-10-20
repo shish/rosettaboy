@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y python3-venv
+      run: (python3 -m venv --help >/dev/null) || (sudo apt-get update && sudo apt-get install -y python3-venv)
     - name: Checkout
       uses: actions/checkout@v2
     - name: Set Up Build Cache
