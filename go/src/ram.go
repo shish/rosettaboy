@@ -178,8 +178,8 @@ func (self *RAM) get(addr uint16) uint8 {
 	case addr < 0x8000:
 		// Switchable ROM bank
 		// TODO: array bounds check
-		var offset = addr - 0x4000
 		var bank = int(self.rom_bank) * ROM_BANK_SIZE
+		var offset = addr - 0x4000
 		return self.cart.data[int(bank)+int(offset)]
 	case addr < 0xA000:
 		// VRAM
@@ -188,8 +188,9 @@ func (self *RAM) get(addr uint16) uint8 {
 		if !self.ram_enable {
 			panic("Reading from external ram while disabled: {:04X}") // addr,
 		}
-		var addr_within_ram = (int(self.ram_bank) * RAM_BANK_SIZE) + (int(addr) - 0xA000)
-		if addr_within_ram > self.cart.ram_size {
+		var bank = uint32(self.ram_bank) * RAM_BANK_SIZE;
+		var offset = uint32(addr) - 0xA000
+		if bank + offset > self.cart.ram_size {
 			// this should never happen because we die on ram_bank being
 			// set to a too-large value
 			panic("Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})")
@@ -198,7 +199,7 @@ func (self *RAM) get(addr uint16) uint8 {
 			//(addr - 0xA000),
 		}
 		panic("Cart RAM not supported") // TODO
-		// return self.cart.ram[addr_within_ram]
+		// return self.cart.ram[bank + offset]
 	case addr < 0xD000:
 		// work RAM, bank 0
 	case addr < 0xE000:
@@ -277,22 +278,23 @@ func (self *RAM) set(addr uint16, val uint8) {
 			panic("Writing to external ram while disabled: {:04x}={:02x}")
 			// , addr, val,
 		}
-		var addr_within_ram = (int(self.ram_bank) * RAM_BANK_SIZE) + (int(addr) - 0xA000)
+		var bank = uint32(self.ram_bank) * RAM_BANK_SIZE;
+		var offset = uint32(addr) - 0xA000;
 		if self.debug {
 			print(
 				"Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",
-				addr_within_ram,
+				bank + offset,
 				val,
 				self.ram_bank,
 				(addr - 0xA000),
 			)
 		}
-		if addr_within_ram >= self.cart.ram_size {
+		if bank + offset >= self.cart.ram_size {
 			// panic!("Writing beyond RAM limit")
 			return
 		}
 		panic("Cart RAM not supported") // TODO
-		// self.cart.ram[addr_within_ram] = val
+		// self.cart.ram[bank + offset] = val
 	case addr < 0xD000:
 		// work RAM, bank 0
 	case addr < 0xE000:
