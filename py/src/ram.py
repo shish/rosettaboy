@@ -5,6 +5,7 @@ from .consts import *
 ROM_BANK_SIZE = 0x4000
 RAM_BANK_SIZE = 0x2000
 
+
 class RAM:
     def __init__(self, cart: Cart, debug: bool = False) -> None:
         self.cart = cart
@@ -222,7 +223,9 @@ class RAM:
             self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low
             if self.debug:
                 print(
-                    "rom_bank set to {}/{}", self.rom_bank, self.cart.rom_size / ROM_BANK_SIZE
+                    "rom_bank set to {}/{}",
+                    self.rom_bank,
+                    self.cart.rom_size / ROM_BANK_SIZE,
                 )
             if self.rom_bank * ROM_BANK_SIZE > self.cart.rom_size:
                 raise Exception("Set rom_bank beyond the size of ROM")
