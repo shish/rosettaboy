@@ -15,3 +15,10 @@ make -j
 Requirements
 ------------
 - SDL2
+
+Formatting
+----------
+Automated with clang-format:
+```
+clang-format $(find src -type f | grep -v args.h) -i
+```

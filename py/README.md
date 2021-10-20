@@ -14,3 +14,10 @@ Requirements
 ------------
 - Python 3.6+
 - PyGame
+
+Formatting
+----------
+Automated with Black:
+```
+./venv/bin/black src/*.py
+```
