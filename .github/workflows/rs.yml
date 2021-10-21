@@ -8,6 +8,31 @@ on:
   workflow_dispatch:
 
 jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Set Up Toolchain Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.rustup/toolchains
+          ~/.rustup/update-hashes
+          ~/.rustup/settings.toml
+        key: ${{ runner.os }}-rust-toolchain
+    - name: Set Up Toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Check
+      run: |
+        cd rs
+        git diff >/tmp/a
+        cargo fmt
+        git diff >/tmp/b
+        cmp --silent /tmp/a /tmp/b || exit 1
   build:
     name: Build
     runs-on: ubuntu-20.04
