@@ -26,14 +26,8 @@ func NewRAM(cart *Cart, debug bool) RAM {
 	var data = make([]byte, 64*1024)
 
 	// 16KB ROM bank 0
-	for x := 0x0000; x < 0x4000; x++ {
-		data[x] = cart.data[x]
-	}
 
 	// 16KB Switchable ROM bank
-	for x := 0x4000; x < 0x8000; x++ {
-		data[x] = cart.data[x]
-	}
 
 	// 8KB VRAM
 	// 0x8000 - 0xA000
@@ -174,7 +168,7 @@ func (self *RAM) get(addr uint16) uint8 {
 		if self.data[IO_BOOT] == 0 && addr < 0x100 {
 			return self.boot[addr]
 		}
-		return self.data[addr]
+		return self.cart.data[addr]
 	case addr < 0x8000:
 		// Switchable ROM bank
 		// TODO: array bounds check

@@ -21,12 +21,8 @@ class RAM:
         self.ram_bank = 0
 
         # 16KB ROM bank 0
-        for x in range(0x0000, 0x4000):
-            self.data[x] = self.cart.data[x]
 
         # 16KB Switchable ROM bank
-        for x in range(0x4000, 0x8000):
-            self.data[x] = self.cart.data[x]
 
         # 8KB VRAM
         # 0x8000 - 0xA000
@@ -160,7 +156,7 @@ class RAM:
             # ROM bank 0
             if self.data[Mem.BOOT] == 0 and addr < 0x100:
                 return self.boot[addr]
-            return self.data[addr]
+            return self.cart.data[addr]
         elif addr < 0x8000:
             # Switchable ROM bank
             # TODO: array bounds check
