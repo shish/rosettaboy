@@ -1,7 +1,9 @@
 <?php
+
 require_once "consts.php";
 
-class Joypad {
+class Joypad
+{
     public static $MODE_BUTTONS = 1 << 5;
     public static $MODE_DPAD = 1 << 4;
     public static $DOWN = 1 << 3;
@@ -14,8 +16,10 @@ class Joypad {
     public static $A = 1 << 0;
 }
 
-class Buttons {
-    function __construct(CPU $cpu, bool $headless) {
+class Buttons
+{
+    public function __construct(CPU $cpu, bool $headless)
+    {
         // FIXME: SDL_InitSubSystem(SDL_INIT_EVENTS);
         $this->turbo = false;
         $this->cpu = $cpu;
@@ -33,44 +37,63 @@ class Buttons {
         $this->select = false;
     }
 
-    function tick(): bool {
+    public function tick(): bool
+    {
         $this->cycle++;
         $this->update_buttons();
-        if($this->need_interrupt) {
+        if ($this->need_interrupt) {
             $this->cpu->stop = false;
             $this->cpu->interrupt(Interrupt::$JOYPAD);
             $this->need_interrupt = false;
         }
-        if($this->cycle % 17556 == 20) {
+        if ($this->cycle % 17556 == 20) {
             return $this->handle_inputs();
         } else {
             return true;
         }
     }
 
-    function update_buttons(): void {
+    public function update_buttons(): void
+    {
         $JOYP = ~$this->cpu->ram->get(Mem::$JOYP);
         $JOYP &= 0xF0;
-        if($JOYP & Joypad::$MODE_DPAD) {
-            if($this->up) $JOYP |= Joypad::$UP;
-            if($this->down) $JOYP |= Joypad::$DOWN;
-            if($this->left) $JOYP |= Joypad::$LEFT;
-            if($this->right) $JOYP |= Joypad::$RIGHT;
+        if ($JOYP & Joypad::$MODE_DPAD) {
+            if ($this->up) {
+                $JOYP |= Joypad::$UP;
+            }
+            if ($this->down) {
+                $JOYP |= Joypad::$DOWN;
+            }
+            if ($this->left) {
+                $JOYP |= Joypad::$LEFT;
+            }
+            if ($this->right) {
+                $JOYP |= Joypad::$RIGHT;
+            }
         }
-        if($JOYP & Joypad::$MODE_BUTTONS) {
-            if($this->b) $JOYP |= Joypad::$B;
-            if($this->a) $JOYP |= Joypad::$A;
-            if($this->start) $JOYP |= Joypad::$START;
-            if($this->select) $JOYP |= Joypad::$SELECT;
+        if ($JOYP & Joypad::$MODE_BUTTONS) {
+            if ($this->b) {
+                $JOYP |= Joypad::$B;
+            }
+            if ($this->a) {
+                $JOYP |= Joypad::$A;
+            }
+            if ($this->start) {
+                $JOYP |= Joypad::$START;
+            }
+            if ($this->select) {
+                $JOYP |= Joypad::$SELECT;
+            }
         }
         $this->cpu->ram->set(Mem::$JOYP, ~$JOYP);
     }
-    
-    function handle_inputs(): bool {
-        if($this->headless) {
+
+    public function handle_inputs(): bool
+    {
+        if ($this->headless) {
             return true;
         }
-    
+
         /*
         // FIXME
         SDL_Event event;
@@ -81,7 +104,7 @@ class Buttons {
             if(event.type == SDL_KEYDOWN) {
                 if(event.key.keysym.sym == SDLK_ESCAPE) return false;
                 if(event.key.keysym.sym == SDLK_LSHIFT) this->turbo = true;
-    
+
                 this->need_interrupt = true;
                 switch(event.key.keysym.sym) {
                     case SDLK_UP: this->up = true; break;
@@ -97,7 +120,7 @@ class Buttons {
             }
             if(event.type == SDL_KEYUP) {
                 if(event.key.keysym.sym == SDLK_LSHIFT) this->turbo = false;
-    
+
                 switch(event.key.keysym.sym) {
                     case SDLK_UP: this->up = false; break;
                     case SDLK_DOWN: this->down = false; break;

@@ -2,12 +2,19 @@
 
 define("KB", 1024);
 
-function CartType(int $val) {return 0;} // FIXME
+function CartType(int $val)
+{
+    return 0;
+} // FIXME
 
-function parse_rom_size(int $val): int { return (32 * KB) << $val; }
+function parse_rom_size(int $val): int
+{
+    return (32 * KB) << $val;
+}
 
-function parse_ram_size(int $val): int {
-    switch($val) {
+function parse_ram_size(int $val): int
+{
+    switch ($val) {
         case 0: return 0;
         case 2: return 8 * KB;
         case 3: return 32 * KB;
@@ -17,13 +24,15 @@ function parse_ram_size(int $val): int {
     }
 }
 
-class Cart {
-    function __construct(string $rom) {
-        if(!is_readable($rom)) {
+class Cart
+{
+    public function __construct(string $rom)
+    {
+        if (!is_readable($rom)) {
             throw new Exception("$rom is not a readable file");
         }
         $this->data = array_map("ord", str_split(file_get_contents($rom)));
-    
+
         $this->logo = array_slice($this->data, 0x104, 48);
         $this->name = implode("", array_map("chr", array_slice($this->data, 0x134, 16)));
         $this->is_gbc = $this->data[0x143] == 0x80; // 0x80 = works on both, 0xC0 = colour only
@@ -37,24 +46,24 @@ class Cart {
         $this->rom_version = $this->data[0x14C];
         $this->complement_check = $this->data[0x14D];
         $this->checksum = $this->data[0x14E] << 8 | $this->data[0x14F];
-    
+
         $logo_checksum = 0;
-        foreach($this->logo as $i) {
+        foreach ($this->logo as $i) {
             $logo_checksum += $i;
         }
-        if($logo_checksum != 5446) {
+        if ($logo_checksum != 5446) {
             print("Logo checksum failed\n");
         }
-    
+
         $header_checksum = 25;
-        for($i = 0x0134; $i < 0x014E; $i++) {
+        for ($i = 0x0134; $i < 0x014E; $i++) {
             $header_checksum += $this->data[$i];
         }
-        if(($header_checksum & 0xFF) != 0) {
+        if (($header_checksum & 0xFF) != 0) {
             print("Header checksum failed\n");
         }
-    
-        if($this->ram_size) {
+
+        if ($this->ram_size) {
             $fn2 = str_replace(".gb", "", $rom) . ".sav";
             # FIXME
             #int ram_fd = open(fn2.c_str(), O_RDWR | O_CREAT, 0600);
@@ -64,9 +73,9 @@ class Cart {
             #$this->ram =
             #    (unsigned char *)mmap(nullptr, (size_t)statbuf.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, ram_fd, 0);
         }
-    
+
         $debug = false;
-        if($debug) {
+        if ($debug) {
             printf("name         : %s\n", $this->name);
             printf("is_gbc       : %d\n", $this->is_gbc);
             printf("is_sgb       : %d\n", $this->is_sgb);
@@ -79,6 +88,6 @@ class Cart {
             printf("rom_version  : %d\n", $this->rom_version);
             printf("ccheck       : %d\n", $this->complement_check);
             printf("checksum     : %d\n", $this->checksum);
-        }    
+        }
     }
 }

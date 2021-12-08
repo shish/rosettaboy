@@ -1,4 +1,5 @@
 <?php
+
 require "apu.php";
 require "cart.php";
 require "cpu.php";
@@ -21,10 +22,18 @@ $apu = new APU(array_key_exists('S', $opts), array_key_exists('a', $opts));
 $buttons = new Buttons($cpu, array_key_exists("H", $opts));
 $clock = new Clock($buttons, array_key_exists('p', $opts) ? $opts['p'] : 0, array_key_exists('t', $opts));
 
-while(true) {
+while (true) {
     $cpu->tick();
-    if(!$gpu->tick()) break;
-    if(!$buttons->tick()) break;
-    if(!$clock->tick()) break;
-    if(!$apu->tick()) break;
+    if (!$gpu->tick()) {
+        break;
+    }
+    if (!$buttons->tick()) {
+        break;
+    }
+    if (!$clock->tick()) {
+        break;
+    }
+    if (!$apu->tick()) {
+        break;
+    }
 }

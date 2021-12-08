@@ -1,12 +1,15 @@
 <?php
 
-class APU {
-    function __construct(bool $silent, bool $debug) {
+class APU
+{
+    public function __construct(bool $silent, bool $debug)
+    {
         $this->silent = $silent;
         $this->debug = $debug;
     }
 
-    function tick(): bool {
+    public function tick(): bool
+    {
         // FIXME: generate some sounds
         return true;
     }

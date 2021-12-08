@@ -1,11 +1,15 @@
 <?php
 
-class GPU {
-    function __construct(CPU $cpu, bool $debug, bool $headless) {
-
+class GPU
+{
+    public function __construct(CPU $cpu, bool $debug, bool $headless)
+    {
+        $this->cpu = $cpu;
+        $this->debug = $debug;
     }
 
-    function tick(): bool {
+    public function tick(): bool
+    {
         // FIXME: implement graphics
         return true;
     }

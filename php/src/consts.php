@@ -1,6 +1,7 @@
 <?php
 
-class Mem {
+class Mem
+{
     public static $VBLANK_HANDLER = 0x40;
     public static $LCD_HANDLER = 0x48;
     public static $TIMER_HANDLER = 0x50;
@@ -70,11 +71,11 @@ class Mem {
     public static $IE = 0xFFFF;
 }
 
-class Interrupt {
+class Interrupt
+{
     public static $VBLANK = 1 << 0;
     public static $STAT = 1 << 1;
     public static $TIMER = 1 << 2;
     public static $SERIAL = 1 << 3;
     public static $JOYPAD = 1 << 4;
 }
-
