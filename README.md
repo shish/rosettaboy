@@ -42,25 +42,25 @@ languages, are very welcome :)
 
 Completeness
 ------------
-| Feature                       | Python  | C++     | Rust    | Go      |
-| -------                       | ------- | ---     | ----    | --      |
-| *CPU*                         |         |         |         |         |
-| gblargh's test suite          | &check; | &check; | &check; | &check; |
-| interrupts                    | &check; | &check; | &check; | &check; |
-| logging                       | &check; | &check; | &check; | &check; |
-| *Graphics*                    |         |         |         |         |
-| scaled output                 | &check; | &check; | &check; | &check; |
-| scanline rendering            | &cross; | &check; | &check; | &check; |
-| GPU interrupts                | &cross; | &check; | &check; | &check; |
-| *Audio*                       |         |         |         |         |
-| audio                         | &cross; | off-key | glitchy | &cross; |
-| *Inputs*                      |         |         |         |         |
-| keyboard input                | &check; | &check; | &check; | &check; |
-| gamepad input                 | &cross; | &cross; | &check; | &cross; |
-| turbo button                  | &cross; | &check; | &cross; | &check; |
-| *Memory*                      |         |         |         |         |
-| memory mapping                | &check; | &check; | &check; | &check; |
-| bank swapping                 | &cross; | &cross; | &cross; | &cross; |
+| Feature                       | Python  | C++     | Rust    | Go      | PHP     |
+| -------                       | ------- | ---     | ----    | --      | ---     |
+| *CPU*                         |         |         |         |         |         |
+| gblargh's test suite          | &check; | &check; | &check; | &check; | &cross; |
+| interrupts                    | &check; | &check; | &check; | &check; | &cross; |
+| logging                       | &check; | &check; | &check; | &check; | &cross; |
+| *Graphics*                    |         |         |         |         |         |
+| scaled output                 | &check; | &check; | &check; | &check; | &cross; |
+| scanline rendering            | &cross; | &check; | &check; | &check; | &cross; |
+| GPU interrupts                | &cross; | &check; | &check; | &check; | &cross; |
+| *Audio*                       |         |         |         |         |         |
+| audio                         | &cross; | off-key | glitchy | &cross; | &cross; |
+| *Inputs*                      |         |         |         |         |         |
+| keyboard input                | &check; | &check; | &check; | &check; | &cross; |
+| gamepad input                 | &cross; | &cross; | &check; | &cross; | &cross; |
+| turbo button                  | &cross; | &check; | &cross; | &check; | &cross; |
+| *Memory*                      |         |         |         |         |         |
+| memory mapping                | &check; | &check; | &check; | &check; | &cross; |
+| bank swapping                 | &cross; | &cross; | &cross; | &cross; | &cross; |
 
 Benchmarks
 ----------
