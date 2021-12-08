@@ -690,7 +690,7 @@ impl CPU {
                         // FIXME: weird timing side effects
                         self.halt = true;
                     }
-                    self.set_reg((op - 0x40) / 8, self.get_reg(op - 0x40, ram), ram);
+                    self.set_reg((op - 0x40) >> 3, self.get_reg(op - 0x40, ram), ram);
                 }
 
                 // <math> <reg>
@@ -1035,7 +1035,7 @@ impl CPU {
 
             // BIT
             0x40..=0x7F => {
-                let bit = (op - 0x40) / 8;
+                let bit = (op & 0b00111000) >> 3;
                 self.flag_z = (val & (1 << bit)) == 0;
                 self.flag_n = false;
                 self.flag_h = true;
@@ -1043,13 +1043,13 @@ impl CPU {
 
             // RES
             0x80..=0xBF => {
-                let bit = (op - 0x80) / 8;
+                let bit = (op & 0b00111000) >> 3;
                 val &= (1 << bit) ^ 0xFF;
             }
 
             // SET
             0xC0..=0xFF => {
-                let bit = (op - 0xC0) / 8;
+                let bit = (op & 0b00111000) >> 3;
                 val |= 1 << bit;
             }
         }

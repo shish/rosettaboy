@@ -344,7 +344,7 @@ void CPU::tick_main(u8 op) {
                 this->halt = true;
                 break;
             }
-            this->set_reg((op - 0x40)/8, this->get_reg(op - 0x40));
+            this->set_reg((op - 0x40)>>3, this->get_reg(op - 0x40));
             break;
 
         case 0x80 ... 0x87: this->_add(this->get_reg(op)); break;
@@ -552,7 +552,7 @@ void CPU::tick_cb(u8 op) {
 
         // BIT
         case 0x40 ... 0x7F:
-            bit = (op - 0x40) / 8;
+            bit = (op & 0b00111000) >> 3;
             this->FLAG_Z = (val & (1 << bit)) == 0;
             this->FLAG_N = false;
             this->FLAG_H = true;
@@ -560,13 +560,13 @@ void CPU::tick_cb(u8 op) {
 
         // RES
         case 0x80 ... 0xBF:
-            bit = (op - 0x80) / 8;
+            bit = (op & 0b00111000) >> 3;
             val &= ((1 << bit) ^ 0xFF);
             break;
 
         // SET
         case 0xC0 ... 0xFF:
-            bit = (op - 0xC0) / 8;
+            bit = (op & 0b00111000) >> 3;
             val |= (1 << bit);
             break;
 

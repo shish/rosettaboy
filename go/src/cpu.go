@@ -578,7 +578,7 @@ func (self *CPU) tick_main(op uint8) {
 			self.halt = true
 			break
 		}
-		self.set_reg((op-0x40)/8, self.get_reg(op-0x40))
+		self.set_reg((op-0x40)>>3, self.get_reg(op-0x40))
 
 	case 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87:
 		self._add(self.get_reg(op))
@@ -879,19 +879,19 @@ func (self *CPU) tick_cb(op uint8) {
 
 	// BIT
 	case op <= 0x7F:
-		bit = (op - 0x40) / 8
+		bit = (op & 0b00111000) >> 3
 		self.FLAG_Z = (val & (1 << bit)) == 0
 		self.FLAG_N = false
 		self.FLAG_H = true
 
 	// RES
 	case op <= 0xBF:
-		bit = (op - 0x80) / 8
+		bit = (op & 0b00111000) >> 3
 		val &= ((1 << bit) ^ 0xFF)
 
 	// SET
 	case op <= 0xFF:
-		bit = (op - 0xC0) / 8
+		bit = (op & 0b00111000) >> 3
 		val |= (1 << bit)
 
 	// Should never get here
@@ -1005,7 +1005,7 @@ func (self *CPU) get_reg(n uint8) uint8 {
 	case 7:
 		return self.A
 	default:
-		println("Invalid register %d\n", n)
+		println("Invalid register %d", n)
 		return 0
 	}
 }
@@ -1038,6 +1038,6 @@ func (self *CPU) set_reg(n uint8, val uint8) {
 		self.A = val
 		break
 	default:
-		println("Invalid register %d\n", n)
+		println("Invalid register %d", n)
 	}
 }
