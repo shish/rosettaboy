@@ -85,7 +85,7 @@ class Cart
             print("Header checksum failed\n");
         }
 
-        $this->ram = [];
+        $this->ram = array_fill(0, $this->ram_size, 0);
         if ($this->ram_size) {
             $fn2 = str_replace(".gb", "", $rom) . ".sav";
             # FIXME

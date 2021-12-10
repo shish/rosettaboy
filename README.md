@@ -45,9 +45,9 @@ Completeness
 | Feature                       | Python  | C++     | Rust    | Go      | PHP     |
 | -------                       | ------- | ---     | ----    | --      | ---     |
 | *CPU*                         |         |         |         |         |         |
-| gblargh's test suite          | &check; | &check; | &check; | &check; | &cross; |
-| interrupts                    | &check; | &check; | &check; | &check; | &cross; |
-| logging                       | &check; | &check; | &check; | &check; | &cross; |
+| gblargh's test suite          | &check; | &check; | &check; | &check; | &check; |
+| interrupts                    | &check; | &check; | &check; | &check; | &check; |
+| logging                       | &check; | &check; | &check; | &check; | &check; |
 | *Graphics*                    |         |         |         |         |         |
 | scaled output                 | &check; | &check; | &check; | &check; | &cross; |
 | scanline rendering            | &cross; | &check; | &check; | &check; | &cross; |
@@ -59,7 +59,7 @@ Completeness
 | gamepad input                 | &cross; | &cross; | &check; | &cross; | &cross; |
 | turbo button                  | &cross; | &check; | &cross; | &check; | &cross; |
 | *Memory*                      |         |         |         |         |         |
-| memory mapping                | &check; | &check; | &check; | &check; | &cross; |
+| memory mapping                | &check; | &check; | &check; | &check; | &check; |
 | bank swapping                 | &cross; | &cross; | &cross; | &cross; | &cross; |
 
 Benchmarks

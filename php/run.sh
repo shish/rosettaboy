@@ -1,3 +1,3 @@
 #!/bin/sh
-#php -d extension=sdl.so src/main.php $*
-/usr/local/Cellar/php/8.1.0/bin/php src/main.php $*
+# opcache in 8.1 gives a nice speedup (25s to 10s)
+/usr/local/Cellar/php/8.1.0/bin/php -dopcache.enable_cli=1 -dopcache.jit_buffer_size=100M src/main.php $*

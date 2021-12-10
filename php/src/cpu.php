@@ -142,7 +142,7 @@ function int8(int $val): int
 {
     $val = $val & 0xFF;
     if ($val > 127) {
-        $val -= 0xFF;
+        $val -= 0x100;
     }
     return $val;
 }
@@ -297,7 +297,7 @@ class CPU
             $this->E,
             $this->HL,
             $this->SP,
-            $this->ram->get($this->SP + 1),
+            $this->ram->get(($this->SP + 1) & 0xFFFF),
             $this->ram->get($this->SP),
             $z,
             $n,
@@ -361,23 +361,23 @@ class CPU
             // TODO: wait two cycles
             // TODO: push16(PC) should also take two cycles
             // TODO: one more cycle to store new PC
-            if ($queued_interrupts & Interrupt::$VBLANK > 0) {
+            if (($queued_interrupts & Interrupt::$VBLANK) > 0) {
                 $this->push($this->PC);
                 $this->PC = Mem::$VBLANK_HANDLER;
                 $this->ram->_and(Mem::$IF, ~Interrupt::$VBLANK);
-            } elseif ($queued_interrupts & Interrupt::$STAT > 0) {
+            } elseif (($queued_interrupts & Interrupt::$STAT) > 0) {
                 $this->push($this->PC);
                 $this->PC = Mem::$LCD_HANDLER;
                 $this->ram->_and(Mem::$IF, ~Interrupt::$STAT);
-            } elseif ($queued_interrupts & Interrupt::$TIMER > 0) {
+            } elseif (($queued_interrupts & Interrupt::$TIMER) > 0) {
                 $this->push($this->PC);
                 $this->PC = Mem::$TIMER_HANDLER;
                 $this->ram->_and(Mem::$IF, ~Interrupt::$TIMER);
-            } elseif ($queued_interrupts & Interrupt::$SERIAL > 0) {
+            } elseif (($queued_interrupts & Interrupt::$SERIAL) > 0) {
                 $this->push($this->PC);
                 $this->PC = Mem::$SERIAL_HANDLER;
                 $this->ram->_and(Mem::$IF, ~Interrupt::$SERIAL);
-            } elseif ($queued_interrupts & Interrupt::$JOYPAD > 0) {
+            } elseif (($queued_interrupts & Interrupt::$JOYPAD) > 0) {
                 $this->push($this->PC);
                 $this->PC = Mem::$JOYPAD_HANDLER;
                 $this->ram->_and(Mem::$IF, ~Interrupt::$JOYPAD);
@@ -491,7 +491,7 @@ class CPU
                 [$this->D, $this->E] = split16(join16($this->D, $this->E) + 1);
                 break;
             case 0x18:
-                $this->PC += uint16($arg->as_i8);
+                $this->PC += $arg->as_i8;
                 break;
             case 0x1A:
                 $this->A = $this->ram->get(join16($this->D, $this->E));
@@ -510,10 +510,10 @@ class CPU
                 break;
             case 0x22:
                 $this->ram->set($this->HL, $this->A);
-                $this->HL++;
+                $this->HL = ($this->HL+1) & 0xFFFF;
                 break;
             case 0x23:
-                $this->HL++;
+                $this->HL = ($this->HL+1) & 0xFFFF;
                 break;
             case 0x27:
                 $val16 = uint16($this->A);
@@ -536,7 +536,7 @@ class CPU
                     }
                 }
                 $this->FLAG_H = false;
-                if ($val16 & 0x100 > 0) {
+                if (($val16 & 0x100) > 0) {
                     $this->FLAG_C = true;
                 }
                 $this->A = uint8($val16 & 0xFF);
@@ -544,15 +544,15 @@ class CPU
                 break;
             case 0x28:
                 if ($this->FLAG_Z) {
-                    $this->PC += uint16($arg->as_i8);
+                    $this->PC += $arg->as_i8;
                 }
                 break;
             case 0x2A:
                 $this->A = $this->ram->get($this->HL);
-                $this->HL++;
+                $this->HL = ($this->HL+1) & 0xFFFF;
                 break;
             case 0x2B:
-                $this->HL--;
+                $this->HL = ($this->HL-1) & 0xFFFF;
                 break;
             case 0x2F:
                 $this->A ^= 0xFF;
@@ -561,7 +561,7 @@ class CPU
                 break;
             case 0x30:
                 if (!$this->FLAG_C) {
-                    $this->PC += uint16($arg->as_i8);
+                    $this->PC += $arg->as_i8;
                 }
                 break;
             case 0x31:
@@ -569,10 +569,10 @@ class CPU
                 break;
             case 0x32:
                 $this->ram->set($this->HL, $this->A);
-                $this->HL--;
+                $this->HL = ($this->HL-1) & 0xFFFF;
                 break;
             case 0x33:
-                $this->SP++;
+                $this->SP = ($this->SP+1) & 0xFFFF;
                 break;
             case 0x37:
                 $this->FLAG_N = false;
@@ -581,15 +581,15 @@ class CPU
                 break;
             case 0x38:
                 if ($this->FLAG_C) {
-                    $this->PC += uint16($arg->as_i8);
+                    $this->PC += $arg->as_i8;
                 }
                 break;
             case 0x3A:
                 $this->A = $this->ram->get($this->HL);
-                $this->HL--;
+                $this->HL = ($this->HL-1) & 0xFFFF;
                 break;
             case 0x3B:
-                $this->SP--;
+                $this->SP = ($this->SP-1) & 0xFFFF;
                 break;
             case 0x3F:
                 $this->FLAG_C = !$this->FLAG_C;
@@ -608,7 +608,7 @@ class CPU
             case 0x3C:
                 $val = $this->get_reg(($op - 0x04) / 8);
                 $this->FLAG_H = ($val & 0x0F) == 0x0F;
-                $val++;
+                $val = ($val+1) & 0xFF;
                 $this->FLAG_Z = $val == 0;
                 $this->FLAG_N = false;
                 $this->set_reg(($op - 0x04) / 8, $val);
@@ -624,7 +624,7 @@ class CPU
             case 0x35:
             case 0x3D:
                 $val = $this->get_reg(($op - 0x05) / 8);
-                $val--;
+                $val = ($val-1) & 0xFF;
                 $this->FLAG_H = ($val & 0x0F) == 0x0F;
                 $this->FLAG_Z = $val == 0;
                 $this->FLAG_N = true;
@@ -669,6 +669,7 @@ class CPU
                     $this->FLAG_C = ($this->A & (1 << 0)) != 0;
                     $this->A = ($this->A >> 1) | ($carry << 7);
                 }
+                $this->A &= 0xFF;
                 $this->FLAG_N = false;
                 $this->FLAG_H = false;
                 $this->FLAG_Z = false;
@@ -692,8 +693,8 @@ class CPU
                     $val16 = $this->SP;
                 }
                 $this->FLAG_H = (($this->HL & 0x0FFF) + ($val16 & 0x0FFF) > 0x0FFF);
-                $this->FLAG_C = ($this->HL + $val16 > 0xFFFF);
-                $this->HL += $val16;
+                $this->FLAG_C = (($this->HL + $val16) > 0xFFFF);
+                $this->HL = ($this->HL + $val16) & 0xFFFF;
                 $this->FLAG_N = false;
                 break;
 
@@ -1008,12 +1009,12 @@ class CPU
                 $this->PC = 0x20;
                 break;
             case 0xE8:
-                $val16 = $this->SP + uint16($arg->as_i8);
+                $val16 = ($this->SP + $arg->as_i8) & 0xFFFF;
                 //$this->FLAG_H = (($this->SP & 0x0FFF) + ($arg->as_i8 & 0x0FFF) > 0x0FFF);
                 //$this->FLAG_C = ($this->SP + $arg->as_i8 > 0xFFFF);
-                $this->FLAG_H = ($this->SP ^ uint16($arg->as_i8) ^ $val16) & 0x10 > 0;
-                $this->FLAG_C = ($this->SP ^ uint16($arg->as_i8) ^ $val16) & 0x100 > 0;
-                $this->SP += uint16($arg->as_i8);
+                $this->FLAG_H = (($this->SP ^ uint16($arg->as_i8) ^ $val16) & 0x10) > 0;
+                $this->FLAG_C = (($this->SP ^ uint16($arg->as_i8) ^ $val16) & 0x100) > 0;
+                $this->SP = ($this->SP + $arg->as_i8) & 0xFFFF;
                 $this->FLAG_Z = false;
                 $this->FLAG_N = false;
                 break;
@@ -1039,10 +1040,10 @@ class CPU
                 break;
             case 0xF1:
                 [$this->A, $this->F] = split16($this->pop() & 0xFFF0);
-                $this->FLAG_Z = $this->F & (1 << 7) > 0;
-                $this->FLAG_N = $this->F & (1 << 6) > 0;
-                $this->FLAG_H = $this->F & (1 << 5) > 0;
-                $this->FLAG_C = $this->F & (1 << 4) > 0;
+                $this->FLAG_Z = ($this->F & (1 << 7)) > 0;
+                $this->FLAG_N = ($this->F & (1 << 6)) > 0;
+                $this->FLAG_H = ($this->F & (1 << 5)) > 0;
+                $this->FLAG_C = ($this->F & (1 << 4)) > 0;
                 break;
             case 0xF2:
                 $this->A = $this->ram->get(0xFF00 + uint16($this->C));
@@ -1071,7 +1072,7 @@ class CPU
                 }
                 // $this->FLAG_H = (((($this->SP & 0x0f) + ($arg->as_u8 & 0x0f)) & 0x10) != 0);
                 // $this->FLAG_C = (((($this->SP & 0xff) + ($arg->as_u8 & 0xff)) & 0x100) != 0);
-                $this->HL = $this->SP + uint16($arg->as_i8);
+                $this->HL = ($this->SP + $arg->as_i8) & 0xFFFF;
                 $this->FLAG_Z = false;
                 $this->FLAG_N = false;
                 break;
@@ -1109,6 +1110,7 @@ class CPU
             case $op <= 0x07:
                 $this->FLAG_C = ($val & (1 << 7)) != 0;
                 $val <<= 1;
+                $val &= 0xFF;
                 if ($this->FLAG_C) {
                     $val |= (1 << 0);
                 }
@@ -1134,6 +1136,7 @@ class CPU
                 $orig_c = $this->FLAG_C;
                 $this->FLAG_C = ($val & (1 << 7)) != 0;
                 $val <<= 1;
+                $val &= 0xFF;
                 if ($orig_c) {
                     $val |= (1 << 0);
                 }
@@ -1169,7 +1172,7 @@ class CPU
             case $op <= 0x2F:
                 $this->FLAG_C = ($val & (1 << 0)) != 0;
                 $val >>= 1;
-                if ($val & (1 << 6) > 0) {
+                if (($val & (1 << 6)) > 0) {
                     $val |= (1 << 7);
                 }
                 $this->FLAG_N = false;
@@ -1266,7 +1269,7 @@ class CPU
         $this->FLAG_C = uint16($this->A) + uint16($val) > 0xFF;
         $this->FLAG_H = ($this->A & 0x0F) + ($val & 0x0F) > 0x0F;
         $this->FLAG_N = false;
-        $this->A += $val;
+        $this->A = ($this->A + $val) & 0xFF;
         $this->FLAG_Z = $this->A == 0;
     }
 
@@ -1280,7 +1283,7 @@ class CPU
         $this->FLAG_C = uint16($this->A) + uint16($val) + uint16($carry) > 0xFF;
         $this->FLAG_H = ($this->A & 0x0F) + ($val & 0x0F) + $carry > 0x0F;
         $this->FLAG_N = false;
-        $this->A += $val + $carry;
+        $this->A = ($this->A + $val + $carry) & 0xFF;
         $this->FLAG_Z = $this->A == 0;
     }
 
@@ -1288,7 +1291,7 @@ class CPU
     {
         $this->FLAG_C = $this->A < $val;
         $this->FLAG_H = ($this->A & 0x0F) < ($val & 0x0F);
-        $this->A -= $val;
+        $this->A = ($this->A - $val) & 0xFF;
         $this->FLAG_Z = $this->A == 0;
         $this->FLAG_N = true;
     }
@@ -1303,7 +1306,7 @@ class CPU
         $res = $this->A - $val - $carry;
         $this->FLAG_H = (($this->A ^ $val ^ (uint8($res) & 0xff)) & (1 << 4)) != 0;
         $this->FLAG_C = $res < 0;
-        $this->A -= $val + $carry;
+        $this->A = ($this->A - $val - $carry) & 0xFF;
         $this->FLAG_Z = $this->A == 0;
         $this->FLAG_N = true;
     }
