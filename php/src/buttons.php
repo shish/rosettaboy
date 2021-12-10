@@ -4,20 +4,34 @@ require_once "consts.php";
 
 class Joypad
 {
-    public static $MODE_BUTTONS = 1 << 5;
-    public static $MODE_DPAD = 1 << 4;
-    public static $DOWN = 1 << 3;
-    public static $START = 1 << 3;
-    public static $UP = 1 << 2;
-    public static $SELECT = 1 << 2;
-    public static $LEFT = 1 << 1;
-    public static $B = 1 << 1;
-    public static $RIGHT = 1 << 0;
-    public static $A = 1 << 0;
+    public static int $MODE_BUTTONS = 1 << 5;
+    public static int $MODE_DPAD = 1 << 4;
+    public static int $DOWN = 1 << 3;
+    public static int $START = 1 << 3;
+    public static int $UP = 1 << 2;
+    public static int $SELECT = 1 << 2;
+    public static int $LEFT = 1 << 1;
+    public static int $B = 1 << 1;
+    public static int $RIGHT = 1 << 0;
+    public static int $A = 1 << 0;
 }
 
 class Buttons
 {
+    public bool $turbo;
+    private CPU $cpu;
+    private int $cycle;
+    private bool $headless;
+    private bool $need_interrupt;
+    private bool $up;
+    private bool $down;
+    private bool $left;
+    private bool $right;
+    private bool $a;
+    private bool $b;
+    private bool $start;
+    private bool $select;
+
     public function __construct(CPU $cpu, bool $headless)
     {
         // FIXME: SDL_InitSubSystem(SDL_INIT_EVENTS);

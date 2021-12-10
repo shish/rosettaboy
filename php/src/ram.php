@@ -5,6 +5,17 @@ define("RAM_BANK_SIZE", 0x2000);
 
 class RAM
 {
+    private int $ram_bank;
+    private int $rom_bank;
+    private int $rom_bank_high;
+    private int $rom_bank_low;
+    private bool $ram_bank_mode;
+    private bool $ram_enable;
+    public array $data;
+    private array $boot;
+    private bool $debug;
+    private Cart $cart;
+
     public function __construct(Cart $cart, bool $debug)
     {
         $this->cart = $cart;
@@ -42,14 +53,23 @@ class RAM
                 // skip to the end of the bootloader
                 0xC3, 0xFD, 0x00, // JP 0x00FD
             ];
-            for($i=count($boot); $i<0xFF; $i++) $boot[$i] = 0x00;
+            for ($i = count($boot); $i < 0xFF; $i++) {
+                $boot[$i] = 0x00;
+            }
             // FIXME: pad to 0x100 bytes
             $boot[0xFE] = 0xE0; // LDH 50,A (disable boot rom)
             $boot[0xFF] = 0x50;
         }
         $this->boot = $boot;
 
-        $this->data = array_fill(0, 0xFFFF+1, 0);
+        $this->data = array_fill(0, 0xFFFF + 1, 0);
+
+        $this->ram_enable = true;
+        $this->ram_bank_mode = false;
+        $this->rom_bank_low = 1;
+        $this->rom_bank_high = 0;
+        $this->rom_bank = 1;
+        $this->ram_bank = 0;
     }
 
     public function get(int $addr): int
@@ -113,7 +133,7 @@ class RAM
                 printf("rom_bank set to %u/%u\n", $this->rom_bank, $this->cart->rom_size / ROM_BANK_SIZE);
             }
             if ($this->rom_bank * ROM_BANK_SIZE > $this->cart->rom_size) {
-                throw std::invalid_argument("Set rom_bank beyond the size of ROM");
+                die("Set rom_bank beyond the size of ROM");
             }
         } elseif ($addr < 0x6000) {
             if ($this->ram_bank_mode) {
@@ -122,7 +142,7 @@ class RAM
                     printf("ram_bank set to %u/%u\n", $this->ram_bank, $this->cart->ram_size / RAM_BANK_SIZE);
                 }
                 if ($this->ram_bank * RAM_BANK_SIZE > $this->cart->ram_size) {
-                    throw std::invalid_argument("Set ram_bank beyond the size of RAM");
+                    die("Set ram_bank beyond the size of RAM");
                 }
             } else {
                 $this->rom_bank_high = $val;
@@ -131,12 +151,12 @@ class RAM
                     printf("rom_bank set to %u/%u\n", $this->rom_bank, $this->cart->rom_size / ROM_BANK_SIZE);
                 }
                 if ($this->rom_bank * ROM_BANK_SIZE > $this->cart->rom_size) {
-                    throw std::invalid_argument("Set rom_bank beyond the size of ROM");
+                    die("Set rom_bank beyond the size of ROM");
                 }
             }
         } elseif ($addr < 0x8000) {
             $this->ram_bank_mode = ($val != 0);
-        // printf("ram_bank_mode set to %d\n", $this->ram_bank_mode);
+            // printf("ram_bank_mode set to %d\n", $this->ram_bank_mode);
         } elseif ($addr < 0xA000) {
             // VRAM
             // TODO: if writing to tile RAM, update tiles in GPU class?
@@ -158,7 +178,7 @@ class RAM
                 );
             }
             if ($bank + $offset > $this->cart->ram_size) {
-                throw std::invalid_argument("Writing beyond RAM limit");
+                die("Writing beyond RAM limit");
             }
             $this->cart->ram[$bank + $offset] = $val;
         } elseif ($addr < 0xD000) {
@@ -185,7 +205,18 @@ class RAM
         $this->data[$addr] = $val;
     }
 
-    function _and($addr, $val) { $this->set($addr, $this->get($addr) & $val); }
-    function _or($addr, $val) { $this->set($addr, $this->get($addr) | $val); }
-    function _inc($addr) { $this->set($addr, $this->get($addr) + 1); }
+    public function _and($addr, $val)
+    {
+        $this->set($addr, $this->get($addr) & $val);
+    }
+
+    public function _or($addr, $val)
+    {
+        $this->set($addr, $this->get($addr) | $val);
+    }
+
+    public function _inc($addr)
+    {
+        $this->set($addr, $this->get($addr) + 1);
+    }
 }

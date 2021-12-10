@@ -7,6 +7,14 @@ function ticks(): int
 
 class Clock
 {
+    private int $cycle;
+    private int $frame;
+    private bool $turbo;
+    private int $profile;
+    private Buttons $buttons;
+    private int $start;
+    private int $last_frame_start;
+
     public function __construct(Buttons $buttons, int $profile, bool $turbo)
     {
         $this->cycle = 0;
@@ -28,7 +36,7 @@ class Clock
             $time_spent = (ticks() - $this->last_frame_start);
             $sleep_for = (1000 / 60) - $time_spent;
             if ($sleep_for > 0 && !$this->turbo && !$this->buttons->turbo) {
-                time_nanosleep(0, $sleep_for*1000000);
+                time_nanosleep(0, $sleep_for * 1000000);
             }
             $this->last_frame_start = ticks();
 

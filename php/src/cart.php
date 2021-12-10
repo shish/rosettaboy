@@ -2,7 +2,7 @@
 
 define("KB", 1024);
 
-function CartType(int $val)
+function CartType(int $val): int
 {
     return 0;
 } // FIXME
@@ -15,21 +15,43 @@ function parse_rom_size(int $val): int
 function parse_ram_size(int $val): int
 {
     switch ($val) {
-        case 0: return 0;
-        case 2: return 8 * KB;
-        case 3: return 32 * KB;
-        case 4: return 128 * KB;
-        case 5: return 64 * KB;
-        default: return 0;
+        case 0:
+            return 0;
+        case 2:
+            return 8 * KB;
+        case 3:
+            return 32 * KB;
+        case 4:
+            return 128 * KB;
+        case 5:
+            return 64 * KB;
+        default:
+            return -1;
     }
 }
 
 class Cart
 {
+    public array $ram;
+    private int $checksum;
+    private $complement_check;
+    private $rom_version;
+    private $old_licensee;
+    private $destination;
+    public int $ram_size;
+    public int $rom_size;
+    private int $cart_type;
+    private bool $is_sgb;
+    private int $licensee;
+    private bool $is_gbc;
+    private string $name;
+    private array $logo;
+    public array $data;
+
     public function __construct(string $rom)
     {
         if (!is_readable($rom)) {
-            throw new Exception("$rom is not a readable file");
+            die("$rom is not a readable file");
         }
         $this->data = array_map("ord", str_split(file_get_contents($rom)));
 
@@ -63,6 +85,7 @@ class Cart
             print("Header checksum failed\n");
         }
 
+        $this->ram = [];
         if ($this->ram_size) {
             $fn2 = str_replace(".gb", "", $rom) . ".sav";
             # FIXME
