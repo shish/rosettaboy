@@ -20,11 +20,14 @@ if not os.path.exists("gb-test-roms"):
 def test(cwd, n, frames):
     cmd = [
         "./run.sh",
-#        "--turbo",
-#        "--silent",
-#        "--headless",
-#        "--profile",
-        "-t", "-S", "-H", "-p",
+        #        "--turbo",
+        #        "--silent",
+        #        "--headless",
+        #        "--profile",
+        "-t",
+        "-S",
+        "-H",
+        "-p",
         str(frames),
         f"../gb-test-roms/cpu_instrs/individual/{n}*.gb",
     ]
