@@ -121,7 +121,7 @@ impl Cart {
         // FIXME: ram should be synced with .sav file
         let ram = vec![0; ram_size as usize];
 
-        let debug = true;
+        let debug = false;
         if debug {
             println!(
                 "name         : {:<16} rom_version  : {:<16}",

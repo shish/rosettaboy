@@ -80,17 +80,17 @@ bool GPU::tick() {
         // When LCD is re-enabled, LY is 0
         // Does it become 0 as soon as disabled??
         this->cpu->ram->set(Mem::LY, 0);
-        if(!debug) {
+        if(!this->debug) {
             return true;
         }
     }
 
-    u8 lx = cycle % 114;
-    u8 ly = (cycle / 114) % 154;
+    u8 lx = this->cycle % 114;
+    u8 ly = (this->cycle / 114) % 154;
     this->cpu->ram->set(Mem::LY, ly);
 
     // LYC compare & interrupt
-    if(this->cpu->ram->get(Mem::LY) == cpu->ram->get(Mem::LYC)) {
+    if(this->cpu->ram->get(Mem::LY) == this->cpu->ram->get(Mem::LYC)) {
         if(this->cpu->ram->get(Mem::STAT) & Stat::LYC_INTERRUPT) {
             this->cpu->interrupt(Interrupt::STAT);
         }
@@ -112,7 +112,7 @@ bool GPU::tick() {
             // Should every pixel reference them directly?
             this->update_palettes();
             // TODO: do we need to clear if we write every pixel?
-            auto c = bgp[0];
+            auto c = this->bgp[0];
             SDL_SetRenderDrawColor(this->renderer, c.r, c.g, c.b, c.a);
             SDL_RenderClear(this->renderer);
         }
