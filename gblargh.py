@@ -18,19 +18,31 @@ if not os.path.exists("gb-test-roms"):
 
 
 def test(cwd, n, frames):
-    cmd = [
-        "./run.sh",
-        #        "--turbo",
-        #        "--silent",
-        #        "--headless",
-        #        "--profile",
-        "-t",
-        "-S",
-        "-H",
-        "-p",
-        str(frames),
-        f"../gb-test-roms/cpu_instrs/individual/{n}*.gb",
-    ]
+    cmd = ["./run.sh"]
+    if cwd == "php":
+        cmd.extend(
+            [
+                "-t",
+                "-S",
+                "-H",
+                "-p",
+            ]
+        )
+    else:
+        cmd.extend(
+            [
+                "--turbo",
+                "--silent",
+                "--headless",
+                "--profile",
+            ]
+        )
+    cmd.extend(
+        [
+            str(frames),
+            f"../gb-test-roms/cpu_instrs/individual/{n}*.gb",
+        ]
+    )
     p = subprocess.run(
         cmd,
         cwd=cwd,
