@@ -24,7 +24,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Install Deps
       working-directory: php
-      run: ../composer.phar require friendsofphp/php-cs-fixer
+      run: php ../composer.phar require friendsofphp/php-cs-fixer
     - name: Check
       working-directory: php
       run: vendor/bin/php-cs-fixer fix --dry-run
