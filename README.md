@@ -77,6 +77,6 @@ measure CPU instructions instead of clock time, that seems fairer; especially
 if we can get the measurement included automatically via github actions. Pull
 requests welcome :)
 
-| Feature                            | Python | C++  | Rust | Go  |
-| -------                            | ------ | ---  | ---- | --  |
-| release, silent, headless          |  5     | 700  | 700  | 60  |
+| Feature                            | Python | C++  | Rust | Go  | PHP | PHP (JIT) |
+| -------                            | ------ | ---  | ---- | --  | --- | --------- |
+| release, silent, headless          |  5     | 700  | 700  | 60  | 20  | 40        |
