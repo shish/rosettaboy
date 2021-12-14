@@ -7,6 +7,7 @@ function exception_error_handler($errno, $errstr, $errfile, $errline)
 }
 set_error_handler("exception_error_handler");
 
+require "_sdl.php";
 require "apu.php";
 require "cart.php";
 require "cpu.php";
