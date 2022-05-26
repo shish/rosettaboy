@@ -5,10 +5,10 @@ authors = ["Shish <shish@shishnet.org>"]
 edition = "2018"
 
 [dependencies]
-sdl2 = { version = "0.32", features = ["unsafe_textures"] }
-num_enum = "0.4.2"
-structopt = "*"
+sdl2 = { version = "0.35.2", features = ["unsafe_textures"] }
+num_enum = "0.5.7"
+structopt = "0.3.26"
 bitflags = "*"
-packed_struct = "*"
-packed_struct_codegen = "*"
-anyhow = "*"
+packed_struct = "0.10.0"
+packed_struct_codegen = "0.10.0"
+anyhow = "1"
