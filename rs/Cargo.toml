@@ -2,13 +2,14 @@
 name = "rosettaboy-rs"
 version = "0.1.0"
 authors = ["Shish <shish@shishnet.org>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 sdl2 = { version = "0.35.2", features = ["unsafe_textures"] }
 num_enum = "0.5.7"
-structopt = "0.3.26"
 bitflags = "*"
 packed_struct = "0.10.0"
 packed_struct_codegen = "0.10.0"
 anyhow = "1"
+clap = { version = "3.1.18", features = ["derive"] }
+

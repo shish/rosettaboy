@@ -4,7 +4,7 @@
 #![allow(clippy::many_single_char_names)]
 
 use anyhow::Result;
-use structopt::StructOpt;
+use clap::Parser;
 extern crate sdl2;
 
 #[macro_use]
@@ -19,43 +19,44 @@ mod cpu;
 mod gpu;
 mod ram;
 
-#[derive(StructOpt)]
-#[structopt(about = "RosettaBoy - Rust")]
+/// RosettaBoy - Rust
+#[derive(Parser)]
+#[clap(about, author, version)]
 struct Args {
     /// Path to a .gb file
-    #[structopt(default_value = "game.gb")]
+    #[clap(default_value = "game.gb")]
     rom: String,
 
     /// Disable GUI
-    #[structopt(short = "H", long)]
+    #[clap(short = 'H', long)]
     headless: bool,
 
     /// Disable Sound
-    #[structopt(short = "S", long)]
+    #[clap(short = 'S', long)]
     silent: bool,
 
     /// Debug CPU
-    #[structopt(short = "c", long)]
+    #[clap(short = 'c', long)]
     debug_cpu: bool,
 
     /// Debug GPU
-    #[structopt(short = "g", long)]
+    #[clap(short = 'g', long)]
     debug_gpu: bool,
 
     /// Debug APU
-    #[structopt(short = "a", long)]
+    #[clap(short = 'a', long)]
     debug_apu: bool,
 
     /// Debug RAM
-    #[structopt(short = "r", long)]
+    #[clap(short = 'r', long)]
     debug_ram: bool,
 
     /// Exit after N frames
-    #[structopt(short, long, default_value = "0")]
+    #[clap(short, long, default_value = "0")]
     profile: u32,
 
     /// No sleep()
-    #[structopt(short, long)]
+    #[clap(short, long)]
     turbo: bool,
 }
 
@@ -104,7 +105,7 @@ impl<'a> Gameboy<'a> {
 }
 
 fn main() -> Result<()> {
-    Gameboy::new(Args::from_args())?.run()?;
+    Gameboy::new(Args::parse())?.run()?;
 
     // because debug ROMs print to stdout without newline
     println!();
