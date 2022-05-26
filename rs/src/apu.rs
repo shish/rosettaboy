@@ -140,10 +140,10 @@ impl APU {
             if let Some(device) = &self.device {
                 // println!("size = {}", device.size());
                 if device.size() <= ((HZ / 60) * 2) as u32 {
-                    device.queue(&out);
-                    device.queue(&out);
+                    device.queue_audio(&out).unwrap();
+                    device.queue_audio(&out).unwrap();
                 }
-                device.queue(&out);
+                device.queue_audio(&out).unwrap();
             }
         }
     }
@@ -175,35 +175,35 @@ impl APU {
     }
 
     fn regs_to_ram(&mut self, buffer: &mut [u8]) {
-        let cbuf = self.ch1.pack();
+        let cbuf = self.ch1.pack().unwrap();
         buffer[0] = cbuf[0];
         buffer[1] = cbuf[1];
         buffer[2] = cbuf[2];
         buffer[3] = cbuf[3];
         buffer[4] = cbuf[4];
 
-        let cbuf = self.ch2.pack();
+        let cbuf = self.ch2.pack().unwrap();
         buffer[5] = cbuf[0];
         buffer[6] = cbuf[1];
         buffer[7] = cbuf[2];
         buffer[8] = cbuf[3];
         buffer[9] = cbuf[4];
 
-        let cbuf = self.ch3.pack();
+        let cbuf = self.ch3.pack().unwrap();
         buffer[10] = cbuf[0];
         buffer[11] = cbuf[1];
         buffer[12] = cbuf[2];
         buffer[13] = cbuf[3];
         buffer[14] = cbuf[4];
 
-        let cbuf = self.ch4.pack();
+        let cbuf = self.ch4.pack().unwrap();
         buffer[15] = cbuf[0];
         buffer[16] = cbuf[1];
         buffer[17] = cbuf[2];
         buffer[18] = cbuf[3];
         buffer[19] = cbuf[4];
 
-        let cbuf = self.control.pack();
+        let cbuf = self.control.pack().unwrap();
         buffer[20] = cbuf[0];
         buffer[21] = cbuf[1];
         buffer[22] = cbuf[2];
@@ -504,7 +504,7 @@ struct Ch1State {
 pub struct Ch2Control {
     // NR20
     #[packed_field(bits = "0:7")]
-    _reserved1: ReservedZeroes<packed_bits::Bits8>,
+    _reserved1: ReservedZeroes<packed_bits::Bits<8>>,
 
     // NR21
     #[packed_field(bits = "8:9")]
@@ -637,11 +637,11 @@ pub struct Control {
     #[packed_field(bits = "0")]
     enable_vin_to_s02: bool,
     #[packed_field(bits = "1:3")]
-    s02_volume: Integer<u8, packed_bits::Bits3>,
+    s02_volume: Integer<u8, packed_bits::Bits<3>>,
     #[packed_field(bits = "4")]
     enable_vin_to_s01: bool,
     #[packed_field(bits = "5:7")]
-    s01_volume: Integer<u8, packed_bits::Bits3>,
+    s01_volume: Integer<u8, packed_bits::Bits<3>>,
 
     // NR51
     #[packed_field(bits = "8")]
