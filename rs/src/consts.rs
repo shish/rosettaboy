@@ -1,12 +1,3 @@
-pub trait Address {
-    fn to_u16(self) -> u16;
-}
-impl Address for u16 {
-    fn to_u16(self) -> u16 {
-        return self;
-    }
-}
-
 pub enum Mem {
     VBlankHandler = 0x40,
     LcdHandler = 0x48,
@@ -76,9 +67,9 @@ pub enum Mem {
 
     IE = 0xFFFF,
 }
-impl Address for Mem {
-    fn to_u16(self) -> u16 {
-        return self as u16;
+impl From<Mem> for u16 {
+    fn from(m: Mem) -> u16 {
+        return m as u16;
     }
 }
 

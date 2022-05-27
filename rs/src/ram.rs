@@ -93,8 +93,8 @@ impl RAM {
     }
 
     #[inline(always)]
-    pub fn get<T: Address>(&self, addr: T) -> u8 {
-        let addr = addr.to_u16();
+    pub fn get<T: Into<u16>>(&self, addr: T) -> u8 {
+        let addr = addr.into();
         match addr {
             0x0000..=0x3FFF => {
                 // ROM bank 0
@@ -164,8 +164,8 @@ impl RAM {
     }
 
     #[inline(always)]
-    pub fn set<T: Address>(&mut self, addr: T, val: u8) {
-        let addr = addr.to_u16();
+    pub fn set<T: Into<u16>>(&mut self, addr: T, val: u8) {
+        let addr = addr.into();
         match addr {
             0x0000..=0x1FFF => {
                 self.ram_enable = val != 0;
@@ -284,20 +284,20 @@ impl RAM {
     }
 
     #[inline(always)]
-    pub fn _and<T: Address>(&mut self, addr: T, val: u8) {
-        let addr = addr.to_u16();
+    pub fn _and<T: Into<u16>>(&mut self, addr: T, val: u8) {
+        let addr = addr.into();
         self.set(addr, self.get(addr) & val);
     }
 
     #[inline(always)]
-    pub fn _or<T: Address>(&mut self, addr: T, val: u8) {
-        let addr = addr.to_u16();
+    pub fn _or<T: Into<u16>>(&mut self, addr: T, val: u8) {
+        let addr = addr.into();
         self.set(addr, self.get(addr) | val);
     }
 
     #[inline(always)]
-    pub fn _inc<T: Address>(&mut self, addr: T) {
-        let addr = addr.to_u16();
+    pub fn _inc<T: Into<u16>>(&mut self, addr: T) {
+        let addr = addr.into();
         self.set(addr, self.get(addr).overflowing_add(1).0);
     }
 }
