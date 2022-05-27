@@ -120,34 +120,31 @@ impl Cart {
         // FIXME: ram should be synced with .sav file
         let ram = vec![0; ram_size as usize];
 
-        let debug = false;
-        if debug {
-            println!(
-                "name         : {:<16} rom_version  : {:<16}",
-                name, rom_version
-            );
-            println!(
-                "is_gbc       : {:<16} is_sgb       : {:<16}",
-                is_gbc, is_sgb
-            );
-            println!(
-                "licensee     : {:<16} old_licensee : {:16?}",
-                licensee, old_licensee
-            );
-            println!(
-                "destination  : {:<16} cart_type    : {:16?}",
-                format!("{:?}", destination),
-                cart_type
-            );
-            println!(
-                "rom_size     : {:<16} ram_size     : {:<16}",
-                rom_size, ram_size
-            );
-            println!(
-                "ccheck       : {:<16} checksum     : {:<16}",
-                complement_check, checksum
-            );
-        }
+        tracing::debug!(
+            "name         : {:<16} rom_version  : {:<16}",
+            name, rom_version
+        );
+        tracing::debug!(
+            "is_gbc       : {:<16} is_sgb       : {:<16}",
+            is_gbc, is_sgb
+        );
+        tracing::debug!(
+            "licensee     : {:<16} old_licensee : {:16?}",
+            licensee, old_licensee
+        );
+        tracing::debug!(
+            "destination  : {:<16} cart_type    : {:16?}",
+            format!("{:?}", destination),
+            cart_type
+        );
+        tracing::debug!(
+            "rom_size     : {:<16} ram_size     : {:<16}",
+            rom_size, ram_size
+        );
+        tracing::debug!(
+            "ccheck       : {:<16} checksum     : {:<16}",
+            complement_check, checksum
+        );
 
         Ok(Cart {
             data,

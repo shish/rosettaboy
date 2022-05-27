@@ -6,6 +6,7 @@
 use anyhow::Result;
 use clap::Parser;
 extern crate sdl2;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[macro_use]
 extern crate bitflags;
@@ -104,8 +105,32 @@ impl<'a> Gameboy<'a> {
     }
 }
 
+fn configure_logging(args: &Args) {
+    let mut levels = "rosettaboy_rs=warn".to_string();
+    if args.debug_apu {
+        levels.push_str(",rosettaboy_rs::apu=debug");
+    }
+    if args.debug_cpu {
+        levels.push_str(",rosettaboy_rs::cpu=debug");
+    }
+    if args.debug_gpu {
+        levels.push_str(",rosettaboy_rs::gpu=debug");
+    }
+    if args.debug_ram {
+        levels.push_str(",rosettaboy_rs::ram=debug");
+    }
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::new(
+            std::env::var("RUST_LOG").unwrap_or_else(|_| levels.into()),
+        ))
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+}
+
 fn main() -> Result<()> {
-    Gameboy::new(Args::parse())?.run()?;
+    let args = Args::parse();
+    configure_logging(&args);
+    Gameboy::new(args)?.run()?;
 
     // because debug ROMs print to stdout without newline
     println!();

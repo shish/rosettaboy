@@ -351,13 +351,11 @@ impl CPU {
     fn tick_interrupts(&mut self, ram: &mut ram::RAM) {
         let queued_interrupts = Interrupt::from_bits(ram.get(Mem::IE) & ram.get(Mem::IF)).unwrap();
         if self.interrupts && !queued_interrupts.is_empty() {
-            if self.debug {
-                println!(
-                    "Handling interrupts: {:02X} & {:02X}",
-                    ram.get(Mem::IE),
-                    ram.get(Mem::IF)
-                );
-            }
+            tracing::debug!(
+                "Handling interrupts: {:02X} & {:02X}",
+                ram.get(Mem::IE),
+                ram.get(Mem::IF)
+            );
 
             // no nested interrupts, RETI will re-enable
             self.interrupts = false;

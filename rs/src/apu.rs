@@ -137,7 +137,7 @@ impl APU {
             let out = self.render_frame_audio(ram);
 
             if let Some(device) = &self.device {
-                // println!("size = {}", device.size());
+                tracing::debug!("size = {}", device.size());
                 if device.size() <= ((HZ / 60) * 2) as u32 {
                     device.queue_audio(&out).unwrap();
                     device.queue_audio(&out).unwrap();

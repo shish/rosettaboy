@@ -12,4 +12,5 @@ packed_struct = "0.10.0"
 packed_struct_codegen = "0.10.0"
 anyhow = "1"
 clap = { version = "3.1.18", features = ["derive"] }
-
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

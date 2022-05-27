@@ -155,7 +155,7 @@ impl Buttons {
             .map_err(anyhow::Error::msg)?
             .poll_iter()
         {
-            // println!("Event: {:?}", event);
+            tracing::debug!("Event: {:?}", event);
             match event {
                 Event::Quit { .. } => return Err(anyhow!("Quit")),
                 Event::KeyDown {

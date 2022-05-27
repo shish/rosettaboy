@@ -66,7 +66,7 @@ impl RAM {
     pub fn new(cart: cart::Cart, debug: bool) -> RAM {
         let boot = match ::std::fs::File::open("boot.gb") {
             Ok(mut fp) => {
-                // println!("Loading boot code from boot.gb");
+                tracing::debug!("Loading boot code from boot.gb");
                 let mut buf: [u8; 0x100] = [0; 0x100];
                 fp.read_exact(&mut buf).unwrap();
                 buf[0xE9] = 0x00;
@@ -173,13 +173,11 @@ impl RAM {
             0x2000..=0x3FFF => {
                 self.rom_bank_low = val;
                 self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low;
-                if self.debug {
-                    println!(
-                        "rom_bank set to {}/{}",
-                        self.rom_bank,
-                        self.cart.rom_size / ROM_BANK_SIZE as u32
-                    );
-                }
+                tracing::debug!(
+                    "rom_bank set to {}/{}",
+                    self.rom_bank,
+                    self.cart.rom_size / ROM_BANK_SIZE as u32
+                );
                 if self.rom_bank as u32 * ROM_BANK_SIZE as u32 > self.cart.rom_size {
                     panic!("Set rom_bank beyond the size of ROM");
                 }
@@ -187,26 +185,22 @@ impl RAM {
             0x4000..=0x5FFF => {
                 if self.ram_bank_mode {
                     self.ram_bank = val;
-                    if self.debug {
-                        println!(
-                            "ram_bank set to {}/{}",
-                            self.ram_bank,
-                            self.cart.ram_size / RAM_BANK_SIZE as u32
-                        );
-                    }
+                    tracing::debug!(
+                        "ram_bank set to {}/{}",
+                        self.ram_bank,
+                        self.cart.ram_size / RAM_BANK_SIZE as u32
+                    );
                     if self.ram_bank as u32 * RAM_BANK_SIZE as u32 > self.cart.ram_size {
                         panic!("Set ram_bank beyond the size of RAM");
                     }
                 } else {
                     self.rom_bank_high = val;
                     self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low;
-                    if self.debug {
-                        println!(
-                            "rom_bank set to {}/{}",
-                            self.rom_bank,
-                            self.cart.rom_size / ROM_BANK_SIZE as u32
-                        );
-                    }
+                    tracing::debug!(
+                        "rom_bank set to {}/{}",
+                        self.rom_bank,
+                        self.cart.rom_size / ROM_BANK_SIZE as u32
+                    );
                     if self.rom_bank as u32 * ROM_BANK_SIZE as u32 > self.cart.rom_size {
                         panic!("Set rom_bank beyond the size of ROM");
                     }
@@ -214,9 +208,7 @@ impl RAM {
             }
             0x6000..=0x7FFF => {
                 self.ram_bank_mode = val != 0;
-                if self.debug {
-                    println!("ram_bank_mode set to {}", self.ram_bank_mode);
-                }
+                tracing::debug!("ram_bank_mode set to {}", self.ram_bank_mode);
             }
             0x8000..=0x9FFF => {
                 // VRAM
@@ -232,15 +224,13 @@ impl RAM {
                 }
                 let bank = self.ram_bank as u32 * RAM_BANK_SIZE as u32;
                 let offset = addr as u32 - 0xA000;
-                if self.debug {
-                    println!(
-                        "Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",
-                        bank + offset,
-                        val,
-                        self.ram_bank,
-                        (addr - 0xA000)
-                    );
-                }
+                tracing::debug!(
+                    "Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",
+                    bank + offset,
+                    val,
+                    self.ram_bank,
+                    (addr - 0xA000)
+                );
                 if bank + offset >= self.cart.ram_size {
                     //panic!("Writing beyond RAM limit");
                     return;
@@ -262,9 +252,7 @@ impl RAM {
             }
             0xFEA0..=0xFEFF => {
                 // Unusable
-                if self.debug {
-                    println!("Writing to invalid ram: {:04x} = {:02x}", addr, val);
-                }
+                tracing::debug!("Writing to invalid ram: {:04x} = {:02x}", addr, val);
             }
             0xFF00..=0xFF7F => {
                 // IO Registers
