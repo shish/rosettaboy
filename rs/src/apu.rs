@@ -3,7 +3,6 @@ use crate::consts::*;
 use crate::ram;
 use anyhow::Result;
 use sdl2::audio::{AudioQueue, AudioSpecDesired};
-use std::convert::TryFrom;
 
 extern crate packed_struct;
 use packed_struct::prelude::*;

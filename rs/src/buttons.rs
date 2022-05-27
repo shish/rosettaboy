@@ -107,7 +107,7 @@ impl Buttons {
      */
     #[inline(always)]
     fn update_buttons(&mut self, ram: &mut ram::RAM) {
-        let mut joyp = !Joypad::from_bits_truncate(ram.get(Mem::JOYP as u16));
+        let mut joyp = !Joypad::from_bits_truncate(ram.get(Mem::JOYP));
         joyp.remove(Joypad::BUTTON_BITS);
         if joyp.contains(Joypad::MODE_DPAD) {
             if self.up {
