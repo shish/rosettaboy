@@ -122,15 +122,18 @@ impl Cart {
 
         tracing::debug!(
             "name         : {:<16} rom_version  : {:<16}",
-            name, rom_version
+            name,
+            rom_version
         );
         tracing::debug!(
             "is_gbc       : {:<16} is_sgb       : {:<16}",
-            is_gbc, is_sgb
+            is_gbc,
+            is_sgb
         );
         tracing::debug!(
             "licensee     : {:<16} old_licensee : {:16?}",
-            licensee, old_licensee
+            licensee,
+            old_licensee
         );
         tracing::debug!(
             "destination  : {:<16} cart_type    : {:16?}",
@@ -139,11 +142,13 @@ impl Cart {
         );
         tracing::debug!(
             "rom_size     : {:<16} ram_size     : {:<16}",
-            rom_size, ram_size
+            rom_size,
+            ram_size
         );
         tracing::debug!(
             "ccheck       : {:<16} checksum     : {:<16}",
-            complement_check, checksum
+            complement_check,
+            checksum
         );
 
         Ok(Cart {
