@@ -18,7 +18,7 @@ class Stat
     public static int $OAM_INTERRUPT = 1 << 5;
     public static int $VBLANK_INTERRUPT = 1 << 4;
     public static int $HBLANK_INTERRUPT = 1 << 3;
-    public static int $LCY_EQUAL = 1 << 2;
+    public static int $LYC_EQUAL = 1 << 2;
     public static int $MODE_BITS = 1 << 1 | 1 << 0;
 
     public static int $HBLANK = 0x00;
@@ -90,9 +90,9 @@ class GPU
             if ($this->cpu->ram->get(Mem::$STAT) & Stat::$LYC_INTERRUPT) {
                 $this->cpu->interrupt(Interrupt::$STAT);
             }
-            $this->cpu->ram->_or(Mem::$STAT, Stat::$LCY_EQUAL);
+            $this->cpu->ram->_or(Mem::$STAT, Stat::$LYC_EQUAL);
         } else {
-            $this->cpu->ram->_and(Mem::$STAT, ~Stat::$LCY_EQUAL);
+            $this->cpu->ram->_and(Mem::$STAT, ~Stat::$LYC_EQUAL);
         }
 
         // Set mode

@@ -60,7 +60,7 @@ const (
 	IO_SCY  = 0xFF42 // SCROLL_Y
 	IO_SCX  = 0xFF43 // SCROLL_X
 	IO_LY   = 0xFF44 // LY aka currently drawn line 0-153 >144 = vblank
-	IO_LCY  = 0xFF45
+	IO_LYC  = 0xFF45
 	IO_DMA  = 0xFF46
 	IO_BGP  = 0xFF47
 	IO_OBP0 = 0xFF48

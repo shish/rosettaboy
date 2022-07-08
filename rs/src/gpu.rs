@@ -44,11 +44,11 @@ bitflags! {
 
 bitflags! {
     pub struct Stat: u8 {
-        const LCY_INTERRUPT = 1<<6;
+        const LYC_INTERRUPT = 1<<6;
         const OAM_INTERRUPT = 1<<5;
         const VBLANK_INTERRUPT = 1<<4;
         const HBLANK_INTERRUPT = 1<<3;
-        const LCY_EQUAL = 1<<2;
+        const LYC_EQUAL = 1<<2;
         const MODE_BITS = 0b00000011;
 
         const HBLANK = 0x00;
@@ -177,12 +177,12 @@ impl<'a> GPU<'a> {
 
         // LYC compare & interrupt
         if ram.get(Mem::LY) == ram.get(Mem::LYC) {
-            if stat.contains(Stat::LCY_INTERRUPT) {
+            if stat.contains(Stat::LYC_INTERRUPT) {
                 cpu.interrupt(ram, Interrupt::STAT);
             }
-            ram._or(Mem::STAT, Stat::LCY_EQUAL.bits());
+            ram._or(Mem::STAT, Stat::LYC_EQUAL.bits());
         } else {
-            ram._and(Mem::STAT, !Stat::LCY_EQUAL.bits());
+            ram._and(Mem::STAT, !Stat::LYC_EQUAL.bits());
         }
 
         // Set `ram[STAT].bit{0,1}` to `OAM / Drawing / HBlank / VBlank`

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -21,7 +22,7 @@ const (
 	STAT_OAM_INTERRUPT    uint8 = 1 << 5
 	STAT_VBLANK_INTERRUPT uint8 = 1 << 4
 	STAT_HBLANK_INTERRUPT uint8 = 1 << 3
-	STAT_LCY_EQUAL        uint8 = 1 << 2
+	STAT_LYC_EQUAL        uint8 = 1 << 2
 	STAT_MODE_BITS        uint8 = 1<<1 | 1<<0
 
 	STAT_HBLANK  = 0x00
@@ -165,13 +166,13 @@ func (self *GPU) tick() bool {
 	var stat = self.cpu.ram.get(IO_STAT)
 
 	// LYC compare & interrupt
-	if self.cpu.ram.get(IO_LY) == self.cpu.ram.get(IO_LCY) {
+	if self.cpu.ram.get(IO_LY) == self.cpu.ram.get(IO_LYC) {
 		if stat&STAT_LYC_INTERRUPT > 0 {
 			self.cpu.interrupt(INT_STAT)
 		}
-		self.cpu.ram._or(IO_STAT, STAT_LCY_EQUAL)
+		self.cpu.ram._or(IO_STAT, STAT_LYC_EQUAL)
 	} else {
-		self.cpu.ram._and(IO_STAT, ^STAT_LCY_EQUAL)
+		self.cpu.ram._and(IO_STAT, ^STAT_LYC_EQUAL)
 	}
 
 	// Set `ram[STAT].bit{0,1}` to `OAM / Drawing / HBlank / VBlank`

@@ -22,7 +22,7 @@ class Stat:
     OAM_INTERRUPT = 1 << 5
     VBLANK_INTERRUPT = 1 << 4
     HBLANK_INTERRUPT = 1 << 3
-    LCY_EQUAL = 1 << 2
+    LYC_EQUAL = 1 << 2
     MODE_BITS = 1 << 1 | 1 << 0
 
     HBLANK = 0x00
@@ -148,9 +148,9 @@ class GPU:
             if self.cpu.ram[Mem.STAT] & Stat.LYC_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
 
-            self.cpu.ram[Mem.STAT] |= Stat.LCY_EQUAL
+            self.cpu.ram[Mem.STAT] |= Stat.LYC_EQUAL
         else:
-            self.cpu.ram[Mem.STAT] &= ~Stat.LCY_EQUAL
+            self.cpu.ram[Mem.STAT] &= ~Stat.LYC_EQUAL
 
         # Set mode
         if lx == 0 and ly < 144:

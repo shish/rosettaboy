@@ -94,9 +94,9 @@ bool GPU::tick() {
         if(this->cpu->ram->get(Mem::STAT) & Stat::LYC_INTERRUPT) {
             this->cpu->interrupt(Interrupt::STAT);
         }
-        this->cpu->ram->_or(Mem::STAT, Stat::LCY_EQUAL);
+        this->cpu->ram->_or(Mem::STAT, Stat::LYC_EQUAL);
     } else {
-        this->cpu->ram->_and(Mem::STAT, ~Stat::LCY_EQUAL);
+        this->cpu->ram->_and(Mem::STAT, ~Stat::LYC_EQUAL);
     }
 
     // Set mode
