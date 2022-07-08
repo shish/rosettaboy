@@ -464,9 +464,6 @@ impl<'a> GPU<'a> {
                     offset.x + if flip_x { 7 - x } else { x },
                     offset.y + if flip_y { 7 - y } else { y },
                 );
-                if offset.x <= 160 && xy.x >= 160 {
-                    return;
-                }
                 self.renderer.set_draw_color(palette[px as usize]);
                 self.renderer.draw_point(xy).expect("draw point");
             }

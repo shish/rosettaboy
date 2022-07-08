@@ -6,14 +6,14 @@ Usage
 -----
 ```
 python3 -m venv venv
-./venv/bin/pip install pygame
+./venv/bin/pip install pysdl2 pysdl2-dll
 ./venv/bin/python3 main.py game.gb
 ```
 
 Requirements
 ------------
 - Python 3.6+
-- PyGame
+- PySDL2
 
 Formatting
 ----------

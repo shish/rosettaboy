@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
-from os import environ
-
-environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-
-import pygame
+from sdl2 import SDL_Quit
 import sys
 from typing import List
+
 from .cart import Cart
 from .cpu import CPU
 from .gpu import GPU
@@ -69,7 +66,7 @@ def main(argv: List[str]) -> int:
     except (KeyboardInterrupt, BrokenPipeError):
         pass
     finally:
-        pygame.quit()
+        SDL_Quit()
 
     return 0
 

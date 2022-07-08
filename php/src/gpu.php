@@ -329,9 +329,6 @@ class GPU
                     $offset->x + ($flip_x ? 7 - $x : $x),
                     $offset->y + ($flip_y ? 7 - $y : $y),
                 );
-                if ($offset->x <= 160 && $xy->x >= 160) {
-                    return;
-                }
                 $c = $palette[$px];
                 SDL_SetRenderDrawColor($this->renderer, $c->r, $c->g, $c->b, $c->a);
                 SDL_RenderDrawPoint($this->renderer, $xy->x, $xy->y);

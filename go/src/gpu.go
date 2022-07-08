@@ -439,9 +439,6 @@ func (self *GPU) paint_tile_line(
 				X: int32(offset.X + _tern(flip_x, 7-x, x)),
 				Y: int32(offset.Y + _tern(flip_y, 7-y, y)),
 			}
-			if offset.X <= 160 && xy.X >= 160 {
-				return
-			}
 			var c = palette[px]
 			self.renderer.SetDrawColor(c.R, c.G, c.B, c.A)
 			self.renderer.DrawPoint(xy.X, xy.Y)

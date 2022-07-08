@@ -5,13 +5,9 @@ class Mem:
     SERIAL_HANDLER = 0x58
     JOYPAD_HANDLER = 0x60
 
-    VRAM_BASE = 0x8000
-    TILE_DATA_TABLE_0 = 0x8800
-    TILE_DATA_TABLE_1 = 0x8000
-    BACKGROUND_MAP_0 = 0x9800
-    BACKGROUND_MAP_1 = 0x9C00
-    WINDOW_MAP_0 = 0x9800
-    WINDOW_MAP_1 = 0x9C00
+    TILE_DATA = 0x8000
+    MAP_0 = 0x9800
+    MAP_1 = 0x9C00
     OAM_BASE = 0xFE00
 
     JOYP = 0xFF00
@@ -59,7 +55,7 @@ class Mem:
     SCY = 0xFF42  # SCROLL_Y
     SCX = 0xFF43  # SCROLL_X
     LY = 0xFF44  # LY aka currently drawn line 0-153 >144 = vblank
-    LCY = 0xFF45
+    LYC = 0xFF45
     DMA = 0xFF46
     BGP = 0xFF47
     OBP0 = 0xFF48

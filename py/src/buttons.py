@@ -1,4 +1,5 @@
-import pygame
+import sdl2
+import ctypes
 from .consts import Interrupt, Mem
 from .cpu import CPU
 
@@ -71,46 +72,50 @@ class Buttons:
         if self.headless:
             return True
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        event = sdl2.SDL_Event()
+        while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
+            if event.type == sdl2.SDL_QUIT:
+                print(f"q")
                 return False
-            elif event.type == pygame.KEYDOWN:
+            elif event.type == sdl2.SDL_KEYDOWN:
+                key = event.key.keysym.sym
                 self.need_interrupt = True
-                if event.key == pygame.K_ESCAPE:
+                if key == sdl2.SDLK_ESCAPE:
                     return False
-                elif event.key == pygame.K_z:
+                elif key == sdl2.SDLK_z:
                     self.b = True
-                elif event.key == pygame.K_x:
+                elif key == sdl2.SDLK_x:
                     self.a = True
-                elif event.key == pygame.K_RETURN:
+                elif key == sdl2.SDLK_RETURN:
                     self.start = True
-                elif event.key == pygame.K_SPACE:
+                elif key == sdl2.SDLK_SPACE:
                     self.select = True
-                elif event.key == pygame.K_UP:
+                elif key == sdl2.SDLK_UP:
                     self.up = True
-                elif event.key == pygame.K_DOWN:
+                elif key == sdl2.SDLK_DOWN:
                     self.down = True
-                elif event.key == pygame.K_LEFT:
+                elif key == sdl2.SDLK_LEFT:
                     self.left = True
-                elif event.key == pygame.K_RIGHT:
+                elif key == sdl2.SDLK_RIGHT:
                     self.right = True
                 else:
                     self.need_interrupt = False
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_z:
+            elif event.type == sdl2.SDL_KEYUP:
+                key = event.key.keysym.sym
+                if key == sdl2.SDLK_z:
                     self.b = False
-                elif event.key == pygame.K_x:
+                elif key == sdl2.SDLK_x:
                     self.a = False
-                elif event.key == pygame.K_RETURN:
+                elif key == sdl2.SDLK_RETURN:
                     self.start = False
-                elif event.key == pygame.K_SPACE:
+                elif key == sdl2.SDLK_SPACE:
                     self.select = False
-                elif event.key == pygame.K_UP:
+                elif key == sdl2.SDLK_UP:
                     self.up = False
-                elif event.key == pygame.K_DOWN:
+                elif key == sdl2.SDLK_DOWN:
                     self.down = False
-                elif event.key == pygame.K_LEFT:
+                elif key == sdl2.SDLK_LEFT:
                     self.left = False
-                elif event.key == pygame.K_RIGHT:
+                elif key == sdl2.SDLK_RIGHT:
                     self.right = False
         return True

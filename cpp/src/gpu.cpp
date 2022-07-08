@@ -146,26 +146,26 @@ bool GPU::tick() {
 
 void GPU::update_palettes() {
     u8 raw_bgp = this->cpu->ram->get(Mem::BGP);
-    bgp[0] = this->colors[(raw_bgp >> 0) & 0x3];
-    bgp[1] = this->colors[(raw_bgp >> 2) & 0x3];
-    bgp[2] = this->colors[(raw_bgp >> 4) & 0x3];
-    bgp[3] = this->colors[(raw_bgp >> 6) & 0x3];
+    this->bgp[0] = this->colors[(raw_bgp >> 0) & 0x3];
+    this->bgp[1] = this->colors[(raw_bgp >> 2) & 0x3];
+    this->bgp[2] = this->colors[(raw_bgp >> 4) & 0x3];
+    this->bgp[3] = this->colors[(raw_bgp >> 6) & 0x3];
 
     u8 raw_obp0 = this->cpu->ram->get(Mem::OBP0);
-    obp0[0] = this->colors[(raw_obp0 >> 0) & 0x3];
-    obp0[1] = this->colors[(raw_obp0 >> 2) & 0x3];
-    obp0[2] = this->colors[(raw_obp0 >> 4) & 0x3];
-    obp0[3] = this->colors[(raw_obp0 >> 6) & 0x3];
+    this->obp0[0] = this->colors[(raw_obp0 >> 0) & 0x3];
+    this->obp0[1] = this->colors[(raw_obp0 >> 2) & 0x3];
+    this->obp0[2] = this->colors[(raw_obp0 >> 4) & 0x3];
+    this->obp0[3] = this->colors[(raw_obp0 >> 6) & 0x3];
 
     u8 raw_obp1 = this->cpu->ram->get(Mem::OBP1);
-    obp1[0] = this->colors[(raw_obp1 >> 0) & 0x3];
-    obp1[1] = this->colors[(raw_obp1 >> 2) & 0x3];
-    obp1[2] = this->colors[(raw_obp1 >> 4) & 0x3];
-    obp1[3] = this->colors[(raw_obp1 >> 6) & 0x3];
+    this->obp1[0] = this->colors[(raw_obp1 >> 0) & 0x3];
+    this->obp1[1] = this->colors[(raw_obp1 >> 2) & 0x3];
+    this->obp1[2] = this->colors[(raw_obp1 >> 4) & 0x3];
+    this->obp1[3] = this->colors[(raw_obp1 >> 6) & 0x3];
 }
 
 void GPU::draw_debug() {
-    u8 LCDC = this->cpu->ram->get(Mem::LCDC);
+    u8 lcdc = this->cpu->ram->get(Mem::LCDC);
 
     // Tile data
     u8 tile_display_width = 32;
@@ -178,14 +178,14 @@ void GPU::draw_debug() {
     }
 
     // Background scroll border
-    if(LCDC & LCDC::BG_WIN_ENABLED) {
+    if(lcdc & LCDC::BG_WIN_ENABLED) {
         SDL_Rect rect = {.x = 0, .y = 0, .w = 160, .h = 144};
         SDL_SetRenderDrawColor(this->renderer, 255, 0, 0, 0xFF);
         SDL_RenderDrawRect(this->renderer, &rect);
     }
 
     // Window tiles
-    if(LCDC & LCDC::WINDOW_ENABLED) {
+    if(lcdc & LCDC::WINDOW_ENABLED) {
         u8 wnd_y = this->cpu->ram->get(Mem::WY);
         u8 wnd_x = this->cpu->ram->get(Mem::WX);
         SDL_Rect rect = {.x = wnd_x - 7, .y = wnd_y, .w = 160, .h = 144};
@@ -327,9 +327,6 @@ void GPU::paint_tile_line(i16 tile_id, SDL_Point *offset, SDL_Color *palette, bo
                 .x = offset->x + (flip_x ? 7 - x : x),
                 .y = offset->y + (flip_y ? 7 - y : y),
             };
-            if(offset->x <= 160 && xy.x >= 160) {
-                return;
-            }
             auto c = palette[px];
             SDL_SetRenderDrawColor(this->renderer, c.r, c.g, c.b, c.a);
             SDL_RenderDrawPoint(this->renderer, xy.x, xy.y);
