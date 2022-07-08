@@ -33,7 +33,7 @@ jobs:
           venv
         key: ${{ runner.os }}-python
     - name: Setup Virtualenv
-      run: python3 -m venv venv && ./venv/bin/pip install pysdl2
+      run: python3 -m venv venv && ./venv/bin/pip install pysdl2 pysdl2-dll
     - name: CPU Integration Tests
       run: ./gblargh.py py
     - name: Benchmark
