@@ -36,7 +36,7 @@ class Clock
             $time_spent = (ticks() - $this->last_frame_start);
             $sleep_for = (1000 / 60) - $time_spent;
             if ($sleep_for > 0 && !$this->turbo && !$this->buttons->turbo) {
-                time_nanosleep(0, $sleep_for * 1000000);
+                time_nanosleep(0, (int)($sleep_for * 1000000));
             }
             $this->last_frame_start = ticks();
 
