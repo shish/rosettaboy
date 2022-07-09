@@ -19,7 +19,7 @@ if not os.path.exists("gb-test-roms"):
 
 def test(cwd, n, frames):
     cmd = [
-        "./run.sh"
+        "./run.sh",
         "--turbo",
         "--silent",
         "--headless",
