@@ -161,46 +161,46 @@ func get_boot() []byte {
 	return data
 }
 
-func (self *RAM) get(addr uint16) uint8 {
+func (ram *RAM) get(addr uint16) uint8 {
 	switch {
 	case addr < 0x4000:
 		// ROM bank 0
-		if self.data[IO_BOOT] == 0 && addr < 0x100 {
-			return self.boot[addr]
+		if ram.data[IO_BOOT] == 0 && addr < 0x100 {
+			return ram.boot[addr]
 		}
-		return self.cart.data[addr]
+		return ram.cart.data[addr]
 	case addr < 0x8000:
 		// Switchable ROM bank
 		// TODO: array bounds check
-		var bank = int(self.rom_bank) * ROM_BANK_SIZE
+		var bank = int(ram.rom_bank) * ROM_BANK_SIZE
 		var offset = addr - 0x4000
-		return self.cart.data[int(bank)+int(offset)]
+		return ram.cart.data[int(bank)+int(offset)]
 	case addr < 0xA000:
 		// VRAM
 	case addr < 0xC000:
 		// 8KB Switchable RAM bank
-		if !self.ram_enable {
+		if !ram.ram_enable {
 			panic("Reading from external ram while disabled: {:04X}") // addr,
 		}
-		var bank = uint32(self.ram_bank) * RAM_BANK_SIZE
+		var bank = uint32(ram.ram_bank) * RAM_BANK_SIZE
 		var offset = uint32(addr) - 0xA000
-		if bank+offset > self.cart.ram_size {
+		if bank+offset > ram.cart.ram_size {
 			// this should never happen because we die on ram_bank being
 			// set to a too-large value
 			panic("Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})")
 			//addr_within_ram,
-			//self.ram_bank,
+			//ram.ram_bank,
 			//(addr - 0xA000),
 		}
 		panic("Cart RAM not supported") // TODO
-		// return self.cart.ram[bank + offset]
+		// return ram.cart.ram[bank + offset]
 	case addr < 0xD000:
 		// work RAM, bank 0
 	case addr < 0xE000:
 		// work RAM, bankable in CGB
 	case addr < 0xFE00:
 		// ram[E000-FE00] mirrors ram[C000-DE00]
-		return self.data[addr-0x2000]
+		return ram.data[addr-0x2000]
 	case addr < 0xFEA0:
 		// Sprite attribute table
 	case addr < 0xFF00:
@@ -213,100 +213,100 @@ func (self *RAM) get(addr uint16) uint8 {
 	default:
 		// IE Register
 	}
-	return self.data[addr]
+	return ram.data[addr]
 }
 
-func (self *RAM) set(addr uint16, val uint8) {
+func (ram *RAM) set(addr uint16, val uint8) {
 	switch {
 	case addr < 0x2000:
-		self.ram_enable = val != 0
+		ram.ram_enable = val != 0
 	case addr < 0x4000:
-		self.rom_bank_low = val
-		self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low
-		if self.debug {
+		ram.rom_bank_low = val
+		ram.rom_bank = (ram.rom_bank_high << 5) | ram.rom_bank_low
+		if ram.debug {
 			print(
-				"rom_bank set to {}/{}", self.rom_bank, self.cart.rom_size/ROM_BANK_SIZE,
+				"rom_bank set to {}/{}", ram.rom_bank, ram.cart.rom_size/ROM_BANK_SIZE,
 			)
 		}
-		if int(self.rom_bank)*ROM_BANK_SIZE > int(self.cart.rom_size) {
+		if int(ram.rom_bank)*ROM_BANK_SIZE > int(ram.cart.rom_size) {
 			panic("Set rom_bank beyond the size of ROM")
 		}
 	case addr < 0x6000:
-		if self.ram_bank_mode {
-			self.ram_bank = val
-			if self.debug {
+		if ram.ram_bank_mode {
+			ram.ram_bank = val
+			if ram.debug {
 				print(
 					"ram_bank set to {}/{}",
-					self.ram_bank,
-					self.cart.ram_size/RAM_BANK_SIZE,
+					ram.ram_bank,
+					ram.cart.ram_size/RAM_BANK_SIZE,
 				)
 			}
-			if int(self.ram_bank)*RAM_BANK_SIZE > int(self.cart.ram_size) {
+			if int(ram.ram_bank)*RAM_BANK_SIZE > int(ram.cart.ram_size) {
 				panic("Set ram_bank beyond the size of RAM")
 			}
 		} else {
-			self.rom_bank_high = val
-			self.rom_bank = (self.rom_bank_high << 5) | self.rom_bank_low
-			if self.debug {
+			ram.rom_bank_high = val
+			ram.rom_bank = (ram.rom_bank_high << 5) | ram.rom_bank_low
+			if ram.debug {
 				print(
 					"rom_bank set to {}/{}",
-					self.rom_bank,
-					self.cart.rom_size/ROM_BANK_SIZE,
+					ram.rom_bank,
+					ram.cart.rom_size/ROM_BANK_SIZE,
 				)
 			}
-			if int(self.rom_bank)*ROM_BANK_SIZE > int(self.cart.rom_size) {
+			if int(ram.rom_bank)*ROM_BANK_SIZE > int(ram.cart.rom_size) {
 				panic("Set rom_bank beyond the size of ROM")
 			}
 		}
 	case addr < 0x8000:
-		self.ram_bank_mode = val != 0
-		if self.debug {
-			print("ram_bank_mode set to {}", self.ram_bank_mode)
+		ram.ram_bank_mode = val != 0
+		if ram.debug {
+			print("ram_bank_mode set to {}", ram.ram_bank_mode)
 		}
 	case addr < 0xA000:
 		// VRAM
 		// TODO: if writing to tile RAM, update tiles in IO class?
 	case addr < 0xC000:
 		// external RAM, bankable
-		if !self.ram_enable {
+		if !ram.ram_enable {
 			panic("Writing to external ram while disabled: {:04x}={:02x}")
 			// , addr, val,
 		}
-		var bank = uint32(self.ram_bank) * RAM_BANK_SIZE
+		var bank = uint32(ram.ram_bank) * RAM_BANK_SIZE
 		var offset = uint32(addr) - 0xA000
-		if self.debug {
+		if ram.debug {
 			print(
 				"Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",
 				bank+offset,
 				val,
-				self.ram_bank,
+				ram.ram_bank,
 				(addr - 0xA000),
 			)
 		}
-		if bank+offset >= self.cart.ram_size {
+		if bank+offset >= ram.cart.ram_size {
 			// panic!("Writing beyond RAM limit")
 			return
 		}
 		panic("Cart RAM not supported") // TODO
-		// self.cart.ram[bank + offset] = val
+		// ram.cart.ram[bank + offset] = val
 	case addr < 0xD000:
 		// work RAM, bank 0
 	case addr < 0xE000:
 		// work RAM, bankable in CGB
 	case addr < 0xFE00:
 		// ram[E000-FE00] mirrors ram[C000-DE00]
-		self.data[addr-0x2000] = val
+		ram.data[addr-0x2000] = val
 	case addr < 0xFEA0:
 		// Sprite attribute table
 	case addr < 0xFF00:
 		// Unusable
-		if self.debug {
+		if ram.debug {
 			print("Writing to invalid ram: {:04x} = {:02x}", addr, val)
 		}
 	case addr < 0xFF80:
 		// IO Registers
 		// if addr == IO::SCX as u16 {
-		//     println!("LY = {}, SCX = {}", self.get(IO::LY), val);
+		//     println!("LY = {}, SCX = {}", ram.get(IO::LY), val);
 		// }
 	case addr < 0xFFFF:
 		// High RAM
@@ -314,15 +314,15 @@ func (self *RAM) set(addr uint16, val uint8) {
 		// IE Register
 	}
 
-	self.data[addr] = val
+	ram.data[addr] = val
 }
 
-func (self *RAM) _and(addr uint16, val uint8) {
-	self.set(addr, self.get(addr)&val)
+func (ram *RAM) _and(addr uint16, val uint8) {
+	ram.set(addr, ram.get(addr)&val)
 }
-func (self *RAM) _or(addr uint16, val uint8) {
-	self.set(addr, self.get(addr)|val)
+func (ram *RAM) _or(addr uint16, val uint8) {
+	ram.set(addr, ram.get(addr)|val)
 }
-func (self *RAM) _inc(addr uint16) {
-	self.set(addr, self.get(addr)+1)
+func (ram *RAM) _inc(addr uint16) {
+	ram.set(addr, ram.get(addr)+1)
 }

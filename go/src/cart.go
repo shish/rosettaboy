@@ -70,7 +70,7 @@ func NewCart(rom string) (*Cart, error) {
 		logo_checksum += uint16(logo[i])
 	}
 	if logo_checksum != 5446 {
-		return nil, errors.New("Logo checksum failed")
+		return nil, errors.New("logo checksum failed")
 	}
 
 	var header_checksum uint16 = 25
@@ -78,7 +78,7 @@ func NewCart(rom string) (*Cart, error) {
 		header_checksum += uint16(data[i])
 	}
 	if (header_checksum & 0xFF) != 0 {
-		return nil, errors.New("Header checksum failed")
+		return nil, errors.New("header checksum failed")
 	}
 
 	return &Cart{

@@ -305,49 +305,49 @@ func NewAPU(cpu *CPU, debug bool, silent bool) (*APU, error) {
 	}, nil
 }
 
-func (self *APU) tick() {
-	self.cycle += 1
+func (apu *APU) tick() {
+	apu.cycle += 1
 
 	// Ideally this would be in sync every tick, but
 	// once per frame should be sufficient...?
-	if self.cycle%17556 == 20 {
-		var out = self.render_frame_audio()
+	if apu.cycle%17556 == 20 {
+		var out = apu.render_frame_audio()
 
-		if self.device > 0 {
+		if apu.device > 0 {
 			// println!("size = {}", device.size());
-			if int(sdl.GetQueuedAudioSize(self.device)) <= int((HZ/60)*2) {
-				sdl.QueueAudio(self.device, out)
-				sdl.QueueAudio(self.device, out)
+			if int(sdl.GetQueuedAudioSize(apu.device)) <= int((HZ/60)*2) {
+				sdl.QueueAudio(apu.device, out)
+				sdl.QueueAudio(apu.device, out)
 			}
-			sdl.QueueAudio(self.device, out)
+			sdl.QueueAudio(apu.device, out)
 		}
 	}
 }
 
-func (self *APU) render_frame_audio() []uint8 { // return len = HZ / 60
-	var audio_controls = self.cpu.ram.data[IO_NR10 : IO_NR10+23]
+func (apu *APU) render_frame_audio() []uint8 { // return len = HZ / 60
+	var audio_controls = apu.cpu.ram.data[IO_NR10 : IO_NR10+23]
 	var out = make([]uint8, HZ/60)
 
-	self.ram_to_regs(audio_controls)
+	apu.ram_to_regs(audio_controls)
 	var sample uint16 = 0
 	for n := range out {
 		if n%2 == 0 {
-			sample = self.get_next_sample()
+			sample = apu.get_next_sample()
 			out[n] = uint8((sample & 0xFF00) >> 8)
 		} else {
 			out[n] = uint8((sample & 0x00FF) >> 0)
 		}
 	}
-	self.regs_to_ram(audio_controls)
+	apu.regs_to_ram(audio_controls)
 	return out
 }
 
-func (self *APU) ram_to_regs(buffer []uint8) {
-	self.ch1 = ch1unpack(buffer[0:4])
-	self.ch2 = ch2unpack(buffer[5:9])
-	self.ch3 = ch3unpack(buffer[10:14])
-	self.ch4 = ch4unpack(buffer[15:19])
-	self.control = conunpack(buffer[20:22])
+func (apu *APU) ram_to_regs(buffer []uint8) {
+	apu.ch1 = ch1unpack(buffer[0:4])
+	apu.ch2 = ch2unpack(buffer[5:9])
+	apu.ch3 = ch3unpack(buffer[10:14])
+	apu.ch4 = ch4unpack(buffer[15:19])
+	apu.control = conunpack(buffer[20:22])
 }
 
 func ch1unpack(buffer []uint8) Ch1Control {
@@ -366,24 +366,24 @@ func conunpack(buffer []uint8) Control {
 	return Control{}
 }
 
-func (self *Ch1Control) pack() []uint8 {
+func (apu *Ch1Control) pack() []uint8 {
 	return make([]uint8, 5)
 }
-func (self *Ch2Control) pack() []uint8 {
+func (apu *Ch2Control) pack() []uint8 {
 	return make([]uint8, 5)
 }
-func (self *Ch3Control) pack() []uint8 {
+func (apu *Ch3Control) pack() []uint8 {
 	return make([]uint8, 5)
 }
-func (self *Ch4Control) pack() []uint8 {
+func (apu *Ch4Control) pack() []uint8 {
 	return make([]uint8, 5)
 }
-func (self *Control) pack() []uint8 {
+func (apu *Control) pack() []uint8 {
 	return make([]uint8, 3)
 }
 
-func (self *APU) regs_to_ram(buffer []uint8) {
-	var cbuf = self.ch1.pack()
+func (apu *APU) regs_to_ram(buffer []uint8) {
+	var cbuf = apu.ch1.pack()
 	buffer[0] = cbuf[0]
 	buffer[0] = cbuf[0]
 	buffer[1] = cbuf[1]
@@ -391,71 +391,71 @@ func (self *APU) regs_to_ram(buffer []uint8) {
 	buffer[3] = cbuf[3]
 	buffer[4] = cbuf[4]
 
-	cbuf = self.ch2.pack()
+	cbuf = apu.ch2.pack()
 	buffer[5] = cbuf[0]
 	buffer[6] = cbuf[1]
 	buffer[7] = cbuf[2]
 	buffer[8] = cbuf[3]
 	buffer[9] = cbuf[4]
 
-	cbuf = self.ch3.pack()
+	cbuf = apu.ch3.pack()
 	buffer[10] = cbuf[0]
 	buffer[11] = cbuf[1]
 	buffer[12] = cbuf[2]
 	buffer[13] = cbuf[3]
 	buffer[14] = cbuf[4]
 
-	cbuf = self.ch4.pack()
+	cbuf = apu.ch4.pack()
 	buffer[15] = cbuf[0]
 	buffer[16] = cbuf[1]
 	buffer[17] = cbuf[2]
 	buffer[18] = cbuf[3]
 	buffer[19] = cbuf[4]
 
-	cbuf = self.control.pack()
+	cbuf = apu.control.pack()
 	buffer[20] = cbuf[0]
 	buffer[21] = cbuf[1]
 	buffer[22] = cbuf[2]
 }
 
-func (self *APU) get_next_sample() uint16 {
-	if !self.control.snd_enable {
+func (apu *APU) get_next_sample() uint16 {
+	if !apu.control.snd_enable {
 		// TODO: wipe all registers
 		return 0
 	}
 
-	var ch1 = self.get_ch1_sample()
-	var ch2 = self.get_ch2_sample()
-	var ch3 = self.get_ch3_sample()
-	var ch4 = self.get_ch4_sample()
+	var ch1 = apu.get_ch1_sample()
+	var ch2 = apu.get_ch2_sample()
+	var ch3 = apu.get_ch3_sample()
+	var ch4 = apu.get_ch4_sample()
 
-	var s01 uint8 = (((ch1>>2)*self.control.ch1_to_s01 +
-		(ch2>>2)*self.control.ch2_to_s01 +
-		(ch3>>2)*self.control.ch3_to_s01 +
-		(ch4>>2)*self.control.ch4_to_s01) *
-		self.control.s01_volume / 4)
-	var s02 uint8 = (((ch1>>2)*self.control.ch1_to_s02 +
-		(ch2>>2)*self.control.ch2_to_s02 +
-		(ch3>>2)*self.control.ch3_to_s02 +
-		(ch4>>2)*self.control.ch4_to_s02) *
-		self.control.s02_volume / 4)
+	var s01 uint8 = (((ch1>>2)*apu.control.ch1_to_s01 +
+		(ch2>>2)*apu.control.ch2_to_s01 +
+		(ch3>>2)*apu.control.ch3_to_s01 +
+		(ch4>>2)*apu.control.ch4_to_s01) *
+		apu.control.s01_volume / 4)
+	var s02 uint8 = (((ch1>>2)*apu.control.ch1_to_s02 +
+		(ch2>>2)*apu.control.ch2_to_s02 +
+		(ch3>>2)*apu.control.ch3_to_s02 +
+		(ch4>>2)*apu.control.ch4_to_s02) *
+		apu.control.s02_volume / 4)
 
 	return (uint16(s01) << 8) | uint16(s02) // s01 = right, s02 = left
 }
 
-func (self *APU) get_ch1_sample() uint8 {
+func (apu *APU) get_ch1_sample() uint8 {
 	// FIXME
 	return 0
 }
-func (self *APU) get_ch2_sample() uint8 {
+func (apu *APU) get_ch2_sample() uint8 {
 	// FIXME
 	return 0
 }
-func (self *APU) get_ch3_sample() uint8 {
+func (apu *APU) get_ch3_sample() uint8 {
 	// FIXME
 	return 0
 }
-func (self *APU) get_ch4_sample() uint8 {
+func (apu *APU) get_ch4_sample() uint8 {
 	// FIXME
 	return 0
 }

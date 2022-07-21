@@ -43,57 +43,57 @@ func NewButtons(cpu *CPU, headless bool) (*Buttons, error) {
 	}, nil
 }
 
-func (self *Buttons) tick() bool {
-	self.cycle += 1
-	self.update_buttons()
-	if self.need_interrupt {
-		self.cpu.stop = false
-		self.cpu.interrupt(INT_JOYPAD)
-		self.need_interrupt = false
+func (buttons *Buttons) tick() bool {
+	buttons.cycle += 1
+	buttons.update_buttons()
+	if buttons.need_interrupt {
+		buttons.cpu.stop = false
+		buttons.cpu.interrupt(INT_JOYPAD)
+		buttons.need_interrupt = false
 	}
-	if self.cycle%17556 == 20 {
-		return self.handle_inputs()
+	if buttons.cycle%17556 == 20 {
+		return buttons.handle_inputs()
 	} else {
 		return true
 	}
 }
 
-func (self *Buttons) update_buttons() {
-	var JOYP = ^self.cpu.ram.data[IO_JOYP]
+func (buttons *Buttons) update_buttons() {
+	var JOYP = ^buttons.cpu.ram.data[IO_JOYP]
 	JOYP &= 0xF0
 	if JOYP&JOYPAD_MODE_DPAD > 0 {
-		if self.up {
+		if buttons.up {
 			JOYP |= JOYPAD_UP
 		}
-		if self.down {
+		if buttons.down {
 			JOYP |= JOYPAD_DOWN
 		}
-		if self.left {
+		if buttons.left {
 			JOYP |= JOYPAD_LEFT
 		}
-		if self.right {
+		if buttons.right {
 			JOYP |= JOYPAD_RIGHT
 		}
 	}
 	if JOYP&JOYPAD_MODE_BUTTONS > 0 {
-		if self.b {
+		if buttons.b {
 			JOYP |= JOYPAD_B
 		}
-		if self.a {
+		if buttons.a {
 			JOYP |= JOYPAD_A
 		}
-		if self.start {
+		if buttons.start {
 			JOYP |= JOYPAD_START
 		}
-		if self.select_ {
+		if buttons.select_ {
 			JOYP |= JOYPAD_SELECT
 		}
 	}
-	self.cpu.ram.data[IO_JOYP] = ^JOYP
+	buttons.cpu.ram.data[IO_JOYP] = ^JOYP
 }
 
-func (self *Buttons) handle_inputs() bool {
-	if self.headless {
+func (buttons *Buttons) handle_inputs() bool {
+	if buttons.headless {
 		return true
 	}
 
@@ -108,52 +108,52 @@ func (self *Buttons) handle_inputs() bool {
 					return false
 				}
 				if t.Keysym.Sym == sdl.K_LSHIFT {
-					self.turbo = true
+					buttons.turbo = true
 				}
 
-				self.need_interrupt = true
+				buttons.need_interrupt = true
 				switch t.Keysym.Sym {
 				case sdl.K_UP:
-					self.up = true
+					buttons.up = true
 				case sdl.K_DOWN:
-					self.down = true
+					buttons.down = true
 				case sdl.K_LEFT:
-					self.left = true
+					buttons.left = true
 				case sdl.K_RIGHT:
-					self.right = true
+					buttons.right = true
 				case sdl.K_z:
-					self.b = true
+					buttons.b = true
 				case sdl.K_x:
-					self.a = true
+					buttons.a = true
 				case sdl.K_RETURN:
-					self.start = true
+					buttons.start = true
 				case sdl.K_SPACE:
-					self.select_ = true
+					buttons.select_ = true
 				default:
-					self.need_interrupt = false
+					buttons.need_interrupt = false
 				}
 			case sdl.KEYUP:
 				if t.Keysym.Sym == sdl.K_LSHIFT {
-					self.turbo = false
+					buttons.turbo = false
 				}
 
 				switch t.Keysym.Sym {
 				case sdl.K_UP:
-					self.up = false
+					buttons.up = false
 				case sdl.K_DOWN:
-					self.down = false
+					buttons.down = false
 				case sdl.K_LEFT:
-					self.left = false
+					buttons.left = false
 				case sdl.K_RIGHT:
-					self.right = false
+					buttons.right = false
 				case sdl.K_z:
-					self.b = false
+					buttons.b = false
 				case sdl.K_x:
-					self.a = false
+					buttons.a = false
 				case sdl.K_RETURN:
-					self.start = false
+					buttons.start = false
 				case sdl.K_SPACE:
-					self.select_ = false
+					buttons.select_ = false
 				}
 			}
 		}

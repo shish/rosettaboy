@@ -40,7 +40,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	for true {
+	for {
 		if !cpu.tick() {
 			break
 		}

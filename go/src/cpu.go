@@ -165,32 +165,32 @@ func NewCPU(ram *RAM, debug bool) CPU {
 	}
 }
 
-func (self *CPU) tick() bool {
-	self.tick_dma()
-	if !self.tick_clock() {
+func (cpu *CPU) tick() bool {
+	cpu.tick_dma()
+	if !cpu.tick_clock() {
 		return false
 	}
-	if !self.tick_interrupts() {
+	if !cpu.tick_interrupts() {
 		return false
 	}
-	if self.halt {
+	if cpu.halt {
 		return true
 	}
-	if self.stop {
+	if cpu.stop {
 		return false
 	}
-	if !self.tick_instructions() {
+	if !cpu.tick_instructions() {
 		return false
 	}
 	return true
 }
 
-func (self *CPU) interrupt(i byte) {
+func (cpu *CPU) interrupt(i byte) {
 	// Set a given interrupt bit - on the next tick, if the interrupt
-	// handler for self interrupt is enabled (and interrupts in general
+	// handler for cpu interrupt is enabled (and interrupts in general
 	// are enabled), then the interrupt handler will be called.
-	self.ram.data[IO_IF] |= i
-	self.halt = false // interrupts interrupt HALT state
+	cpu.ram.data[IO_IF] |= i
+	cpu.halt = false // interrupts interrupt HALT state
 }
 
 func _tert(val, a, b uint8) uint8 {
@@ -207,176 +207,176 @@ func join16(a, b uint8) uint16 {
 	return (uint16(a) << 8) | uint16(b)
 }
 
-func (self *CPU) dump_regs() {
-	var IE = self.ram.get(IO_IE)
-	var IF = self.ram.get(IO_IF)
-	var z = 'z' ^ ((self.F>>7)&1)<<5
-	var n = 'n' ^ ((self.F>>6)&1)<<5
-	var h = 'h' ^ ((self.F>>5)&1)<<5
-	var c = 'c' ^ ((self.F>>4)&1)<<5
+func (cpu *CPU) dump_regs() {
+	var IE = cpu.ram.get(IO_IE)
+	var IF = cpu.ram.get(IO_IF)
+	var z = 'z' ^ ((cpu.F>>7)&1)<<5
+	var n = 'n' ^ ((cpu.F>>6)&1)<<5
+	var h = 'h' ^ ((cpu.F>>5)&1)<<5
+	var c = 'c' ^ ((cpu.F>>4)&1)<<5
 	var v = _tert((IE>>0)&1, 'v'^((IF>>0)&1)<<5, '_')
 	var l = _tert((IE>>1)&1, 'l'^((IF>>1)&1)<<5, '_')
 	var t = _tert((IE>>2)&1, 't'^((IF>>2)&1)<<5, '_')
 	var s = _tert((IE>>3)&1, 's'^((IF>>3)&1)<<5, '_')
 	var j = _tert((IE>>4)&1, 'j'^((IF>>4)&1)<<5, '_')
-	var op = self.ram.get(self.PC)
+	var op = cpu.ram.get(cpu.PC)
 	var op_str = ""
 	if op == 0xCB {
-		op = self.ram.get(self.PC + 1)
+		op = cpu.ram.get(cpu.PC + 1)
 		op_str = CB_OP_NAMES[op]
 	} else {
 		switch OP_ARG_TYPES[op] {
 		case 0:
 			op_str = OP_NAMES[op]
 		case 1:
-			op_str = fmt.Sprintf(OP_NAMES[op], self.ram.get(self.PC+1))
+			op_str = fmt.Sprintf(OP_NAMES[op], cpu.ram.get(cpu.PC+1))
 		case 2:
-			op_str = fmt.Sprintf(OP_NAMES[op], uint16(self.ram.get(self.PC+2))<<8|uint16(self.ram.get(self.PC+1)))
+			op_str = fmt.Sprintf(OP_NAMES[op], uint16(cpu.ram.get(cpu.PC+2))<<8|uint16(cpu.ram.get(cpu.PC+1)))
 		case 3:
-			op_str = fmt.Sprintf(OP_NAMES[op], int8(self.ram.get(self.PC+1)))
+			op_str = fmt.Sprintf(OP_NAMES[op], int8(cpu.ram.get(cpu.PC+1)))
 		}
 	}
 	// if(cycle % 10 == 0)
 	// printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
 	fmt.Printf("%02X%02X %02X%02X %02X%02X %04X : %04X = %02X%02X : %c%c%c%c : %c%c%c%c%c : %04X = %02X : %s\n",
-		self.A, self.F, self.B, self.C, self.D, self.E, self.HL,
-		self.SP, self.ram.get(self.SP+1), self.ram.get(self.SP),
+		cpu.A, cpu.F, cpu.B, cpu.C, cpu.D, cpu.E, cpu.HL,
+		cpu.SP, cpu.ram.get(cpu.SP+1), cpu.ram.get(cpu.SP),
 		z, n, h, c,
 		v, l, t, s, j,
-		self.PC, op, op_str,
+		cpu.PC, op, op_str,
 	)
 }
 
-func (self *CPU) tick_dma() {
+func (cpu *CPU) tick_dma() {
 	// TODO: DMA should take 26 cycles, during which main RAM is inaccessible
-	if self.ram.get(IO_DMA) > 0 {
-		var dma_src = uint16(self.ram.get(IO_DMA)) << 8
+	if cpu.ram.get(IO_DMA) > 0 {
+		var dma_src = uint16(cpu.ram.get(IO_DMA)) << 8
 		for i := 0; i < 0x60; i++ {
-			self.ram.set(uint16(OAM_BASE+i), self.ram.get(dma_src+uint16(i)))
+			cpu.ram.set(uint16(OAM_BASE+i), cpu.ram.get(dma_src+uint16(i)))
 		}
-		self.ram.set(IO_DMA, 0x00)
+		cpu.ram.set(IO_DMA, 0x00)
 	}
 
 }
-func (self *CPU) tick_clock() bool {
-	self.cycle++
+func (cpu *CPU) tick_clock() bool {
+	cpu.cycle++
 
 	// TODO: writing any value to IO_DIV should reset it to 0x00
 	// increment at 16384Hz (each 64 cycles?)
-	if self.cycle%64 == 0 {
-		self.ram._inc(IO_DIV)
+	if cpu.cycle%64 == 0 {
+		cpu.ram._inc(IO_DIV)
 	}
 
-	if self.ram.get(IO_TAC)&(1<<2) > 0 { // timer enable
+	if cpu.ram.get(IO_TAC)&(1<<2) > 0 { // timer enable
 		var speeds = []uint16{256, 4, 16, 64} // increment per X cycles
-		var speed = speeds[self.ram.get(IO_TAC)&0x03]
-		if self.cycle%int(speed) == 0 {
-			if self.ram.get(IO_TIMA) == 0xFF {
-				self.ram.set(IO_TIMA, self.ram.get(IO_TMA)) // if timer overflows, load base
-				self.interrupt(INT_TIMER)
+		var speed = speeds[cpu.ram.get(IO_TAC)&0x03]
+		if cpu.cycle%int(speed) == 0 {
+			if cpu.ram.get(IO_TIMA) == 0xFF {
+				cpu.ram.set(IO_TIMA, cpu.ram.get(IO_TMA)) // if timer overflows, load base
+				cpu.interrupt(INT_TIMER)
 			}
-			self.ram._inc(IO_TIMA)
+			cpu.ram._inc(IO_TIMA)
 		}
 	}
 	return true
 }
-func (self *CPU) tick_interrupts() bool {
-	var queued_interrupts = self.ram.get(IO_IE) & self.ram.get(IO_IF)
-	if self.interrupts && (queued_interrupts != 0x00) {
-		if self.debug {
-			fmt.Printf("Handling interrupts: %02X & %02X\n", self.ram.get(IO_IE), self.ram.get(IO_IF))
+func (cpu *CPU) tick_interrupts() bool {
+	var queued_interrupts = cpu.ram.get(IO_IE) & cpu.ram.get(IO_IF)
+	if cpu.interrupts && (queued_interrupts != 0x00) {
+		if cpu.debug {
+			fmt.Printf("Handling interrupts: %02X & %02X\n", cpu.ram.get(IO_IE), cpu.ram.get(IO_IF))
 		}
-		self.interrupts = false // no nested interrupts, RETI will re-enable
+		cpu.interrupts = false // no nested interrupts, RETI will re-enable
 		// TODO: wait two cycles
 		// TODO: push16(PC) should also take two cycles
 		// TODO: one more cycle to store new PC
 		if queued_interrupts&INT_VBLANK > 0 {
-			self.push(self.PC)
-			self.PC = VBLANK_HANDLER
-			self.ram._and(IO_IF, ^INT_VBLANK)
+			cpu.push(cpu.PC)
+			cpu.PC = VBLANK_HANDLER
+			cpu.ram._and(IO_IF, ^INT_VBLANK)
 		} else if queued_interrupts&INT_STAT > 0 {
-			self.push(self.PC)
-			self.PC = LCD_HANDLER
-			self.ram._and(IO_IF, ^INT_STAT)
+			cpu.push(cpu.PC)
+			cpu.PC = LCD_HANDLER
+			cpu.ram._and(IO_IF, ^INT_STAT)
 		} else if queued_interrupts&INT_TIMER > 0 {
-			self.push(self.PC)
-			self.PC = TIMER_HANDLER
-			self.ram._and(IO_IF, ^INT_TIMER)
+			cpu.push(cpu.PC)
+			cpu.PC = TIMER_HANDLER
+			cpu.ram._and(IO_IF, ^INT_TIMER)
 		} else if queued_interrupts&INT_SERIAL > 0 {
-			self.push(self.PC)
-			self.PC = SERIAL_HANDLER
-			self.ram._and(IO_IF, ^INT_SERIAL)
+			cpu.push(cpu.PC)
+			cpu.PC = SERIAL_HANDLER
+			cpu.ram._and(IO_IF, ^INT_SERIAL)
 		} else if queued_interrupts&INT_JOYPAD > 0 {
-			self.push(self.PC)
-			self.PC = JOYPAD_HANDLER
-			self.ram._and(IO_IF, ^INT_JOYPAD)
+			cpu.push(cpu.PC)
+			cpu.PC = JOYPAD_HANDLER
+			cpu.ram._and(IO_IF, ^INT_JOYPAD)
 		}
 	}
 	return true
 }
-func (self *CPU) tick_instructions() bool {
+func (cpu *CPU) tick_instructions() bool {
 	// if the previous instruction was large, let's not run any
 	// more instructions until other subsystems have caught up
-	if self.owed_cycles > 0 {
-		self.owed_cycles--
+	if cpu.owed_cycles > 0 {
+		cpu.owed_cycles--
 		return true
 	}
 
-	if self.debug {
-		self.dump_regs()
+	if cpu.debug {
+		cpu.dump_regs()
 	}
 
-	var op = self.ram.get(self.PC)
-	self.PC++
+	var op = cpu.ram.get(cpu.PC)
+	cpu.PC++
 	if op == 0xCB {
-		op = self.ram.get(self.PC)
-		self.PC++
-		self.tick_cb(op)
-		self.owed_cycles = OP_CB_CYCLES[op] - 1
+		op = cpu.ram.get(cpu.PC)
+		cpu.PC++
+		cpu.tick_cb(op)
+		cpu.owed_cycles = OP_CB_CYCLES[op] - 1
 	} else {
-		self.tick_main(op)
-		self.owed_cycles = OP_CYCLES[op] - 1
+		cpu.tick_main(op)
+		cpu.owed_cycles = OP_CYCLES[op] - 1
 	}
 
 	// Flags should be union'ed with the F register, but go doesn't
 	// support that, so let's manually sync from flags to register
 	// after every instruction...
-	self.F = 0
-	if self.FLAG_Z {
-		self.F |= 1 << 7
+	cpu.F = 0
+	if cpu.FLAG_Z {
+		cpu.F |= 1 << 7
 	}
-	if self.FLAG_N {
-		self.F |= 1 << 6
+	if cpu.FLAG_N {
+		cpu.F |= 1 << 6
 	}
-	if self.FLAG_H {
-		self.F |= 1 << 5
+	if cpu.FLAG_H {
+		cpu.F |= 1 << 5
 	}
-	if self.FLAG_C {
-		self.F |= 1 << 4
+	if cpu.FLAG_C {
+		cpu.F |= 1 << 4
 	}
 
 	// HALT has cycles=0
-	if self.owed_cycles < 0 {
-		self.owed_cycles = 0
+	if cpu.owed_cycles < 0 {
+		cpu.owed_cycles = 0
 	}
 	return true
 }
 
-func (self *CPU) tick_main(op uint8) {
+func (cpu *CPU) tick_main(op uint8) {
 	// Load args
 	var arg oparg
 	arg.as_u16 = 0
 	var nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]]
 	if nargs == 1 {
-		arg.as_u8 = self.ram.get(self.PC)
+		arg.as_u8 = cpu.ram.get(cpu.PC)
 		arg.as_i8 = int8(arg.as_u8)
-		self.PC++
+		cpu.PC++
 	}
 	if nargs == 2 {
-		var low = self.ram.get(self.PC)
-		self.PC++
-		var high = self.ram.get(self.PC)
-		self.PC++
+		var low = cpu.ram.get(cpu.PC)
+		cpu.PC++
+		var high = cpu.ram.get(cpu.PC)
+		cpu.PC++
 		arg.as_u16 = uint16(high)<<8 | uint16(low)
 	}
 
@@ -388,181 +388,181 @@ func (self *CPU) tick_main(op uint8) {
 	case 0x00: /* NOP */
 		break
 	case 0x01:
-		self.B, self.C = split16(arg.as_u16)
+		cpu.B, cpu.C = split16(arg.as_u16)
 	case 0x02:
-		self.ram.set(join16(self.B, self.C), self.A)
+		cpu.ram.set(join16(cpu.B, cpu.C), cpu.A)
 	case 0x03:
-		self.B, self.C = split16(join16(self.B, self.C) + 1)
+		cpu.B, cpu.C = split16(join16(cpu.B, cpu.C) + 1)
 	case 0x08:
-		self.ram.set(arg.as_u16+1, uint8((self.SP>>8)&0xFF))
-		self.ram.set(arg.as_u16, uint8(self.SP&0xFF))
+		cpu.ram.set(arg.as_u16+1, uint8((cpu.SP>>8)&0xFF))
+		cpu.ram.set(arg.as_u16, uint8(cpu.SP&0xFF))
 	case 0x0A:
-		self.A = self.ram.get(join16(self.B, self.C))
+		cpu.A = cpu.ram.get(join16(cpu.B, cpu.C))
 	case 0x0B:
-		self.B, self.C = split16(join16(self.B, self.C) - 1)
+		cpu.B, cpu.C = split16(join16(cpu.B, cpu.C) - 1)
 
 	case 0x10:
-		self.stop = true
+		cpu.stop = true
 	case 0x11:
-		self.D, self.E = split16(arg.as_u16)
+		cpu.D, cpu.E = split16(arg.as_u16)
 	case 0x12:
-		self.ram.set(join16(self.D, self.E), self.A)
+		cpu.ram.set(join16(cpu.D, cpu.E), cpu.A)
 	case 0x13:
-		self.D, self.E = split16(join16(self.D, self.E) + 1)
+		cpu.D, cpu.E = split16(join16(cpu.D, cpu.E) + 1)
 	case 0x18:
-		self.PC += uint16(arg.as_i8)
+		cpu.PC += uint16(arg.as_i8)
 	case 0x1A:
-		self.A = self.ram.get(join16(self.D, self.E))
+		cpu.A = cpu.ram.get(join16(cpu.D, cpu.E))
 	case 0x1B:
-		self.D, self.E = split16(join16(self.D, self.E) - 1)
+		cpu.D, cpu.E = split16(join16(cpu.D, cpu.E) - 1)
 
 	case 0x20:
-		if !self.FLAG_Z {
-			self.PC += uint16(arg.as_i8)
+		if !cpu.FLAG_Z {
+			cpu.PC += uint16(arg.as_i8)
 		}
 	case 0x21:
-		self.HL = arg.as_u16
+		cpu.HL = arg.as_u16
 	case 0x22:
-		self.ram.set(self.HL, self.A)
-		self.HL++
+		cpu.ram.set(cpu.HL, cpu.A)
+		cpu.HL++
 	case 0x23:
-		self.HL++
+		cpu.HL++
 	case 0x27:
-		val16 = uint16(self.A)
-		if !self.FLAG_N {
-			if self.FLAG_H || (val16&0x0F) > 9 {
+		val16 = uint16(cpu.A)
+		if !cpu.FLAG_N {
+			if cpu.FLAG_H || (val16&0x0F) > 9 {
 				val16 += 6
 			}
-			if self.FLAG_C || val16 > 0x9F {
+			if cpu.FLAG_C || val16 > 0x9F {
 				val16 += 0x60
 			}
 		} else {
-			if self.FLAG_H {
+			if cpu.FLAG_H {
 				val16 -= 6
-				if !self.FLAG_C {
+				if !cpu.FLAG_C {
 					val16 &= 0xFF
 				}
 			}
-			if self.FLAG_C {
+			if cpu.FLAG_C {
 				val16 -= 0x60
 			}
 		}
-		self.FLAG_H = false
+		cpu.FLAG_H = false
 		if val16&0x100 > 0 {
-			self.FLAG_C = true
+			cpu.FLAG_C = true
 		}
-		self.A = uint8(val16 & 0xFF)
-		self.FLAG_Z = self.A == 0
+		cpu.A = uint8(val16 & 0xFF)
+		cpu.FLAG_Z = cpu.A == 0
 	case 0x28:
-		if self.FLAG_Z {
-			self.PC += uint16(arg.as_i8)
+		if cpu.FLAG_Z {
+			cpu.PC += uint16(arg.as_i8)
 		}
 	case 0x2A:
-		self.A = self.ram.get(self.HL)
-		self.HL++
+		cpu.A = cpu.ram.get(cpu.HL)
+		cpu.HL++
 	case 0x2B:
-		self.HL--
+		cpu.HL--
 	case 0x2F:
-		self.A ^= 0xFF
-		self.FLAG_N = true
-		self.FLAG_H = true
+		cpu.A ^= 0xFF
+		cpu.FLAG_N = true
+		cpu.FLAG_H = true
 
 	case 0x30:
-		if !self.FLAG_C {
-			self.PC += uint16(arg.as_i8)
+		if !cpu.FLAG_C {
+			cpu.PC += uint16(arg.as_i8)
 		}
 	case 0x31:
-		self.SP = arg.as_u16
+		cpu.SP = arg.as_u16
 	case 0x32:
-		self.ram.set(self.HL, self.A)
-		self.HL--
+		cpu.ram.set(cpu.HL, cpu.A)
+		cpu.HL--
 	case 0x33:
-		self.SP++
+		cpu.SP++
 	case 0x37:
-		self.FLAG_N = false
-		self.FLAG_H = false
-		self.FLAG_C = true
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
+		cpu.FLAG_C = true
 	case 0x38:
-		if self.FLAG_C {
-			self.PC += uint16(arg.as_i8)
+		if cpu.FLAG_C {
+			cpu.PC += uint16(arg.as_i8)
 		}
 	case 0x3A:
-		self.A = self.ram.get(self.HL)
-		self.HL--
+		cpu.A = cpu.ram.get(cpu.HL)
+		cpu.HL--
 	case 0x3B:
-		self.SP--
+		cpu.SP--
 	case 0x3F:
-		self.FLAG_C = !self.FLAG_C
-		self.FLAG_N = false
-		self.FLAG_H = false
+		cpu.FLAG_C = !cpu.FLAG_C
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
 
 	// INC r
 	case 0x04, 0x0C, 0x14, 0x1C, 0x24, 0x2C, 0x34, 0x3C:
-		val = self.get_reg((op - 0x04) / 8)
-		self.FLAG_H = (val & 0x0F) == 0x0F
+		val = cpu.get_reg((op - 0x04) / 8)
+		cpu.FLAG_H = (val & 0x0F) == 0x0F
 		val++
-		self.FLAG_Z = val == 0
-		self.FLAG_N = false
-		self.set_reg((op-0x04)/8, val)
+		cpu.FLAG_Z = val == 0
+		cpu.FLAG_N = false
+		cpu.set_reg((op-0x04)/8, val)
 
 	// DEC r
 	case 0x05, 0x0D, 0x15, 0x1D, 0x25, 0x2D, 0x35, 0x3D:
-		val = self.get_reg((op - 0x05) / 8)
+		val = cpu.get_reg((op - 0x05) / 8)
 		val--
-		self.FLAG_H = (val & 0x0F) == 0x0F
-		self.FLAG_Z = val == 0
-		self.FLAG_N = true
-		self.set_reg((op-0x05)/8, val)
+		cpu.FLAG_H = (val & 0x0F) == 0x0F
+		cpu.FLAG_Z = val == 0
+		cpu.FLAG_N = true
+		cpu.set_reg((op-0x05)/8, val)
 
 	// LD r,n
 	case 0x06, 0x0E, 0x16, 0x1E, 0x26, 0x2E, 0x36, 0x3E:
-		self.set_reg((op-0x06)/8, arg.as_u8)
+		cpu.set_reg((op-0x06)/8, arg.as_u8)
 
 	// RCLA, RLA, RRCA, RRA
 	case 0x07, 0x17, 0x0F, 0x1F:
-		if self.FLAG_C {
+		if cpu.FLAG_C {
 			carry = 1
 		} else {
 			carry = 0
 		}
 		if op == 0x07 { // RCLA
-			self.FLAG_C = (self.A & (1 << 7)) != 0
-			self.A = (self.A << 1) | (self.A >> 7)
+			cpu.FLAG_C = (cpu.A & (1 << 7)) != 0
+			cpu.A = (cpu.A << 1) | (cpu.A >> 7)
 		}
 		if op == 0x17 { // RLA
-			self.FLAG_C = (self.A & (1 << 7)) != 0
-			self.A = (self.A << 1) | carry
+			cpu.FLAG_C = (cpu.A & (1 << 7)) != 0
+			cpu.A = (cpu.A << 1) | carry
 		}
 		if op == 0x0F { // RRCA
-			self.FLAG_C = (self.A & (1 << 0)) != 0
-			self.A = (self.A >> 1) | (self.A << 7)
+			cpu.FLAG_C = (cpu.A & (1 << 0)) != 0
+			cpu.A = (cpu.A >> 1) | (cpu.A << 7)
 		}
 		if op == 0x1F { // RRA
-			self.FLAG_C = (self.A & (1 << 0)) != 0
-			self.A = (self.A >> 1) | (carry << 7)
+			cpu.FLAG_C = (cpu.A & (1 << 0)) != 0
+			cpu.A = (cpu.A >> 1) | (carry << 7)
 		}
-		self.FLAG_N = false
-		self.FLAG_H = false
-		self.FLAG_Z = false
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
+		cpu.FLAG_Z = false
 
 	// ADD HL,rr
 	case 0x09, 0x19, 0x29, 0x39:
 		if op == 0x09 {
-			val16 = join16(self.B, self.C)
+			val16 = join16(cpu.B, cpu.C)
 		}
 		if op == 0x19 {
-			val16 = join16(self.D, self.E)
+			val16 = join16(cpu.D, cpu.E)
 		}
 		if op == 0x29 {
-			val16 = self.HL
+			val16 = cpu.HL
 		}
 		if op == 0x39 {
-			val16 = self.SP
+			val16 = cpu.SP
 		}
-		self.FLAG_H = ((self.HL&0x0FFF)+(val16&0x0FFF) > 0x0FFF)
-		self.FLAG_C = (int(self.HL)+int(val16) > 0xFFFF)
-		self.HL += val16
-		self.FLAG_N = false
+		cpu.FLAG_H = ((cpu.HL&0x0FFF)+(val16&0x0FFF) > 0x0FFF)
+		cpu.FLAG_C = (int(cpu.HL)+int(val16) > 0xFFFF)
+		cpu.HL += val16
+		cpu.FLAG_N = false
 
 	// LD r,r
 	case 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
@@ -575,213 +575,213 @@ func (self *CPU) tick_main(op uint8) {
 		0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F:
 		if op == 0x76 {
 			// FIXME: weird timing side effects
-			self.halt = true
+			cpu.halt = true
 			break
 		}
-		self.set_reg((op-0x40)>>3, self.get_reg(op-0x40))
+		cpu.set_reg((op-0x40)>>3, cpu.get_reg(op-0x40))
 
 	case 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87:
-		self._add(self.get_reg(op))
+		cpu._add(cpu.get_reg(op))
 	case 0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F:
-		self._adc(self.get_reg(op))
+		cpu._adc(cpu.get_reg(op))
 	case 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97:
-		self._sub(self.get_reg(op))
+		cpu._sub(cpu.get_reg(op))
 	case 0x98, 0x99, 0x9A, 0x9B, 0x9C, 0x9D, 0x9E, 0x9F:
-		self._sbc(self.get_reg(op))
+		cpu._sbc(cpu.get_reg(op))
 	case 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7:
-		self._and(self.get_reg(op))
+		cpu._and(cpu.get_reg(op))
 	case 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF:
-		self._xor(self.get_reg(op))
+		cpu._xor(cpu.get_reg(op))
 	case 0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7:
-		self._or(self.get_reg(op))
+		cpu._or(cpu.get_reg(op))
 	case 0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBE, 0xBF:
-		self._cp(self.get_reg(op))
+		cpu._cp(cpu.get_reg(op))
 
 	case 0xC0:
-		if !self.FLAG_Z {
-			self.PC = self.pop()
+		if !cpu.FLAG_Z {
+			cpu.PC = cpu.pop()
 		}
 	case 0xC1:
-		self.B, self.C = split16(self.pop())
+		cpu.B, cpu.C = split16(cpu.pop())
 	case 0xC2:
-		if !self.FLAG_Z {
-			self.PC = arg.as_u16
+		if !cpu.FLAG_Z {
+			cpu.PC = arg.as_u16
 		}
 	case 0xC3:
-		self.PC = arg.as_u16
+		cpu.PC = arg.as_u16
 	case 0xC4:
-		if !self.FLAG_Z {
-			self.push(self.PC)
-			self.PC = arg.as_u16
+		if !cpu.FLAG_Z {
+			cpu.push(cpu.PC)
+			cpu.PC = arg.as_u16
 		}
 	case 0xC5:
-		self.push(join16(self.B, self.C))
+		cpu.push(join16(cpu.B, cpu.C))
 	case 0xC6:
-		self._add(arg.as_u8)
+		cpu._add(arg.as_u8)
 	case 0xC7:
-		self.push(self.PC)
-		self.PC = 0x00
+		cpu.push(cpu.PC)
+		cpu.PC = 0x00
 	case 0xC8:
-		if self.FLAG_Z {
-			self.PC = self.pop()
+		if cpu.FLAG_Z {
+			cpu.PC = cpu.pop()
 		}
 	case 0xC9:
-		self.PC = self.pop()
+		cpu.PC = cpu.pop()
 	case 0xCA:
-		if self.FLAG_Z {
-			self.PC = arg.as_u16
+		if cpu.FLAG_Z {
+			cpu.PC = arg.as_u16
 		}
 	// case 0xCB: break;
 	case 0xCC:
-		if self.FLAG_Z {
-			self.push(self.PC)
-			self.PC = arg.as_u16
+		if cpu.FLAG_Z {
+			cpu.push(cpu.PC)
+			cpu.PC = arg.as_u16
 		}
 	case 0xCD:
-		self.push(self.PC)
-		self.PC = arg.as_u16
+		cpu.push(cpu.PC)
+		cpu.PC = arg.as_u16
 	case 0xCE:
-		self._adc(arg.as_u8)
+		cpu._adc(arg.as_u8)
 	case 0xCF:
-		self.push(self.PC)
-		self.PC = 0x08
+		cpu.push(cpu.PC)
+		cpu.PC = 0x08
 
 	case 0xD0:
-		if !self.FLAG_C {
-			self.PC = self.pop()
+		if !cpu.FLAG_C {
+			cpu.PC = cpu.pop()
 		}
 	case 0xD1:
-		self.D, self.E = split16(self.pop())
+		cpu.D, cpu.E = split16(cpu.pop())
 	case 0xD2:
-		if !self.FLAG_C {
-			self.PC = arg.as_u16
+		if !cpu.FLAG_C {
+			cpu.PC = arg.as_u16
 		}
 	// case 0xD3: break;
 	case 0xD4:
-		if !self.FLAG_C {
-			self.push(self.PC)
-			self.PC = arg.as_u16
+		if !cpu.FLAG_C {
+			cpu.push(cpu.PC)
+			cpu.PC = arg.as_u16
 		}
 	case 0xD5:
-		self.push(join16(self.D, self.E))
+		cpu.push(join16(cpu.D, cpu.E))
 	case 0xD6:
-		self._sub(arg.as_u8)
+		cpu._sub(arg.as_u8)
 	case 0xD7:
-		self.push(self.PC)
-		self.PC = 0x10
+		cpu.push(cpu.PC)
+		cpu.PC = 0x10
 	case 0xD8:
-		if self.FLAG_C {
-			self.PC = self.pop()
+		if cpu.FLAG_C {
+			cpu.PC = cpu.pop()
 		}
 	case 0xD9:
-		self.PC = self.pop()
-		self.interrupts = true
+		cpu.PC = cpu.pop()
+		cpu.interrupts = true
 	case 0xDA:
-		if self.FLAG_C {
-			self.PC = arg.as_u16
+		if cpu.FLAG_C {
+			cpu.PC = arg.as_u16
 		}
 	// case 0xDB: break;
 	case 0xDC:
-		if self.FLAG_C {
-			self.push(self.PC)
-			self.PC = arg.as_u16
+		if cpu.FLAG_C {
+			cpu.push(cpu.PC)
+			cpu.PC = arg.as_u16
 		}
 	// case 0xDD: break;
 	case 0xDE:
-		self._sbc(arg.as_u8)
+		cpu._sbc(arg.as_u8)
 	case 0xDF:
-		self.push(self.PC)
-		self.PC = 0x18
+		cpu.push(cpu.PC)
+		cpu.PC = 0x18
 
 	case 0xE0:
-		self.ram.set(0xFF00+uint16(arg.as_u8), self.A)
+		cpu.ram.set(0xFF00+uint16(arg.as_u8), cpu.A)
 		if arg.as_u8 == 0x01 {
-			fmt.Printf("%c", self.A)
+			fmt.Printf("%c", cpu.A)
 		}
 	case 0xE1:
-		self.HL = self.pop()
+		cpu.HL = cpu.pop()
 	case 0xE2:
-		self.ram.set(0xFF00+uint16(self.C), self.A)
-		if self.C == 0x01 {
-			fmt.Printf("%c", self.A)
+		cpu.ram.set(0xFF00+uint16(cpu.C), cpu.A)
+		if cpu.C == 0x01 {
+			fmt.Printf("%c", cpu.A)
 		}
 	// case 0xE3: break;
 	// case 0xE4: break;
 	case 0xE5:
-		self.push(self.HL)
+		cpu.push(cpu.HL)
 	case 0xE6:
-		self._and(arg.as_u8)
+		cpu._and(arg.as_u8)
 	case 0xE7:
-		self.push(self.PC)
-		self.PC = 0x20
+		cpu.push(cpu.PC)
+		cpu.PC = 0x20
 	case 0xE8:
-		val16 = self.SP + uint16(arg.as_i8)
-		//self.FLAG_H = ((self.SP & 0x0FFF) + (arg.as_i8 & 0x0FFF) > 0x0FFF);
-		//self.FLAG_C = (self.SP + arg.as_i8 > 0xFFFF);
-		self.FLAG_H = (self.SP^uint16(arg.as_i8)^val16)&0x10 > 0
-		self.FLAG_C = (self.SP^uint16(arg.as_i8)^val16)&0x100 > 0
-		self.SP += uint16(arg.as_i8)
-		self.FLAG_Z = false
-		self.FLAG_N = false
+		val16 = cpu.SP + uint16(arg.as_i8)
+		//cpu.FLAG_H = ((cpu.SP & 0x0FFF) + (arg.as_i8 & 0x0FFF) > 0x0FFF);
+		//cpu.FLAG_C = (cpu.SP + arg.as_i8 > 0xFFFF);
+		cpu.FLAG_H = (cpu.SP^uint16(arg.as_i8)^val16)&0x10 > 0
+		cpu.FLAG_C = (cpu.SP^uint16(arg.as_i8)^val16)&0x100 > 0
+		cpu.SP += uint16(arg.as_i8)
+		cpu.FLAG_Z = false
+		cpu.FLAG_N = false
 	case 0xE9:
-		self.PC = self.HL
+		cpu.PC = cpu.HL
 	case 0xEA:
-		self.ram.set(arg.as_u16, self.A)
+		cpu.ram.set(arg.as_u16, cpu.A)
 	// case 0xEB: break;
 	// case 0xEC: break;
 	// case 0xED: break;
 	case 0xEE:
-		self._xor(arg.as_u8)
+		cpu._xor(arg.as_u8)
 	case 0xEF:
-		self.push(self.PC)
-		self.PC = 0x28
+		cpu.push(cpu.PC)
+		cpu.PC = 0x28
 
 	case 0xF0:
-		self.A = self.ram.get(0xFF00 + uint16(arg.as_u8))
+		cpu.A = cpu.ram.get(0xFF00 + uint16(arg.as_u8))
 	case 0xF1:
-		self.A, self.F = split16(self.pop() & 0xFFF0)
-		self.FLAG_Z = self.F&(1<<7) > 0
-		self.FLAG_N = self.F&(1<<6) > 0
-		self.FLAG_H = self.F&(1<<5) > 0
-		self.FLAG_C = self.F&(1<<4) > 0
+		cpu.A, cpu.F = split16(cpu.pop() & 0xFFF0)
+		cpu.FLAG_Z = cpu.F&(1<<7) > 0
+		cpu.FLAG_N = cpu.F&(1<<6) > 0
+		cpu.FLAG_H = cpu.F&(1<<5) > 0
+		cpu.FLAG_C = cpu.F&(1<<4) > 0
 	case 0xF2:
-		self.A = self.ram.get(0xFF00 + uint16(self.C))
+		cpu.A = cpu.ram.get(0xFF00 + uint16(cpu.C))
 	case 0xF3:
-		self.interrupts = false
+		cpu.interrupts = false
 	// case 0xF4: break;
 	case 0xF5:
-		self.push(join16(self.A, self.F))
+		cpu.push(join16(cpu.A, cpu.F))
 	case 0xF6:
-		self._or(arg.as_u8)
+		cpu._or(arg.as_u8)
 	case 0xF7:
-		self.push(self.PC)
-		self.PC = 0x30
+		cpu.push(cpu.PC)
+		cpu.PC = 0x30
 	case 0xF8:
 		if arg.as_i8 >= 0 {
-			self.FLAG_C = (int(self.SP&0xFF) + (int(arg.as_i8) & 0xFF)) > 0xFF
-			self.FLAG_H = (int(self.SP&0x0F) + (int(arg.as_i8) & 0x0F)) > 0x0F
+			cpu.FLAG_C = (int(cpu.SP&0xFF) + (int(arg.as_i8) & 0xFF)) > 0xFF
+			cpu.FLAG_H = (int(cpu.SP&0x0F) + (int(arg.as_i8) & 0x0F)) > 0x0F
 		} else {
-			self.FLAG_C = uint8((int(self.SP)+int(arg.as_i8))&0xFF) <= uint8(self.SP&0xFF)
-			self.FLAG_H = uint8((int(self.SP)+int(arg.as_i8))&0x0F) <= uint8(self.SP&0x0F)
+			cpu.FLAG_C = uint8((int(cpu.SP)+int(arg.as_i8))&0xFF) <= uint8(cpu.SP&0xFF)
+			cpu.FLAG_H = uint8((int(cpu.SP)+int(arg.as_i8))&0x0F) <= uint8(cpu.SP&0x0F)
 		}
-		// self.FLAG_H = ((((self.SP & 0x0f) + (arg.as_u8 & 0x0f)) & 0x10) != 0);
-		// self.FLAG_C = ((((self.SP & 0xff) + (arg.as_u8 & 0xff)) & 0x100) != 0);
-		self.HL = self.SP + uint16(arg.as_i8)
-		self.FLAG_Z = false
-		self.FLAG_N = false
+		// cpu.FLAG_H = ((((cpu.SP & 0x0f) + (arg.as_u8 & 0x0f)) & 0x10) != 0);
+		// cpu.FLAG_C = ((((cpu.SP & 0xff) + (arg.as_u8 & 0xff)) & 0x100) != 0);
+		cpu.HL = cpu.SP + uint16(arg.as_i8)
+		cpu.FLAG_Z = false
+		cpu.FLAG_N = false
 	case 0xF9:
-		self.SP = self.HL
+		cpu.SP = cpu.HL
 	case 0xFA:
-		self.A = self.ram.get(arg.as_u16)
+		cpu.A = cpu.ram.get(arg.as_u16)
 	case 0xFB:
-		self.interrupts = true
+		cpu.interrupts = true
 	// case 0xFC: break;
 	// case 0xFD: break;
 	case 0xFE:
-		self._cp(arg.as_u8)
+		cpu._cp(arg.as_u8)
 	case 0xFF:
-		self.push(self.PC)
-		self.PC = 0x38
+		cpu.push(cpu.PC)
+		cpu.PC = 0x38
 
 	// missing ops
 	default:
@@ -789,100 +789,100 @@ func (self *CPU) tick_main(op uint8) {
 		panic("Op not implemented")
 	}
 }
-func (self *CPU) tick_cb(op uint8) {
+func (cpu *CPU) tick_cb(op uint8) {
 	var val, bit uint8
 	var orig_c bool
 
-	val = self.get_reg(op)
+	val = cpu.get_reg(op)
 	switch {
 	// RLC
 	case op <= 0x07:
-		self.FLAG_C = (val & (1 << 7)) != 0
+		cpu.FLAG_C = (val & (1 << 7)) != 0
 		val <<= 1
-		if self.FLAG_C {
+		if cpu.FLAG_C {
 			val |= (1 << 0)
 		}
-		self.FLAG_N = false
-		self.FLAG_H = false
-		self.FLAG_Z = val == 0
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
+		cpu.FLAG_Z = val == 0
 
 	// RRC
 	case op <= 0x0F:
-		self.FLAG_C = (val & (1 << 0)) != 0
+		cpu.FLAG_C = (val & (1 << 0)) != 0
 		val >>= 1
-		if self.FLAG_C {
+		if cpu.FLAG_C {
 			val |= (1 << 7)
 		}
-		self.FLAG_N = false
-		self.FLAG_H = false
-		self.FLAG_Z = val == 0
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
+		cpu.FLAG_Z = val == 0
 
 	// RL
 	case op <= 0x17:
-		orig_c = self.FLAG_C
-		self.FLAG_C = (val & (1 << 7)) != 0
+		orig_c = cpu.FLAG_C
+		cpu.FLAG_C = (val & (1 << 7)) != 0
 		val <<= 1
 		if orig_c {
 			val |= (1 << 0)
 		}
-		self.FLAG_N = false
-		self.FLAG_H = false
-		self.FLAG_Z = val == 0
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
+		cpu.FLAG_Z = val == 0
 
 	// RR
 	case op <= 0x1F:
-		orig_c = self.FLAG_C
-		self.FLAG_C = (val & (1 << 0)) != 0
+		orig_c = cpu.FLAG_C
+		cpu.FLAG_C = (val & (1 << 0)) != 0
 		val >>= 1
 		if orig_c {
 			val |= (1 << 7)
 		}
-		self.FLAG_N = false
-		self.FLAG_H = false
-		self.FLAG_Z = val == 0
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
+		cpu.FLAG_Z = val == 0
 
 	// SLA
 	case op <= 0x27:
-		self.FLAG_C = (val & (1 << 7)) != 0
+		cpu.FLAG_C = (val & (1 << 7)) != 0
 		val <<= 1
 		val &= 0xFF
-		self.FLAG_N = false
-		self.FLAG_H = false
-		self.FLAG_Z = val == 0
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
+		cpu.FLAG_Z = val == 0
 
 	// SRA
 	case op <= 0x2F:
-		self.FLAG_C = (val & (1 << 0)) != 0
+		cpu.FLAG_C = (val & (1 << 0)) != 0
 		val >>= 1
 		if val&(1<<6) > 0 {
 			val |= (1 << 7)
 		}
-		self.FLAG_N = false
-		self.FLAG_H = false
-		self.FLAG_Z = val == 0
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
+		cpu.FLAG_Z = val == 0
 
 	// SWAP
 	case op <= 0x37:
 		val = ((val & 0xF0) >> 4) | ((val & 0x0F) << 4)
-		self.FLAG_C = false
-		self.FLAG_N = false
-		self.FLAG_H = false
-		self.FLAG_Z = val == 0
+		cpu.FLAG_C = false
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
+		cpu.FLAG_Z = val == 0
 
 	// SRL
 	case op <= 0x3F:
-		self.FLAG_C = (val & (1 << 0)) != 0
+		cpu.FLAG_C = (val & (1 << 0)) != 0
 		val >>= 1
-		self.FLAG_N = false
-		self.FLAG_H = false
-		self.FLAG_Z = val == 0
+		cpu.FLAG_N = false
+		cpu.FLAG_H = false
+		cpu.FLAG_Z = val == 0
 
 	// BIT
 	case op <= 0x7F:
 		bit = (op & 0b00111000) >> 3
-		self.FLAG_Z = (val & (1 << bit)) == 0
-		self.FLAG_N = false
-		self.FLAG_H = true
+		cpu.FLAG_Z = (val & (1 << bit)) == 0
+		cpu.FLAG_N = false
+		cpu.FLAG_H = true
 
 	// RES
 	case op <= 0xBF:
@@ -899,144 +899,136 @@ func (self *CPU) tick_cb(op uint8) {
 		println("Op CB %02X not implemented\n", op)
 		panic("Op not implemented")
 	}
-	self.set_reg(op, val)
+	cpu.set_reg(op, val)
 }
 
-func (self *CPU) _xor(val uint8) {
-	self.A ^= val
+func (cpu *CPU) _xor(val uint8) {
+	cpu.A ^= val
 
-	self.FLAG_Z = self.A == 0
-	self.FLAG_N = false
-	self.FLAG_H = false
-	self.FLAG_C = false
+	cpu.FLAG_Z = cpu.A == 0
+	cpu.FLAG_N = false
+	cpu.FLAG_H = false
+	cpu.FLAG_C = false
 
 }
-func (self *CPU) _or(val uint8) {
-	self.A |= val
+func (cpu *CPU) _or(val uint8) {
+	cpu.A |= val
 
-	self.FLAG_Z = self.A == 0
-	self.FLAG_N = false
-	self.FLAG_H = false
-	self.FLAG_C = false
+	cpu.FLAG_Z = cpu.A == 0
+	cpu.FLAG_N = false
+	cpu.FLAG_H = false
+	cpu.FLAG_C = false
 }
-func (self *CPU) _and(val uint8) {
-	self.A &= val
+func (cpu *CPU) _and(val uint8) {
+	cpu.A &= val
 
-	self.FLAG_Z = self.A == 0
-	self.FLAG_N = false
-	self.FLAG_H = true
-	self.FLAG_C = false
+	cpu.FLAG_Z = cpu.A == 0
+	cpu.FLAG_N = false
+	cpu.FLAG_H = true
+	cpu.FLAG_C = false
 }
-func (self *CPU) _cp(val uint8) {
-	self.FLAG_Z = self.A == val
-	self.FLAG_N = true
-	self.FLAG_H = (self.A & 0x0F) < (val & 0x0F)
-	self.FLAG_C = self.A < val
+func (cpu *CPU) _cp(val uint8) {
+	cpu.FLAG_Z = cpu.A == val
+	cpu.FLAG_N = true
+	cpu.FLAG_H = (cpu.A & 0x0F) < (val & 0x0F)
+	cpu.FLAG_C = cpu.A < val
 }
-func (self *CPU) _add(val uint8) {
-	self.FLAG_C = uint16(self.A)+uint16(val) > 0xFF
-	self.FLAG_H = (self.A&0x0F)+(val&0x0F) > 0x0F
-	self.FLAG_N = false
-	self.A += val
-	self.FLAG_Z = self.A == 0
+func (cpu *CPU) _add(val uint8) {
+	cpu.FLAG_C = uint16(cpu.A)+uint16(val) > 0xFF
+	cpu.FLAG_H = (cpu.A&0x0F)+(val&0x0F) > 0x0F
+	cpu.FLAG_N = false
+	cpu.A += val
+	cpu.FLAG_Z = cpu.A == 0
 }
-func (self *CPU) _adc(val uint8) {
+func (cpu *CPU) _adc(val uint8) {
 	var carry uint8
-	if self.FLAG_C {
+	if cpu.FLAG_C {
 		carry = 1
 	} else {
 		carry = 0
 	}
-	self.FLAG_C = uint16(self.A)+uint16(val)+uint16(carry) > 0xFF
-	self.FLAG_H = (self.A&0x0F)+(val&0x0F)+carry > 0x0F
-	self.FLAG_N = false
-	self.A += val + carry
-	self.FLAG_Z = self.A == 0
+	cpu.FLAG_C = uint16(cpu.A)+uint16(val)+uint16(carry) > 0xFF
+	cpu.FLAG_H = (cpu.A&0x0F)+(val&0x0F)+carry > 0x0F
+	cpu.FLAG_N = false
+	cpu.A += val + carry
+	cpu.FLAG_Z = cpu.A == 0
 }
-func (self *CPU) _sub(val uint8) {
-	self.FLAG_C = self.A < val
-	self.FLAG_H = (self.A & 0x0F) < (val & 0x0F)
-	self.A -= val
-	self.FLAG_Z = self.A == 0
-	self.FLAG_N = true
+func (cpu *CPU) _sub(val uint8) {
+	cpu.FLAG_C = cpu.A < val
+	cpu.FLAG_H = (cpu.A & 0x0F) < (val & 0x0F)
+	cpu.A -= val
+	cpu.FLAG_Z = cpu.A == 0
+	cpu.FLAG_N = true
 }
-func (self *CPU) _sbc(val uint8) {
+func (cpu *CPU) _sbc(val uint8) {
 	var carry uint8
-	if self.FLAG_C {
+	if cpu.FLAG_C {
 		carry = 1
 	} else {
 		carry = 0
 	}
-	var res int = int(self.A) - int(val) - int(carry)
-	self.FLAG_H = ((self.A ^ val ^ (uint8(res) & 0xff)) & (1 << 4)) != 0
-	self.FLAG_C = res < 0
-	self.A -= val + carry
-	self.FLAG_Z = self.A == 0
-	self.FLAG_N = true
+	var res int = int(cpu.A) - int(val) - int(carry)
+	cpu.FLAG_H = ((cpu.A ^ val ^ (uint8(res) & 0xff)) & (1 << 4)) != 0
+	cpu.FLAG_C = res < 0
+	cpu.A -= val + carry
+	cpu.FLAG_Z = cpu.A == 0
+	cpu.FLAG_N = true
 }
 
-func (self *CPU) push(val uint16) {
-	self.ram.set(self.SP-1, uint8(((val&0xFF00)>>8)&0xFF))
-	self.ram.set(self.SP-2, uint8(val&0xFF))
-	self.SP -= 2
+func (cpu *CPU) push(val uint16) {
+	cpu.ram.set(cpu.SP-1, uint8(((val&0xFF00)>>8)&0xFF))
+	cpu.ram.set(cpu.SP-2, uint8(val&0xFF))
+	cpu.SP -= 2
 }
-func (self *CPU) pop() uint16 {
-	var val uint16 = (uint16(self.ram.get(self.SP+1)) << 8) | uint16(self.ram.get(self.SP))
-	self.SP += 2
+func (cpu *CPU) pop() uint16 {
+	var val uint16 = (uint16(cpu.ram.get(cpu.SP+1)) << 8) | uint16(cpu.ram.get(cpu.SP))
+	cpu.SP += 2
 	return val
 }
 
-func (self *CPU) get_reg(n uint8) uint8 {
+func (cpu *CPU) get_reg(n uint8) uint8 {
 	switch n & 0x07 {
 	case 0:
-		return self.B
+		return cpu.B
 	case 1:
-		return self.C
+		return cpu.C
 	case 2:
-		return self.D
+		return cpu.D
 	case 3:
-		return self.E
+		return cpu.E
 	case 4:
-		return uint8(self.HL >> 8)
+		return uint8(cpu.HL >> 8)
 	case 5:
-		return uint8(self.HL & 0xFF)
+		return uint8(cpu.HL & 0xFF)
 	case 6:
-		return self.ram.get(self.HL)
+		return cpu.ram.get(cpu.HL)
 	case 7:
-		return self.A
+		return cpu.A
 	default:
 		println("Invalid register %d", n)
 		return 0
 	}
 }
-func (self *CPU) set_reg(n uint8, val uint8) {
+func (cpu *CPU) set_reg(n uint8, val uint8) {
 	switch n & 0x07 {
 	case 0:
-		self.B = val
-		break
+		cpu.B = val
 	case 1:
-		self.C = val
-		break
+		cpu.C = val
 	case 2:
-		self.D = val
-		break
+		cpu.D = val
 	case 3:
-		self.E = val
-		break
+		cpu.E = val
 	case 4:
-		_, orig_l := split16(self.HL)
-		self.HL = join16(val, orig_l)
-		break
+		_, orig_l := split16(cpu.HL)
+		cpu.HL = join16(val, orig_l)
 	case 5:
-		orig_h, _ := split16(self.HL)
-		self.HL = join16(orig_h, val)
-		break
+		orig_h, _ := split16(cpu.HL)
+		cpu.HL = join16(orig_h, val)
 	case 6:
-		self.ram.set(self.HL, val)
-		break
+		cpu.ram.set(cpu.HL, val)
 	case 7:
-		self.A = val
-		break
+		cpu.A = val
 	default:
 		println("Invalid register %d", n)
 	}

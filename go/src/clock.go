@@ -21,31 +21,31 @@ func NewClock(buttons *Buttons, profile int, turbo bool) (*Clock, error) {
 	return &Clock{buttons, 0, 0, sdl.GetTicks(), sdl.GetTicks(), profile, turbo}, nil
 }
 
-func (self *Clock) tick() bool {
-	self.cycle++
+func (clock *Clock) tick() bool {
+	clock.cycle++
 
 	// Do a whole frame's worth of sleeping at the start of each frame
-	if self.cycle%17556 == 20 {
+	if clock.cycle%17556 == 20 {
 		// Sleep if we have time left over
-		time_spent := (sdl.GetTicks() - uint32(self.last_frame_start))
+		time_spent := (sdl.GetTicks() - uint32(clock.last_frame_start))
 		sleep_for := (1000 / 60) - int32(time_spent)
-		if sleep_for > 0 && !self.turbo && !self.buttons.turbo {
+		if sleep_for > 0 && !clock.turbo && !clock.buttons.turbo {
 			sdl.Delay(uint32(sleep_for))
 		}
-		self.last_frame_start = sdl.GetTicks()
+		clock.last_frame_start = sdl.GetTicks()
 
 		// Exit if we've hit the frame limit
-		if self.profile != 0 && self.frame > self.profile {
-			var duration = (float32)(sdl.GetTicks()-self.start) / 1000.0
+		if clock.profile != 0 && clock.frame > clock.profile {
+			var duration = (float32)(sdl.GetTicks()-clock.start) / 1000.0
 			fmt.Printf(
 				"Emulated %d frames in %.2fs (%.2ffps)\n",
-				self.profile, duration,
-				float32(self.profile)/duration,
+				clock.profile, duration,
+				float32(clock.profile)/duration,
 			)
 			return false
 		}
 
-		self.frame++
+		clock.frame++
 	}
 
 	return true
