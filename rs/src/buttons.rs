@@ -30,6 +30,7 @@ pub struct Buttons {
     headless: bool,
     cycle: u32,
     need_interrupt: bool,
+    turbo: bool,
     up: bool,
     down: bool,
     left: bool,
@@ -66,6 +67,7 @@ impl Buttons {
             headless,
             cycle: 0,
             need_interrupt: false,
+            turbo: false,
             up: false,
             down: false,
             left: false,
@@ -158,10 +160,6 @@ impl Buttons {
             tracing::debug!("Event: {:?}", event);
             match event {
                 Event::Quit { .. } => return Err(anyhow!("Quit")),
-                Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => return Err(anyhow!("Quit")),
 
                 Event::KeyDown {
                     keycode: Some(keycode),
@@ -169,6 +167,8 @@ impl Buttons {
                 } => {
                     self.need_interrupt = true;
                     match keycode {
+                        Keycode::Escape => return Err(anyhow!("Quit")),
+                        Keycode::LShift => {self.turbo = true; self.need_interrupt = false},
                         Keycode::Up => self.up = true,
                         Keycode::Down => self.down = true,
                         Keycode::Left => self.left = true,
@@ -184,6 +184,7 @@ impl Buttons {
                     keycode: Some(keycode),
                     ..
                 } => match keycode {
+                    Keycode::LShift => self.turbo = false,
                     Keycode::Up => self.up = false,
                     Keycode::Down => self.down = false,
                     Keycode::Left => self.left = false,

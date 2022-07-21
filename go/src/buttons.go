@@ -104,15 +104,13 @@ func (buttons *Buttons) handle_inputs() bool {
 		case *sdl.KeyboardEvent:
 			switch t.Type {
 			case sdl.KEYDOWN:
-				if t.Keysym.Sym == sdl.K_ESCAPE {
-					return false
-				}
-				if t.Keysym.Sym == sdl.K_LSHIFT {
-					buttons.turbo = true
-				}
-
 				buttons.need_interrupt = true
 				switch t.Keysym.Sym {
+				case sdl.K_ESCAPE:
+					return false
+				case sdl.K_LSHIFT:
+					buttons.turbo = true
+					buttons.need_interrupt = false
 				case sdl.K_UP:
 					buttons.up = true
 				case sdl.K_DOWN:
@@ -133,11 +131,9 @@ func (buttons *Buttons) handle_inputs() bool {
 					buttons.need_interrupt = false
 				}
 			case sdl.KEYUP:
-				if t.Keysym.Sym == sdl.K_LSHIFT {
-					buttons.turbo = false
-				}
-
 				switch t.Keysym.Sym {
+				case sdl.K_LSHIFT:
+					buttons.turbo = false
 				case sdl.K_UP:
 					buttons.up = false
 				case sdl.K_DOWN:
