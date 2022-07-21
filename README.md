@@ -57,7 +57,7 @@ Completeness
 | *Inputs*                      |         |         |         |         |         |
 | keyboard input                | &check; | &check; | &check; | &check; | &cross; |
 | gamepad input                 | &cross; | &cross; | &check; | &cross; | &cross; |
-| turbo button                  | &check; | &check; | &cross; | &check; | &cross; |
+| turbo button                  | &check; | &check; | &check; | &check; | &cross; |
 | *Memory*                      |         |         |         |         |         |
 | memory mapping                | &check; | &check; | &check; | &check; | &check; |
 | bank swapping                 | &cross; | &cross; | &cross; | &cross; | &cross; |

@@ -1,6 +1,8 @@
 use anyhow::{anyhow, Result};
 use std::time::{Duration, SystemTime};
 
+use crate::buttons;
+
 pub struct Clock {
     cycle: u32,
     frame: u32,
@@ -25,7 +27,7 @@ impl Clock {
         }
     }
 
-    pub fn tick(&mut self) -> Result<()> {
+    pub fn tick(&mut self, buttons: &buttons::Buttons) -> Result<()> {
         self.cycle += 1;
 
         // Do a whole frame's worth of sleeping at the start of each frame
@@ -33,7 +35,7 @@ impl Clock {
             // Sleep if we have time left over
             let time_spent = SystemTime::now().duration_since(self.last_frame_start)?;
             let time_per_frame = Duration::from_millis((1000.0 / 60.0) as u64);
-            if !self.turbo && time_spent < time_per_frame {
+            if !self.turbo && !buttons.turbo && time_spent < time_per_frame {
                 let sleep_time = time_per_frame - time_spent;
                 ::std::thread::sleep(sleep_time);
             }

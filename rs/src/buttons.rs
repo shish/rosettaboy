@@ -30,7 +30,7 @@ pub struct Buttons {
     headless: bool,
     cycle: u32,
     need_interrupt: bool,
-    turbo: bool,
+    pub turbo: bool,
     up: bool,
     down: bool,
     left: bool,

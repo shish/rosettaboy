@@ -78,7 +78,7 @@ impl<'a> Gameboy<'a> {
         let cart_name = cart.name.clone();
         let ram = ram::RAM::new(cart);
         let cpu = cpu::CPU::new(args.debug_cpu);
-        let gpu = gpu::GPU::new(&sdl, cart_name.as_str(), args.headless, args.debug_gpu)?;
+        let gpu = gpu::GPU::new(&sdl, cart_name, args.headless, args.debug_gpu)?;
         let apu = apu::APU::new(&sdl, args.silent, args.debug_apu)?;
         let buttons = buttons::Buttons::new(sdl, args.headless)?;
         let clock = clock::Clock::new(args.profile, args.turbo);
@@ -99,7 +99,7 @@ impl<'a> Gameboy<'a> {
             self.cpu.tick(&mut self.ram)?;
             self.gpu.tick(&mut self.ram, &mut self.cpu)?;
             self.buttons.tick(&mut self.ram, &mut self.cpu)?;
-            self.clock.tick()?;
+            self.clock.tick(&self.buttons)?;
             self.apu.tick(&mut self.ram);
         }
     }

@@ -93,7 +93,7 @@ pub struct GPU<'a> {
 }
 
 impl<'a> GPU<'a> {
-    pub fn new(sdl: &sdl2::Sdl, title: &str, headless: bool, debug: bool) -> Result<GPU<'a>> {
+    pub fn new(sdl: &sdl2::Sdl, title: String, headless: bool, debug: bool) -> Result<GPU<'a>> {
         let (w, h) = if debug { (160 + 256, 144) } else { (160, 144) };
         let (hw_renderer, hw_buffer) = if !headless {
             let video_subsystem = sdl.video().map_err(anyhow::Error::msg)?;
