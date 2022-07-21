@@ -76,7 +76,7 @@ impl<'a> Gameboy<'a> {
 
         let cart = cart::Cart::new(args.rom.as_str())?;
         let cart_name = cart.name.clone();
-        let ram = ram::RAM::new(cart, args.debug_ram);
+        let ram = ram::RAM::new(cart);
         let cpu = cpu::CPU::new(args.debug_cpu);
         let gpu = gpu::GPU::new(&sdl, cart_name.as_str(), args.headless, args.debug_gpu)?;
         let apu = apu::APU::new(&sdl, args.silent, args.debug_apu)?;

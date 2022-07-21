@@ -59,11 +59,10 @@ pub struct RAM {
     ram_bank: u8,
     boot: [u8; 0x100],
     pub data: [u8; 0xFFFF + 1],
-    debug: bool,
 }
 
 impl RAM {
-    pub fn new(cart: cart::Cart, debug: bool) -> RAM {
+    pub fn new(cart: cart::Cart) -> RAM {
         let boot = match ::std::fs::File::open("boot.gb") {
             Ok(mut fp) => {
                 tracing::debug!("Loading boot code from boot.gb");
@@ -88,7 +87,6 @@ impl RAM {
             ram_bank: 0,
             boot,
             data: [0; 0xFFFF + 1],
-            debug,
         }
     }
 
