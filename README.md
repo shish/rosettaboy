@@ -70,13 +70,17 @@ to blit whole 8x8 sprites in one go, while the other languages do one pixel at
 a time (which is more correct, and necessary for things like parallax effects),
 which means that the python version is unfairly fast.
 
-Measurements are FPS, done with `--turbo --profile 3600 opus5.gb` (measuring
-how much physical time it takes to emulate 60 seconds of game time), on a
-Macbook Pro 2019 (2.4 GHz 8-Core Intel Core i9). If somebody knows how to
-measure CPU instructions instead of clock time, that seems fairer; especially
-if we can get the measurement included automatically via github actions. Pull
-requests welcome :)
+If somebody knows how to measure CPU instructions instead of clock time, that
+seems fairer; especially if we can get the measurement included automatically
+via github actions. Pull requests welcome :)
 
-| Feature                            | Python | C++  | Rust | Go  | PHP | PHP (JIT) |
-| -------                            | ------ | ---  | ---- | --  | --- | --------- |
-| release, silent, headless          |  5     | 700  | 700  | 60  | 20  | 40        |
+Running on an M1 Macbook Pro:
+
+```
+$ ./bench.sh
+rs:  Emulated 600 frames in  0.34s (1753.36fps)
+go:  Emulated 600 frames in  0.96s (624.35fps)
+cpp: Emulated 600 frames in  1.05s (568.72fps)
+php: Emulated 600 frames in 23.55s (25.47fps)
+py:  Emulated 600 frames in 66.32s (9.05fps)
+```
