@@ -52,11 +52,10 @@ bool Buttons::handle_inputs() {
             return false;
         }
         if(event.type == SDL_KEYDOWN) {
-            if(event.key.keysym.sym == SDLK_ESCAPE) return false;
-            if(event.key.keysym.sym == SDLK_LSHIFT) this->turbo = true;
-
             this->need_interrupt = true;
             switch(event.key.keysym.sym) {
+                case SDLK_ESCAPE: return false;
+                case SDLK_LSHIFT: this->turbo = true; this->need_interrupt = false; break;
                 case SDLK_UP: this->up = true; break;
                 case SDLK_DOWN: this->down = true; break;
                 case SDLK_LEFT: this->left = true; break;
@@ -69,9 +68,8 @@ bool Buttons::handle_inputs() {
             }
         }
         if(event.type == SDL_KEYUP) {
-            if(event.key.keysym.sym == SDLK_LSHIFT) this->turbo = false;
-
             switch(event.key.keysym.sym) {
+                case SDLK_LSHIFT: this->turbo = false; break;
                 case SDLK_UP: this->up = false; break;
                 case SDLK_DOWN: this->down = false; break;
                 case SDLK_LEFT: this->left = false; break;
