@@ -1,9 +1,10 @@
 import sdl2
 import time
-
+from .buttons import Buttons
 
 class Clock:
-    def __init__(self, profile: int, turbo: bool):
+    def __init__(self, buttons: Buttons, profile: int, turbo: bool):
+        self.buttons = buttons
         self.cycle = 0
         self.frame = 0
         self.start = time.time()
@@ -19,7 +20,7 @@ class Clock:
             # Sleep if we have time left over
             time_spent = sdl2.SDL_GetTicks() - self.last_frame_start
             sleep_for = (1000 / 60) - time_spent
-            if sleep_for > 0 and not self.turbo:  # and not self.buttons.turbo:
+            if sleep_for > 0 and not self.turbo and not self.buttons.turbo:
                 sdl2.SDL_Delay(int(sleep_for))
             self.last_frame_start = sdl2.SDL_GetTicks()
 

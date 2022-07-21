@@ -45,7 +45,7 @@ def main(argv: List[str]) -> int:
         cpu = CPU(ram, debug=args.debug_cpu)
         gpu = GPU(cpu, debug=args.debug_gpu, headless=args.headless)
         buttons = Buttons(cpu, headless=args.headless)
-        clock = Clock(args.profile, args.turbo)
+        clock = Clock(buttons, args.profile, args.turbo)
 
         while True:
             cpu.tick()

@@ -50,14 +50,14 @@ Completeness
 | logging                       | &check; | &check; | &check; | &check; | &check; |
 | *Graphics*                    |         |         |         |         |         |
 | scaled output                 | &check; | &check; | &check; | &check; | &cross; |
-| scanline rendering            | &cross; | &check; | &check; | &check; | &cross; |
-| GPU interrupts                | &cross; | &check; | &check; | &check; | &cross; |
+| scanline rendering            | &check; | &check; | &check; | &check; | &cross; |
+| GPU interrupts                | &check; | &check; | &check; | &check; | &cross; |
 | *Audio*                       |         |         |         |         |         |
 | audio                         | &cross; | off-key | glitchy | &cross; | &cross; |
 | *Inputs*                      |         |         |         |         |         |
 | keyboard input                | &check; | &check; | &check; | &check; | &cross; |
 | gamepad input                 | &cross; | &cross; | &check; | &cross; | &cross; |
-| turbo button                  | &cross; | &check; | &cross; | &check; | &cross; |
+| turbo button                  | &check; | &check; | &cross; | &check; | &cross; |
 | *Memory*                      |         |         |         |         |         |
 | memory mapping                | &check; | &check; | &check; | &check; | &check; |
 | bank swapping                 | &cross; | &cross; | &cross; | &cross; | &cross; |

@@ -24,6 +24,8 @@ class Buttons:
         self.need_interrupt = False
 
         self.cycle = 0
+        self.turbo = False
+
         self.up = False
         self.down = False
         self.left = False
@@ -75,13 +77,15 @@ class Buttons:
         event = sdl2.SDL_Event()
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
             if event.type == sdl2.SDL_QUIT:
-                print(f"q")
                 return False
             elif event.type == sdl2.SDL_KEYDOWN:
                 key = event.key.keysym.sym
                 self.need_interrupt = True
                 if key == sdl2.SDLK_ESCAPE:
                     return False
+                elif key == sdl2.SDLK_LSHIFT:
+                    self.turbo = True
+                    self.need_interrupt = False
                 elif key == sdl2.SDLK_z:
                     self.b = True
                 elif key == sdl2.SDLK_x:
@@ -102,7 +106,9 @@ class Buttons:
                     self.need_interrupt = False
             elif event.type == sdl2.SDL_KEYUP:
                 key = event.key.keysym.sym
-                if key == sdl2.SDLK_z:
+                if key == sdl2.SDLK_LSHIFT:
+                    self.turbo = False
+                elif key == sdl2.SDLK_z:
                     self.b = False
                 elif key == sdl2.SDLK_x:
                     self.a = False
