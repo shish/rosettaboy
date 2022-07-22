@@ -2,6 +2,7 @@ import sdl2
 import time
 from .buttons import Buttons
 
+
 class Clock:
     def __init__(self, buttons: Buttons, profile: int, turbo: bool):
         self.buttons = buttons

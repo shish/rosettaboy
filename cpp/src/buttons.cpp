@@ -55,7 +55,10 @@ bool Buttons::handle_inputs() {
             this->need_interrupt = true;
             switch(event.key.keysym.sym) {
                 case SDLK_ESCAPE: return false;
-                case SDLK_LSHIFT: this->turbo = true; this->need_interrupt = false; break;
+                case SDLK_LSHIFT:
+                    this->turbo = true;
+                    this->need_interrupt = false;
+                    break;
                 case SDLK_UP: this->up = true; break;
                 case SDLK_DOWN: this->down = true; break;
                 case SDLK_LEFT: this->left = true; break;

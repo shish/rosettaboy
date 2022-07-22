@@ -168,7 +168,10 @@ impl Buttons {
                     self.need_interrupt = true;
                     match keycode {
                         Keycode::Escape => return Err(anyhow!("Quit")),
-                        Keycode::LShift => {self.turbo = true; self.need_interrupt = false},
+                        Keycode::LShift => {
+                            self.turbo = true;
+                            self.need_interrupt = false
+                        }
                         Keycode::Up => self.up = true,
                         Keycode::Down => self.down = true,
                         Keycode::Left => self.left = true,
