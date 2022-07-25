@@ -339,6 +339,23 @@ void CPU::tick_main(u8 op) {
             break;
 
         case 0x40 ... 0x7F: // LD r,r
+            if(op == 0x40) { // "LD B,B" is how mooneye's tests signal completion
+                if(
+                    this->B == 3
+                    && this->C == 5
+                    && this->D == 8
+                    && this->E == 13
+                    && this->H == 21
+                    && this->L == 34
+                ) {
+                    // FIXME: exit cleanly
+                    printf("Unit test passed\n");
+                    exit(0);
+                } else {
+                    printf("Unit test failed\n");
+                    exit(1);
+                }
+            }
             if(op == 0x76) {
                 // FIXME: weird timing side effects
                 this->halt = true;

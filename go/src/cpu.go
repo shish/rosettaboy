@@ -1,6 +1,7 @@
 package main
 
 import "fmt"
+import "os"
 
 var OP_CYCLES = [256]uint8{
 	1, 3, 2, 2, 1, 1, 2, 1, 5, 2, 2, 2, 1, 1, 2, 1,
@@ -573,6 +574,16 @@ func (cpu *CPU) tick_main(op uint8) {
 		0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F,
 		0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
 		0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F:
+		if op == 0x40 {
+			if cpu.B == 3 && cpu.C == 5 && cpu.D == 8 && cpu.E == 13 && cpu.HL == (21 << 8) | 34 {
+				// FIXME: exit cleanly
+				println("Unit test passed");
+				os.Exit(0);
+			} else {
+				println("Unit test failed");
+				os.Exit(1);
+			}
+		}
 		if op == 0x76 {
 			// FIXME: weird timing side effects
 			cpu.halt = true
@@ -785,7 +796,7 @@ func (cpu *CPU) tick_main(op uint8) {
 
 	// missing ops
 	default:
-		fmt.Printf("Op %02X not implemented\n", op)
+		println("Op %02X not implemented", op)
 		panic("Op not implemented")
 	}
 }
@@ -896,7 +907,7 @@ func (cpu *CPU) tick_cb(op uint8) {
 
 	// Should never get here
 	default:
-		println("Op CB %02X not implemented\n", op)
+		println("Op CB %02X not implemented", op)
 		panic("Op not implemented")
 	}
 	cpu.set_reg(op, val)

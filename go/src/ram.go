@@ -224,7 +224,7 @@ func (ram *RAM) set(addr uint16, val uint8) {
 		ram.rom_bank_low = val
 		ram.rom_bank = (ram.rom_bank_high << 5) | ram.rom_bank_low
 		if ram.debug {
-			print(
+			println(
 				"rom_bank set to {}/{}", ram.rom_bank, ram.cart.rom_size/ROM_BANK_SIZE,
 			)
 		}
@@ -235,7 +235,7 @@ func (ram *RAM) set(addr uint16, val uint8) {
 		if ram.ram_bank_mode {
 			ram.ram_bank = val
 			if ram.debug {
-				print(
+				println(
 					"ram_bank set to {}/{}",
 					ram.ram_bank,
 					ram.cart.ram_size/RAM_BANK_SIZE,
@@ -248,7 +248,7 @@ func (ram *RAM) set(addr uint16, val uint8) {
 			ram.rom_bank_high = val
 			ram.rom_bank = (ram.rom_bank_high << 5) | ram.rom_bank_low
 			if ram.debug {
-				print(
+				println(
 					"rom_bank set to {}/{}",
 					ram.rom_bank,
 					ram.cart.rom_size/ROM_BANK_SIZE,
@@ -261,7 +261,7 @@ func (ram *RAM) set(addr uint16, val uint8) {
 	case addr < 0x8000:
 		ram.ram_bank_mode = val != 0
 		if ram.debug {
-			print("ram_bank_mode set to {}", ram.ram_bank_mode)
+			println("ram_bank_mode set to {}", ram.ram_bank_mode)
 		}
 	case addr < 0xA000:
 		// VRAM
@@ -275,7 +275,7 @@ func (ram *RAM) set(addr uint16, val uint8) {
 		var bank = uint32(ram.ram_bank) * RAM_BANK_SIZE
 		var offset = uint32(addr) - 0xA000
 		if ram.debug {
-			print(
+			println(
 				"Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",
 				bank+offset,
 				val,
@@ -301,7 +301,7 @@ func (ram *RAM) set(addr uint16, val uint8) {
 	case addr < 0xFF00:
 		// Unusable
 		if ram.debug {
-			print("Writing to invalid ram: {:04x} = {:02x}", addr, val)
+			println("Writing to invalid ram: {:04x} = {:02x}", addr, val)
 		}
 	case addr < 0xFF80:
 		// IO Registers

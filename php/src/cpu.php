@@ -770,6 +770,16 @@ class CPU
             case 0x7D:
             case 0x7E:
             case 0x7F:
+                if ($op == 0x40) {
+                    if($this->B == 3 && $this->C == 5 && $this->D == 8 && $this->E == 13 && $this->HL == (21 << 8) | 34) {
+                        // FIXME: exit cleanly
+                        print("Unit test passed\n");
+                        exit(0);
+                    } else {
+                        print("Unit test failed\n");
+                        exit(1);
+                    }
+                }
                 if ($op == 0x76) {
                     // FIXME: weird timing side effects
                     $this->halt = true;
