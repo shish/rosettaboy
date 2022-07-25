@@ -209,17 +209,21 @@ class GPU
                 SDL_RenderDrawPoint($this->renderer, $xy->x, $xy->y);
             }
 
-            $y_in_bgmap = ($ly + $scroll_y) & 0xFF; // % 256
+            $y_in_bgmap = ($ly + $scroll_y) % 256;
             $tile_y = floor($y_in_bgmap / 8);
             $tile_sub_y = $y_in_bgmap % 8;
 
-            for ($tile_x = floor($scroll_x / 8); $tile_x < floor($scroll_x / 8) + 21; $tile_x++) {
+            for ($lx = 0; $lx <= 160; $lx += 8) {
+                $x_in_bgmap = ($lx + $scroll_x) % 256;
+                $tile_x = floor($x_in_bgmap / 8);
+                $tile_sub_x = $x_in_bgmap % 8;
+
                 $tile_id = $this->cpu->ram->get($tile_map + $tile_y * 32 + $tile_x);
                 if ($tile_offset && $tile_id < 0x80) {
                     $tile_id += 0x100;
                 }
                 $xy = new SDL_Point(
-                    (($tile_x * 8 - $scroll_x) + 8) % 256 - 8,
+                    $lx - $tile_sub_x,
                     $ly - $tile_sub_y,
                 );
                 $this->paint_tile_line($tile_id, $xy, $this->bgp, false, false, $tile_sub_y);

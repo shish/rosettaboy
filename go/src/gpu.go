@@ -289,17 +289,21 @@ func (gpu *GPU) draw_line(ly int32) {
 			gpu.renderer.DrawPoint(xy.X, xy.Y)
 		}
 
-		var y_in_bgmap = (int(ly) + int(scroll_y)) & 0xFF // % 256
+		var y_in_bgmap = (int(ly) + int(scroll_y)) % 256
 		var tile_y = y_in_bgmap / 8
 		var tile_sub_y = y_in_bgmap % 8
 
-		for tile_x := scroll_x / 8; tile_x < scroll_x/8+21; tile_x++ {
+		for lx := 0; lx <= 160; lx += 8 {
+			var x_in_bgmap = (lx + scroll_x) % 256
+			var tile_x = x_in_bgmap / 8
+			var tile_sub_x = x_in_bgmap % 8
+
 			var tile_id int16 = int16(gpu.cpu.ram.get(uint16(tile_map + int32(tile_y)*32 + int32(tile_x))))
 			if tile_offset && tile_id < 0x80 {
 				tile_id += 0x100
 			}
 			var xy = sdl.Point{
-				X: int32((tile_x*8-scroll_x)+8)%256 - 8,
+				X: int32(ly - int32(tile_sub_x)),
 				Y: int32(ly - int32(tile_sub_y)),
 			}
 			gpu.paint_tile_line(tile_id, &xy, gpu.bgp, false, false, tile_sub_y)

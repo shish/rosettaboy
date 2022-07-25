@@ -210,17 +210,21 @@ void GPU::draw_line(i32 ly) {
             SDL_RenderDrawPoint(this->renderer, xy.x, xy.y);
         }
 
-        auto y_in_bgmap = (ly + scroll_y) & 0xFF; // % 256
+        auto y_in_bgmap = (ly + scroll_y) % 256;
         auto tile_y = y_in_bgmap / 8;
         auto tile_sub_y = y_in_bgmap % 8;
 
-        for(int tile_x = scroll_x / 8; tile_x < scroll_x / 8 + 21; tile_x++) {
+        for(int lx = 0; lx <= 160; lx += 8) {
+            auto x_in_bgmap = (lx + scroll_x) % 256;
+            auto tile_x = x_in_bgmap / 8;
+            auto tile_sub_x = x_in_bgmap % 8;
+
             i16 tile_id = this->cpu->ram->get(tile_map + tile_y * 32 + tile_x);
             if(tile_offset && tile_id < 0x80) {
                 tile_id += 0x100;
             }
             SDL_Point xy = {
-                .x = ((tile_x * 8 - scroll_x) + 8) % 256 - 8,
+                .x = lx - tile_sub_x,
                 .y = ly - tile_sub_y,
             };
             this->paint_tile_line(tile_id, &xy, this->bgp, false, false, tile_sub_y);

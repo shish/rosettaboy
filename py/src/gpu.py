@@ -278,17 +278,21 @@ class GPU:
                 SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 0xFF)
                 SDL_RenderDrawPoint(self.renderer, xy.x, xy.y)
 
-            y_in_bgmap = (ly + scroll_y) & 0xFF  # % 256
+            y_in_bgmap = (ly + scroll_y) % 256
             tile_y = y_in_bgmap // 8
             tile_sub_y = y_in_bgmap % 8
 
-            for tile_x in range(scroll_x // 8, scroll_x // 8 + 21):
+            for lx in range(0, 160+1, 8):
+                x_in_bgmap = (lx + scroll_x) % 256
+                tile_x = x_in_bgmap // 8
+                tile_sub_x = x_in_bgmap % 8
+
                 tile_id = self.cpu.ram[tile_map + tile_y * 32 + tile_x]
                 if tile_offset and tile_id < 0x80:
                     tile_id += 0x100
 
                 xy = SDL_Point(
-                    x=((tile_x * 8 - scroll_x) + 8) % 256 - 8,
+                    x=lx - tile_sub_x,
                     y=ly - tile_sub_y,
                 )
 
