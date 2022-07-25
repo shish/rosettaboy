@@ -314,19 +314,20 @@ impl<'a> GPU<'a> {
                     .expect("draw point");
             }
 
-            let y_in_bgmap = (ly + scroll_y) & 0xFF; // % 256
+            let y_in_bgmap = (ly + scroll_y) % 256;
             let tile_y = y_in_bgmap / 8;
             let tile_sub_y = y_in_bgmap % 8;
 
-            for tile_x in scroll_x / 8..scroll_x / 8 + 21 {
+            for lx in (0..=160).step_by(8) {
+                let x_in_bgmap = (lx + scroll_x) % 256;
+                let tile_x = x_in_bgmap / 8;
+                let tile_sub_x = x_in_bgmap % 8;
+
                 let mut tile_id = ram.get(tile_map + (tile_y as u16 * 32) + tile_x as u16) as i16;
                 if tile_offset && tile_id < 0x80 {
                     tile_id += 0x100
                 };
-                let xy = Point::new(
-                    ((tile_x as i32 * 8 - scroll_x) + 8) % 256 - 8,
-                    ly - tile_sub_y,
-                );
+                let xy = Point::new(lx - tile_sub_x, ly - tile_sub_y);
                 self.paint_tile_line(ram, tile_id, &xy, self.bgp, false, false, tile_sub_y);
             }
         }
