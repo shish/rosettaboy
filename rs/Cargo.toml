@@ -17,3 +17,10 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [profile.release]
 lto = true
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "main"
+harness = false
