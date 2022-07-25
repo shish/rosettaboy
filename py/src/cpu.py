@@ -435,7 +435,7 @@ class CPU:
 
     @opcode("LD B,B", 4)
     def op40(self):
-        if(
+        if (
             self.B == 3
             and self.C == 5
             and self.D == 8

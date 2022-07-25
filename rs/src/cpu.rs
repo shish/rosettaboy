@@ -686,7 +686,8 @@ impl CPU {
 
                 0x40..=0x7F => {
                     // LD r,r
-                    if op == 0x40 { // "LD B,B" is how mooneye's tests signal completion
+                    if op == 0x40 {
+                        // "LD B,B" is how mooneye's tests signal completion
                         if self.regs.r8.b == 3
                             && self.regs.r8.c == 5
                             && self.regs.r8.d == 8

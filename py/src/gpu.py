@@ -282,7 +282,7 @@ class GPU:
             tile_y = y_in_bgmap // 8
             tile_sub_y = y_in_bgmap % 8
 
-            for lx in range(0, 160+1, 8):
+            for lx in range(0, 160 + 1, 8):
                 x_in_bgmap = (lx + scroll_x) % 256
                 tile_x = x_in_bgmap // 8
                 tile_sub_x = x_in_bgmap % 8

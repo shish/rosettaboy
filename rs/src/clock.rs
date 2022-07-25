@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Result};
 use std::time::{Duration, SystemTime};
 
-use crate::consts::*;
 use crate::buttons;
+use crate::consts::*;
 
 pub struct Clock {
     cycle: u32,

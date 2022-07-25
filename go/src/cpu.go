@@ -575,13 +575,13 @@ func (cpu *CPU) tick_main(op uint8) {
 		0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
 		0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F:
 		if op == 0x40 {
-			if cpu.B == 3 && cpu.C == 5 && cpu.D == 8 && cpu.E == 13 && cpu.HL == (21 << 8) | 34 {
+			if cpu.B == 3 && cpu.C == 5 && cpu.D == 8 && cpu.E == 13 && cpu.HL == (21<<8)|34 {
 				// FIXME: exit cleanly
-				println("Unit test passed");
-				os.Exit(0);
+				println("Unit test passed")
+				os.Exit(0)
 			} else {
-				println("Unit test failed");
-				os.Exit(1);
+				println("Unit test failed")
+				os.Exit(1)
 			}
 		}
 		if op == 0x76 {

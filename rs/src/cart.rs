@@ -1,8 +1,8 @@
+use crate::consts::*;
 use anyhow::{anyhow, Result};
 use num_enum::TryFromPrimitive;
 use std::fs::File;
 use std::io::Read;
-use crate::consts::*;
 
 #[repr(u8)]
 #[derive(Debug, Eq, PartialEq, TryFromPrimitive)]
