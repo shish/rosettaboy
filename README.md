@@ -45,7 +45,7 @@ Completeness
 | Feature                       | Python  | C++     | Rust    | Go      | PHP     |
 | -------                       | ------- | ---     | ----    | --      | ---     |
 | *CPU*                         |         |         |         |         |         |
-| gblargh's test suite          | &check; | &check; | &check; | &check; | &check; |
+| blargg's test suite          | &check; | &check; | &check; | &check; | &check; |
 | interrupts                    | &check; | &check; | &check; | &check; | &check; |
 | logging                       | &check; | &check; | &check; | &check; | &check; |
 | *Graphics*                    |         |         |         |         |         |

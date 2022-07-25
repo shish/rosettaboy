@@ -34,7 +34,7 @@ jobs:
       working-directory: cpp
       run: make
     - name: CPU Integration Tests
-      run: ./gblargh.py cpp
+      run: ./blargg.py cpp
     - name: Benchmark
       working-directory: cpp
       run: |

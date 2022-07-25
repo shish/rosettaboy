@@ -2,9 +2,9 @@
 
 """
 Usage:
-  ./gblargh.py <list of directories to test>
+  ./blargg.py <list of directories to test>
 Eg:
-  ./gblargh.py py cpp rs
+  ./blargg.py py cpp rs
 """
 
 import os

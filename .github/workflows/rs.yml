@@ -53,7 +53,7 @@ jobs:
       working-directory: rs
       run: cargo build --release
     - name: CPU Integration Tests
-      run: ./gblargh.py rs
+      run: ./blargg.py rs
     - name: Benchmark
       working-directory: rs
       run: |
