@@ -33,7 +33,7 @@ def test(cwd, n, frames):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    ok = b"Passed" in p.stdout or b"passed" in p.stdout
+    ok = b"Passed" in p.stdout or b"Unit test" in p.stdout
     print(f"{cwd} {n} = {ok}")
     return ok
 
