@@ -237,9 +237,9 @@ impl CPU {
             return Ok(());
         }
         if self.stop {
-            return Err(anyhow!("CPU Halted"));
+            return Err(anyhow!(EmuError::CpuHalted));
         }
-        self.tick_instructions(ram);
+        self.tick_instructions(ram)?;
 
         return Ok(());
     }
@@ -392,12 +392,12 @@ impl CPU {
      * Program Counter register; if the instruction takes
      * an argument then pick that too; then execute it.
      */
-    fn tick_instructions(&mut self, ram: &mut ram::RAM) {
+    fn tick_instructions(&mut self, ram: &mut ram::RAM) -> Result<()> {
         // if the previous instruction was large, let's not run any
         // more instructions until other subsystems have caught up
         if self.owed_cycles > 0 {
             self.owed_cycles -= 1;
-            return;
+            return Ok(());
         }
 
         if self.debug {
@@ -412,7 +412,7 @@ impl CPU {
             self.tick_cb(ram, op);
             self.owed_cycles = OP_CB_CYCLES[op as usize];
         } else {
-            self.tick_main(ram, op);
+            self.tick_main(ram, op)?;
             self.owed_cycles = OP_CYCLES[op as usize];
         }
 
@@ -435,6 +435,8 @@ impl CPU {
         if self.owed_cycles > 0 {
             self.owed_cycles -= 1;
         }
+
+        Ok(())
     }
 
     #[inline(always)]
@@ -464,7 +466,7 @@ impl CPU {
         }
     }
 
-    fn tick_main(&mut self, ram: &mut ram::RAM, op: u8) {
+    fn tick_main(&mut self, ram: &mut ram::RAM, op: u8) -> Result<()> {
         let arg = {
             let arg_type = OP_TYPES[op as usize];
             let arg_len = OP_LENS[arg_type as usize];
@@ -684,6 +686,19 @@ impl CPU {
 
                 0x40..=0x7F => {
                     // LD r,r
+                    if op == 0x40 { // "LD B,B" is how mooneye's tests signal completion
+                        if self.regs.r8.b == 3
+                            && self.regs.r8.c == 5
+                            && self.regs.r8.d == 8
+                            && self.regs.r8.e == 13
+                            && self.regs.r8.h == 21
+                            && self.regs.r8.l == 34
+                        {
+                            return Err(anyhow!(EmuError::UnitTestPassed));
+                        } else {
+                            return Err(anyhow!(EmuError::UnitTestFailed));
+                        }
+                    }
                     if op == 0x76 {
                         // FIXME: weird timing side effects
                         self.halt = true;
@@ -925,6 +940,8 @@ impl CPU {
                 _ => panic!("Unimplemented opcode: {:02X}", op),
             }
         }
+
+        Ok(())
     }
 
     /**

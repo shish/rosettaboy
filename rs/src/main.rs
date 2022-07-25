@@ -3,7 +3,7 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::many_single_char_names)]
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clap::Parser;
 extern crate sdl2;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -130,10 +130,38 @@ fn configure_logging(args: &Args) {
 fn main() -> Result<()> {
     let args = Args::parse();
     configure_logging(&args);
-    Gameboy::new(args)?.run()?;
-
-    // because debug ROMs print to stdout without newline
-    println!();
-
-    Ok(())
+    match Gameboy::new(args)?.run() {
+        Ok(_) => Err(anyhow!("Main loop exited with no error??")),
+        Err(e) => {
+            if let Some(emu_error) = e.downcast_ref::<consts::EmuError>() {
+                match emu_error {
+                    consts::EmuError::Quit => {
+                        std::process::exit(0);
+                    }
+                    consts::EmuError::Timeout(frames, duration) => {
+                        println!(
+                            "Emulated {} frames in {:.2}s ({:.2}fps)",
+                            frames,
+                            duration,
+                            *frames as f32 / duration
+                        );
+                        std::process::exit(0);
+                    }
+                    consts::EmuError::UnitTestPassed => {
+                        println!("Unit test passed");
+                        std::process::exit(0);
+                    }
+                    consts::EmuError::UnitTestFailed => {
+                        println!("Unit test passed");
+                        std::process::exit(2);
+                    }
+                    e => {
+                        println!("Error: {}", e);
+                        std::process::exit(1)
+                    }
+                }
+            }
+            Err(e)
+        }
+    }
 }

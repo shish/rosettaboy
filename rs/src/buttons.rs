@@ -159,7 +159,7 @@ impl Buttons {
         {
             tracing::debug!("Event: {:?}", event);
             match event {
-                Event::Quit { .. } => return Err(anyhow!("Quit")),
+                Event::Quit { .. } => return Err(anyhow!(EmuError::Quit)),
 
                 Event::KeyDown {
                     keycode: Some(keycode),
@@ -167,7 +167,7 @@ impl Buttons {
                 } => {
                     self.need_interrupt = true;
                     match keycode {
-                        Keycode::Escape => return Err(anyhow!("Quit")),
+                        Keycode::Escape => return Err(anyhow!(EmuError::Quit)),
                         Keycode::LShift => {
                             self.turbo = true;
                             self.need_interrupt = false

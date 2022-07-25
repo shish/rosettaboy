@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use std::time::{Duration, SystemTime};
 
+use crate::consts::*;
 use crate::buttons;
 
 pub struct Clock {
@@ -44,12 +45,7 @@ impl Clock {
             // Exit if we've hit the frame limit
             if self.profile != 0 && self.frame > self.profile {
                 let duration = SystemTime::now().duration_since(self.start)?.as_secs_f32();
-                return Err(anyhow!(
-                    "Emulated {} frames in {:.2}s ({:.2}fps)",
-                    self.profile,
-                    duration,
-                    self.profile as f32 / duration
-                ));
+                return Err(anyhow!(EmuError::Timeout(self.profile, duration)));
             }
 
             self.frame += 1;

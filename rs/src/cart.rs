@@ -2,6 +2,7 @@ use anyhow::{anyhow, Result};
 use num_enum::TryFromPrimitive;
 use std::fs::File;
 use std::io::Read;
+use crate::consts::*;
 
 #[repr(u8)]
 #[derive(Debug, Eq, PartialEq, TryFromPrimitive)]
@@ -102,7 +103,7 @@ impl Cart {
             logo_checksum += *i as u16;
         }
         if logo_checksum != 5446 {
-            return Err(anyhow!("Logo checksum failed"));
+            return Err(anyhow!(EmuError::LogoChecksumFailed));
         }
 
         let mut header_checksum: u16 = 25;
@@ -110,11 +111,11 @@ impl Cart {
             header_checksum += *i as u16;
         }
         if (header_checksum & 0xFF) != 0 {
-            return Err(anyhow!("Header checksum failed"));
+            return Err(anyhow!(EmuError::HeaderChecksumFailed));
         }
 
         //if cart_type != CartType::RomOnly {
-        //    return Err(anyhow!("Only RomOnly cartridges are supported, got {:?}", cart_type))
+        //    return Err(EmuError::UnsupportedCart(cart_type))
         //}
 
         // FIXME: ram should be synced with .sav file
