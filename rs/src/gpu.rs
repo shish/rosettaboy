@@ -317,7 +317,7 @@ impl<'a> GPU<'a> {
             let tile_y = y_in_bgmap / 8;
             let tile_sub_y = y_in_bgmap % 8;
 
-            for lx in (0..=160).step_by(8) {
+            for lx in (0..160).step_by(8) {
                 let x_in_bgmap = (lx + scroll_x) % 256;
                 let tile_x = x_in_bgmap / 8;
                 let tile_sub_x = x_in_bgmap % 8;
