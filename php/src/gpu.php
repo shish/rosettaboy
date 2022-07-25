@@ -201,7 +201,7 @@ class GPU
             $scroll_y = $this->cpu->ram->get(Mem::$SCY);
             $scroll_x = $this->cpu->ram->get(Mem::$SCX);
             $tile_offset = !($lcdc & LCDC::$DATA_SRC);
-            $background_map = ($lcdc & LCDC::$BG_MAP) ? Mem::$MAP_1 : Mem::$MAP_0;
+            $tile_map = ($lcdc & LCDC::$BG_MAP) ? Mem::$MAP_1 : Mem::$MAP_0;
 
             if ($this->debug) {
                 $xy = new SDL_Point(256 - $scroll_x, $ly);
@@ -209,18 +209,18 @@ class GPU
                 SDL_RenderDrawPoint($this->renderer, $xy->x, $xy->y);
             }
 
-            $y_in_bgmap = ($ly - $scroll_y) & 0xFF; // % 256
+            $y_in_bgmap = ($ly + $scroll_y) & 0xFF; // % 256
             $tile_y = floor($y_in_bgmap / 8);
             $tile_sub_y = $y_in_bgmap % 8;
 
             for ($tile_x = floor($scroll_x / 8); $tile_x < floor($scroll_x / 8) + 21; $tile_x++) {
-                $tile_id = $this->cpu->ram->get($background_map + ($tile_y % 32) * 32 + ($tile_x % 32));
+                $tile_id = $this->cpu->ram->get($tile_map + $tile_y * 32 + $tile_x);
                 if ($tile_offset && $tile_id < 0x80) {
                     $tile_id += 0x100;
                 }
                 $xy = new SDL_Point(
                     (($tile_x * 8 - $scroll_x) + 8) % 256 - 8,
-                    (($tile_y * 8 - $scroll_y) + 8) % 256 - 8,
+                    $ly - $tile_sub_y,
                 );
                 $this->paint_tile_line($tile_id, $xy, $this->bgp, false, false, $tile_sub_y);
             }
@@ -231,7 +231,7 @@ class GPU
             $wnd_y = $this->cpu->ram->get(Mem::$WY);
             $wnd_x = $this->cpu->ram->get(Mem::$WX);
             $tile_offset = !($lcdc & LCDC::$DATA_SRC);
-            $window_map = ($lcdc & LCDC::$WINDOW_MAP) ? Mem::$MAP_1 : Mem::$MAP_0;
+            $tile_map = ($lcdc & LCDC::$WINDOW_MAP) ? Mem::$MAP_1 : Mem::$MAP_0;
 
             // blank out the background
             $rect = new SDL_Rect(
@@ -249,7 +249,7 @@ class GPU
             $tile_sub_y = $y_in_bgmap % 8;
 
             for ($tile_x = 0; $tile_x < 20; $tile_x++) {
-                $tile_id = $this->cpu->ram->get($window_map + $tile_y * 32 + $tile_x);
+                $tile_id = $this->cpu->ram->get($tile_map + $tile_y * 32 + $tile_x);
                 if ($tile_offset && $tile_id < 0x80) {
                     $tile_id += 0x100;
                 }

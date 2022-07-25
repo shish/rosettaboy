@@ -281,7 +281,7 @@ func (gpu *GPU) draw_line(ly int32) {
 		var scroll_y = int(gpu.cpu.ram.get(IO_SCY))
 		var scroll_x = int(gpu.cpu.ram.get(IO_SCX))
 		var tile_offset = (lcdc & LCDC_DATA_SRC) == 0
-		var background_map = _tern((lcdc&LCDC_BG_MAP) != 0, MAP_1, MAP_0)
+		var tile_map = _tern((lcdc&LCDC_BG_MAP) != 0, MAP_1, MAP_0)
 
 		if gpu.debug {
 			var xy = sdl.Point{X: 256 - int32(scroll_x), Y: ly}
@@ -289,18 +289,18 @@ func (gpu *GPU) draw_line(ly int32) {
 			gpu.renderer.DrawPoint(xy.X, xy.Y)
 		}
 
-		var y_in_bgmap = (int(ly) - int(scroll_y)) & 0xFF // % 256
+		var y_in_bgmap = (int(ly) + int(scroll_y)) & 0xFF // % 256
 		var tile_y = y_in_bgmap / 8
 		var tile_sub_y = y_in_bgmap % 8
 
 		for tile_x := scroll_x / 8; tile_x < scroll_x/8+21; tile_x++ {
-			var tile_id int16 = int16(gpu.cpu.ram.get(uint16(background_map + int32(tile_y%32)*32 + int32(tile_x%32))))
+			var tile_id int16 = int16(gpu.cpu.ram.get(uint16(tile_map + int32(tile_y)*32 + int32(tile_x))))
 			if tile_offset && tile_id < 0x80 {
 				tile_id += 0x100
 			}
 			var xy = sdl.Point{
 				X: int32((tile_x*8-scroll_x)+8)%256 - 8,
-				Y: int32((tile_y*8-scroll_y)+8)%256 - 8,
+				Y: int32(ly - int32(tile_sub_y)),
 			}
 			gpu.paint_tile_line(tile_id, &xy, gpu.bgp, false, false, tile_sub_y)
 		}
@@ -311,7 +311,7 @@ func (gpu *GPU) draw_line(ly int32) {
 		var wnd_y = gpu.cpu.ram.get(IO_WY)
 		var wnd_x = gpu.cpu.ram.get(IO_WX)
 		var tile_offset = (lcdc & LCDC_DATA_SRC) == 0
-		var window_map = _tern((lcdc&LCDC_WINDOW_MAP) != 0, MAP_1, MAP_0)
+		var tile_map = _tern((lcdc&LCDC_WINDOW_MAP) != 0, MAP_1, MAP_0)
 
 		// blank out the background
 		var rect = sdl.Rect{
@@ -329,7 +329,7 @@ func (gpu *GPU) draw_line(ly int32) {
 		var tile_sub_y = y_in_bgmap % 8
 
 		for tile_x := 0; tile_x < 20; tile_x++ {
-			var tile_id = int16(gpu.cpu.ram.get(uint16(window_map) + uint16(tile_y)*32 + uint16(tile_x)))
+			var tile_id = int16(gpu.cpu.ram.get(uint16(tile_map) + uint16(tile_y)*32 + uint16(tile_x)))
 			if tile_offset && tile_id < 0x80 {
 				tile_id += 0x100
 			}

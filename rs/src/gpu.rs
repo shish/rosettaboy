@@ -301,7 +301,7 @@ impl<'a> GPU<'a> {
             let scroll_y = ram.get(Mem::SCY) as i32;
             let scroll_x = ram.get(Mem::SCX) as i32;
             let tile_offset = !lcdc.contains(LCDC::DATA_SRC);
-            let background_map = if lcdc.contains(LCDC::BG_MAP) {
+            let tile_map = if lcdc.contains(LCDC::BG_MAP) {
                 Mem::Map1
             } else {
                 Mem::Map0
@@ -314,20 +314,18 @@ impl<'a> GPU<'a> {
                     .expect("draw point");
             }
 
-            let y_in_bgmap = (ly - scroll_y) & 0xFF; // % 256
+            let y_in_bgmap = (ly + scroll_y) & 0xFF; // % 256
             let tile_y = y_in_bgmap / 8;
             let tile_sub_y = y_in_bgmap % 8;
 
             for tile_x in scroll_x / 8..scroll_x / 8 + 21 {
-                let mut tile_id = ram
-                    .get(background_map + (tile_y % 32) as u16 * 32 + (tile_x % 32) as u16)
-                    as i16;
+                let mut tile_id = ram.get(tile_map + (tile_y as u16 * 32) + tile_x as u16) as i16;
                 if tile_offset && tile_id < 0x80 {
                     tile_id += 0x100
                 };
                 let xy = Point::new(
-                    ((tile_x * 8 - scroll_x) + 8) % 256 - 8,
-                    ((tile_y * 8 - scroll_y) + 8) % 256 - 8,
+                    ((tile_x as i32 * 8 - scroll_x) + 8) % 256 - 8,
+                    ly - tile_sub_y,
                 );
                 self.paint_tile_line(ram, tile_id, &xy, self.bgp, false, false, tile_sub_y);
             }
@@ -338,7 +336,7 @@ impl<'a> GPU<'a> {
             let wnd_y = ram.get(Mem::WY);
             let wnd_x = ram.get(Mem::WX);
             let tile_offset = !lcdc.contains(LCDC::DATA_SRC);
-            let window_map = if lcdc.contains(LCDC::WINDOW_MAP) {
+            let tile_map = if lcdc.contains(LCDC::WINDOW_MAP) {
                 Mem::Map1
             } else {
                 Mem::Map0
@@ -356,7 +354,7 @@ impl<'a> GPU<'a> {
             let tile_sub_y = y_in_bgmap % 8;
 
             for tile_x in 0..20 {
-                let mut tile_id = ram.get(window_map + (tile_y as u16 * 32) + tile_x) as i16;
+                let mut tile_id = ram.get(tile_map + (tile_y as u16 * 32) + tile_x) as i16;
                 if tile_offset && tile_id < 0x80 {
                     tile_id += 0x100
                 };
@@ -373,6 +371,7 @@ impl<'a> GPU<'a> {
             let dbl = lcdc.contains(LCDC::OBJ_SIZE);
 
             // TODO: sorted by x
+            // TODO: don't draw every sprite during every line
             // let sprites: [Sprite; 40] = [];
             // memcpy(sprites, &ram.data[OAM_BASE], 40 * sizeof(Sprite));
             // for sprite in sprites.iter() {

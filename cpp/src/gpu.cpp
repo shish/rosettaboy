@@ -202,7 +202,7 @@ void GPU::draw_line(i32 ly) {
         auto scroll_y = this->cpu->ram->get(Mem::SCY);
         auto scroll_x = this->cpu->ram->get(Mem::SCX);
         auto tile_offset = !(lcdc & LCDC::DATA_SRC);
-        auto background_map = (lcdc & LCDC::BG_MAP) ? Mem::MAP_1 : Mem::MAP_0;
+        auto tile_map = (lcdc & LCDC::BG_MAP) ? Mem::MAP_1 : Mem::MAP_0;
 
         if(this->debug) {
             SDL_Point xy = {.x = 256 - scroll_x, .y = ly};
@@ -210,18 +210,18 @@ void GPU::draw_line(i32 ly) {
             SDL_RenderDrawPoint(this->renderer, xy.x, xy.y);
         }
 
-        auto y_in_bgmap = (ly - scroll_y) & 0xFF; // % 256
+        auto y_in_bgmap = (ly + scroll_y) & 0xFF; // % 256
         auto tile_y = y_in_bgmap / 8;
         auto tile_sub_y = y_in_bgmap % 8;
 
         for(int tile_x = scroll_x / 8; tile_x < scroll_x / 8 + 21; tile_x++) {
-            i16 tile_id = this->cpu->ram->get(background_map + (tile_y % 32) * 32 + (tile_x % 32));
+            i16 tile_id = this->cpu->ram->get(tile_map + tile_y * 32 + tile_x);
             if(tile_offset && tile_id < 0x80) {
                 tile_id += 0x100;
             }
             SDL_Point xy = {
                 .x = ((tile_x * 8 - scroll_x) + 8) % 256 - 8,
-                .y = ((tile_y * 8 - scroll_y) + 8) % 256 - 8,
+                .y = ly - tile_sub_y,
             };
             this->paint_tile_line(tile_id, &xy, this->bgp, false, false, tile_sub_y);
         }
@@ -232,7 +232,7 @@ void GPU::draw_line(i32 ly) {
         auto wnd_y = this->cpu->ram->get(Mem::WY);
         auto wnd_x = this->cpu->ram->get(Mem::WX);
         auto tile_offset = !(lcdc & LCDC::DATA_SRC);
-        auto window_map = (lcdc & LCDC::WINDOW_MAP) ? Mem::MAP_1 : Mem::MAP_0;
+        auto tile_map = (lcdc & LCDC::WINDOW_MAP) ? Mem::MAP_1 : Mem::MAP_0;
 
         // blank out the background
         SDL_Rect rect = {
@@ -250,7 +250,7 @@ void GPU::draw_line(i32 ly) {
         auto tile_sub_y = y_in_bgmap % 8;
 
         for(int tile_x = 0; tile_x < 20; tile_x++) {
-            auto tile_id = this->cpu->ram->get(window_map + tile_y * 32 + tile_x);
+            auto tile_id = this->cpu->ram->get(tile_map + tile_y * 32 + tile_x);
             if(tile_offset && tile_id < 0x80) {
                 tile_id += 0x100;
             }

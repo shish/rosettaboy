@@ -271,27 +271,25 @@ class GPU:
             scroll_y = self.cpu.ram[Mem.SCY]
             scroll_x = self.cpu.ram[Mem.SCX]
             tile_offset = not (lcdc & LCDC.DATA_SRC)
-            background_map = Mem.MAP_1 if (lcdc & LCDC.BG_MAP) else Mem.MAP_0
+            tile_map = Mem.MAP_1 if (lcdc & LCDC.BG_MAP) else Mem.MAP_0
 
             if self.debug:
                 xy = SDL_Point(x=256 - scroll_x, y=ly)
                 SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 0xFF)
                 SDL_RenderDrawPoint(self.renderer, xy.x, xy.y)
 
-            y_in_bgmap = (ly - scroll_y) & 0xFF  # % 256
+            y_in_bgmap = (ly + scroll_y) & 0xFF  # % 256
             tile_y = y_in_bgmap // 8
             tile_sub_y = y_in_bgmap % 8
 
             for tile_x in range(scroll_x // 8, scroll_x // 8 + 21):
-                tile_id = self.cpu.ram[
-                    background_map + (tile_y % 32) * 32 + (tile_x % 32)
-                ]
+                tile_id = self.cpu.ram[tile_map + tile_y * 32 + tile_x]
                 if tile_offset and tile_id < 0x80:
                     tile_id += 0x100
 
                 xy = SDL_Point(
                     x=((tile_x * 8 - scroll_x) + 8) % 256 - 8,
-                    y=((tile_y * 8 - scroll_y) + 8) % 256 - 8,
+                    y=ly - tile_sub_y,
                 )
 
                 self.paint_tile_line(tile_id, xy, self.bgp, False, False, tile_sub_y)
@@ -301,7 +299,7 @@ class GPU:
             wnd_y = self.cpu.ram[Mem.WY]
             wnd_x = self.cpu.ram[Mem.WX]
             tile_offset = not (lcdc & LCDC.DATA_SRC)
-            window_map = Mem.MAP_1 if (lcdc & LCDC.WINDOW_MAP) else Mem.MAP_0
+            tile_map = Mem.MAP_1 if (lcdc & LCDC.WINDOW_MAP) else Mem.MAP_0
 
             # blank out the background
             rect = SDL_Rect(
@@ -320,7 +318,7 @@ class GPU:
             tile_sub_y = y_in_bgmap % 8
 
             for tile_x in range(0, 20):
-                tile_id = self.cpu.ram[window_map + tile_y * 32 + tile_x]
+                tile_id = self.cpu.ram[tile_map + tile_y * 32 + tile_x]
                 if tile_offset and tile_id < 0x80:
                     tile_id += 0x100
 
