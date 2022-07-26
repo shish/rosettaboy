@@ -157,7 +157,7 @@ fn main() -> Result<()> {
                     }
                     e => {
                         println!("Error: {}", e);
-                        std::process::exit(1)
+                        std::process::exit(1);
                     }
                 }
             }
