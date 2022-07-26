@@ -577,10 +577,10 @@ func (cpu *CPU) tick_main(op uint8) {
 		if op == 0x40 {
 			if cpu.B == 3 && cpu.C == 5 && cpu.D == 8 && cpu.E == 13 && cpu.HL == (21<<8)|34 {
 				// FIXME: exit cleanly
-				println("Unit test passed")
+				fmt.Println("Unit test passed")
 				os.Exit(0)
 			} else {
-				println("Unit test failed")
+				fmt.Println("Unit test failed")
 				os.Exit(1)
 			}
 		}
