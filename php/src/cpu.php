@@ -597,7 +597,7 @@ class CPU
                 $this->FLAG_H = false;
                 break;
 
-            // INC r
+                // INC r
             case 0x04:
             case 0x0C:
             case 0x14:
@@ -614,7 +614,7 @@ class CPU
                 $this->set_reg(($op - 0x04) / 8, $val);
                 break;
 
-            // DEC r
+                // DEC r
             case 0x05:
             case 0x0D:
             case 0x15:
@@ -631,7 +631,7 @@ class CPU
                 $this->set_reg(($op - 0x05) / 8, $val);
                 break;
 
-            // LD r,n
+                // LD r,n
             case 0x06:
             case 0x0E:
             case 0x16:
@@ -643,7 +643,7 @@ class CPU
                 $this->set_reg(($op - 0x06) / 8, $arg->as_u8);
                 break;
 
-            // RCLA, RLA, RRCA, RRA
+                // RCLA, RLA, RRCA, RRA
             case 0x07:
             case 0x17:
             case 0x0F:
@@ -675,7 +675,7 @@ class CPU
                 $this->FLAG_Z = false;
                 break;
 
-            // ADD HL,rr
+                // ADD HL,rr
             case 0x09:
             case 0x19:
             case 0x29:
@@ -698,7 +698,7 @@ class CPU
                 $this->FLAG_N = false;
                 break;
 
-            // LD r,r
+                // LD r,r
             case 0x40:
             case 0x41:
             case 0x42:
@@ -913,7 +913,7 @@ class CPU
                     $this->PC = $arg->as_u16;
                 }
                 break;
-            // case 0xCB: break;
+                // case 0xCB: break;
             case 0xCC:
                 if ($this->FLAG_Z) {
                     $this->push($this->PC);
@@ -945,7 +945,7 @@ class CPU
                     $this->PC = $arg->as_u16;
                 }
                 break;
-            // case 0xD3: break;
+                // case 0xD3: break;
             case 0xD4:
                 if (!$this->FLAG_C) {
                     $this->push($this->PC);
@@ -976,14 +976,14 @@ class CPU
                     $this->PC = $arg->as_u16;
                 }
                 break;
-            // case 0xDB: break;
+                // case 0xDB: break;
             case 0xDC:
                 if ($this->FLAG_C) {
                     $this->push($this->PC);
                     $this->PC = $arg->as_u16;
                 }
                 break;
-            // case 0xDD: break;
+                // case 0xDD: break;
             case 0xDE:
                 $this->_sbc($arg->as_u8);
                 break;
@@ -1006,8 +1006,8 @@ class CPU
                     print(chr($this->A));
                 }
                 break;
-            // case 0xE3: break;
-            // case 0xE4: break;
+                // case 0xE3: break;
+                // case 0xE4: break;
             case 0xE5:
                 $this->push($this->HL);
                 break;
@@ -1034,9 +1034,9 @@ class CPU
             case 0xEA:
                 $this->ram->set($arg->as_u16, $this->A);
                 break;
-            // case 0xEB: break;
-            // case 0xEC: break;
-            // case 0xED: break;
+                // case 0xEB: break;
+                // case 0xEC: break;
+                // case 0xED: break;
             case 0xEE:
                 $this->_xor($arg->as_u8);
                 break;
@@ -1061,7 +1061,7 @@ class CPU
             case 0xF3:
                 $this->interrupts = false;
                 break;
-            // case 0xF4: break;
+                // case 0xF4: break;
             case 0xF5:
                 $this->push(join16($this->A, $this->F));
                 break;
@@ -1095,8 +1095,8 @@ class CPU
             case 0xFB:
                 $this->interrupts = true;
                 break;
-            // case 0xFC: break;
-            // case 0xFD: break;
+                // case 0xFC: break;
+                // case 0xFD: break;
             case 0xFE:
                 $this->_cp($arg->as_u8);
                 break;
@@ -1105,7 +1105,7 @@ class CPU
                 $this->PC = 0x38;
                 break;
 
-            // missing ops
+                // missing ops
             default:
                 printf("Op %02X not implemented\n", $op);
                 die("Op not implemented");
@@ -1129,7 +1129,7 @@ class CPU
                 $this->FLAG_Z = $val == 0;
                 break;
 
-            // RRC
+                // RRC
             case $op <= 0x0F:
                 $this->FLAG_C = ($val & (1 << 0)) != 0;
                 $val >>= 1;
@@ -1141,7 +1141,7 @@ class CPU
                 $this->FLAG_Z = $val == 0;
                 break;
 
-            // RL
+                // RL
             case $op <= 0x17:
                 $orig_c = $this->FLAG_C;
                 $this->FLAG_C = ($val & (1 << 7)) != 0;
@@ -1155,7 +1155,7 @@ class CPU
                 $this->FLAG_Z = $val == 0;
                 break;
 
-            // RR
+                // RR
             case $op <= 0x1F:
                 $orig_c = $this->FLAG_C;
                 $this->FLAG_C = ($val & (1 << 0)) != 0;
@@ -1168,7 +1168,7 @@ class CPU
                 $this->FLAG_Z = $val == 0;
                 break;
 
-            // SLA
+                // SLA
             case $op <= 0x27:
                 $this->FLAG_C = ($val & (1 << 7)) != 0;
                 $val <<= 1;
@@ -1178,7 +1178,7 @@ class CPU
                 $this->FLAG_Z = $val == 0;
                 break;
 
-            // SRA
+                // SRA
             case $op <= 0x2F:
                 $this->FLAG_C = ($val & (1 << 0)) != 0;
                 $val >>= 1;
@@ -1190,7 +1190,7 @@ class CPU
                 $this->FLAG_Z = $val == 0;
                 break;
 
-            // SWAP
+                // SWAP
             case $op <= 0x37:
                 $val = (($val & 0xF0) >> 4) | (($val & 0x0F) << 4);
                 $this->FLAG_C = false;
@@ -1199,7 +1199,7 @@ class CPU
                 $this->FLAG_Z = $val == 0;
                 break;
 
-            // SRL
+                // SRL
             case $op <= 0x3F:
                 $this->FLAG_C = ($val & (1 << 0)) != 0;
                 $val >>= 1;
@@ -1208,7 +1208,7 @@ class CPU
                 $this->FLAG_Z = $val == 0;
                 break;
 
-            // BIT
+                // BIT
             case $op <= 0x7F:
                 $bit = ($op & 0b00111000) >> 3;
                 $this->FLAG_Z = ($val & (1 << $bit)) == 0;
@@ -1216,19 +1216,19 @@ class CPU
                 $this->FLAG_H = true;
                 break;
 
-            // RES
+                // RES
             case $op <= 0xBF:
                 $bit = ($op & 0b00111000) >> 3;
                 $val &= ((1 << $bit) ^ 0xFF);
                 break;
 
-            // SET
+                // SET
             case $op <= 0xFF:
                 $bit = ($op & 0b00111000) >> 3;
                 $val |= (1 << $bit);
                 break;
 
-            // Should never get here
+                // Should never get here
             default:
                 printf("Op CB %02X not implemented\n", $op);
                 die("Op not implemented");
