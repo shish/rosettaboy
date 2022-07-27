@@ -152,7 +152,7 @@ fn main() -> Result<()> {
                         std::process::exit(0);
                     }
                     consts::EmuError::UnitTestFailed => {
-                        println!("Unit test passed");
+                        println!("Unit test failed");
                         std::process::exit(2);
                     }
                     e => {
