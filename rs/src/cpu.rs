@@ -686,20 +686,6 @@ impl CPU {
 
                 0x40..=0x7F => {
                     // LD r,r
-                    if op == 0x40 {
-                        // "LD B,B" is how mooneye's tests signal completion
-                        if self.regs.r8.b == 3
-                            && self.regs.r8.c == 5
-                            && self.regs.r8.d == 8
-                            && self.regs.r8.e == 13
-                            && self.regs.r8.h == 21
-                            && self.regs.r8.l == 34
-                        {
-                            return Err(anyhow!(EmuError::UnitTestPassed));
-                        } else {
-                            return Err(anyhow!(EmuError::UnitTestFailed));
-                        }
-                    }
                     if op == 0x76 {
                         // FIXME: weird timing side effects
                         self.halt = true;
@@ -933,6 +919,8 @@ impl CPU {
                 0xF9 => self.sp = self.regs.r16.hl,
                 0xFA => self.regs.r8.a = ram.get(arg.u16),
                 0xFB => self.interrupts = true,
+                0xFC => return Err(anyhow!(EmuError::UnitTestPassed)), // unofficial
+                0xFD => return Err(anyhow!(EmuError::UnitTestFailed)), // unofficial
                 0xFE => self._cp(arg.u8),
                 0xFF => {
                     self.push(self.pc, ram);

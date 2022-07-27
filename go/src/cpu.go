@@ -574,16 +574,6 @@ func (cpu *CPU) tick_main(op uint8) {
 		0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F,
 		0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
 		0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F:
-		if op == 0x40 {
-			if cpu.B == 3 && cpu.C == 5 && cpu.D == 8 && cpu.E == 13 && cpu.HL == (21<<8)|34 {
-				// FIXME: exit cleanly
-				fmt.Println("Unit test passed")
-				os.Exit(0)
-			} else {
-				fmt.Println("Unit test failed")
-				os.Exit(1)
-			}
-		}
 		if op == 0x76 {
 			// FIXME: weird timing side effects
 			cpu.halt = true
@@ -786,8 +776,13 @@ func (cpu *CPU) tick_main(op uint8) {
 		cpu.A = cpu.ram.get(arg.as_u16)
 	case 0xFB:
 		cpu.interrupts = true
-	// case 0xFC: break;
-	// case 0xFD: break;
+	case 0xFC:
+		// FIXME: exit cleanly
+		fmt.Println("Unit test passed")
+		os.Exit(0)
+	case 0xFD:
+		fmt.Println("Unit test failed")
+		os.Exit(1)
 	case 0xFE:
 		cpu._cp(arg.as_u8)
 	case 0xFF:

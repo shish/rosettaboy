@@ -10,22 +10,26 @@ Eg:
 import os
 import subprocess
 import sys
+from glob import glob
 from multiprocessing.pool import ThreadPool
 
 
-if not os.path.exists("gb-test-roms"):
-    subprocess.run(["git", "clone", "https://github.com/retrio/gb-test-roms"])
+RED = "\033[0;31m"
+GREEN = "\033[0;32m"
+END = "\033[0m"
 
 
-def test(cwd, n, frames):
+if not os.path.exists("gb-autotest-roms"):
+    subprocess.run(["git", "clone", "https://github.com/shish/gb-autotest-roms"])
+
+
+def test(cwd, rom):
     cmd = [
         "./run.sh",
         "--turbo",
         "--silent",
         "--headless",
-        "--profile",
-        str(frames),
-        f"../gb-test-roms/cpu_instrs/individual/{n}*.gb",
+        f"../{rom}",
     ]
     p = subprocess.run(
         cmd,
@@ -33,29 +37,18 @@ def test(cwd, n, frames):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    ok = b"Passed" in p.stdout or b"Unit test" in p.stdout
-    print(f"{cwd} {n} = {ok}")
+    ok = p.returncode == 0
+    # ok = b"Passed" in p.stdout or b"Unit test" in p.stdout
+    print(f"{cwd} {rom} = {GREEN if ok else RED}{ok}{END}")
     return ok
 
 
-tests = [
-    ("01", 140),
-    ("02", 30),
-    ("03", 140),
-    ("04", 160),
-    ("05", 220),
-    ("06", 30),
-    ("07", 40),
-    ("08", 30),
-    ("09", 550),
-    ("10", 850),
-    ("11", 1050),
-]
-
+dirs = sys.argv[1:] or [n.replace("/run.sh", "") for n in glob("*/run.sh")]
+roms = glob("gb-autotest-roms/*/*.gb")
 tests_to_run = []
-for d in sys.argv[1:]:
-    for n, frames in tests:
-        tests_to_run.append((d, n, frames))
+for d in dirs:
+    for rom in roms:
+        tests_to_run.append((d, rom))
 
 p = ThreadPool(4)
 results = p.starmap(test, tests_to_run)

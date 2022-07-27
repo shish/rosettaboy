@@ -387,8 +387,19 @@ class CPU:
     opEC = opcode("ERR EC", 4)(lambda self: self._err("EC"))
     opED = opcode("ERR ED", 4)(lambda self: self._err("ED"))
     opF4 = opcode("ERR F4", 4)(lambda self: self._err("F4"))
-    opFC = opcode("ERR FC", 4)(lambda self: self._err("FC"))
-    opFD = opcode("ERR FD", 4)(lambda self: self._err("FD"))
+    #opFC = opcode("ERR FC", 4)(lambda self: self._err("FC"))
+    #opFD = opcode("ERR FD", 4)(lambda self: self._err("FD"))
+
+    @opcode("EXIT 0", 4)
+    def opFC(self):
+        # FIXME: exit cleanly
+        print("Unit test passed")
+        sys.exit(0)
+
+    @opcode("EXIT 1", 4)
+    def opFD(self):
+        print("Unit test failed")
+        sys.exit(1)
 
     # </editor-fold>
 
@@ -414,8 +425,6 @@ class CPU:
     # Put r2 into r1
     for base, reg_to in enumerate(GEN_REGS):
         for offset, reg_from in enumerate(GEN_REGS):
-            if reg_from == "B" and reg_to == "B":  # this is special cased below
-                continue
             if reg_from == "[HL]" and reg_to == "[HL]":
                 continue
 
@@ -432,23 +441,6 @@ class CPU:
             """
                 )
             )
-
-    @opcode("LD B,B", 4)
-    def op40(self):
-        if (
-            self.B == 3
-            and self.C == 5
-            and self.D == 8
-            and self.E == 13
-            and self.H == 21
-            and self.L == 34
-        ):
-            # FIXME: exit cleanly
-            print("Unit test passed")
-            sys.exit(0)
-        else:
-            print("Unit test failed")
-            sys.exit(1)
 
     # ===================================
     # 3. LD A,n

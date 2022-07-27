@@ -339,23 +339,6 @@ void CPU::tick_main(u8 op) {
             break;
 
         case 0x40 ... 0x7F: // LD r,r
-            if(op == 0x40) { // "LD B,B" is how mooneye's tests signal completion
-                if(
-                    this->B == 3
-                    && this->C == 5
-                    && this->D == 8
-                    && this->E == 13
-                    && this->H == 21
-                    && this->L == 34
-                ) {
-                    // FIXME: exit cleanly
-                    printf("Unit test passed\n");
-                    exit(0);
-                } else {
-                    printf("Unit test failed\n");
-                    exit(1);
-                }
-            }
             if(op == 0x76) {
                 // FIXME: weird timing side effects
                 this->halt = true;
@@ -458,8 +441,13 @@ void CPU::tick_main(u8 op) {
         case 0xF9: this->SP = this->HL; break;
         case 0xFA: this->A = this->ram->get(arg.as_u16); break;
         case 0xFB: this->interrupts = true; break;
-        // case 0xFC: break;
-        // case 0xFD: break;
+        case 0xFC:
+            // FIXME: exit cleanly
+            printf("Unit test passed\n");
+            exit(0);
+        case 0xFD:
+            printf("Unit test failed\n");
+            exit(1);
         case 0xFE: this->_cp(arg.as_u8); break;
         case 0xFF: this->push(this->PC); this->PC = 0x38; break;
 
