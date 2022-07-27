@@ -2,6 +2,7 @@
 #define ROSETTABOY_CONSTS_H
 
 #include <string>
+#include <exception>
 
 typedef unsigned char u8;
 typedef unsigned short u16;

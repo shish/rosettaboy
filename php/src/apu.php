@@ -11,9 +11,8 @@ class APU
         $this->debug = $debug;
     }
 
-    public function tick(): bool
+    public function tick(): void
     {
         // FIXME: generate some sounds
-        return true;
     }
 }

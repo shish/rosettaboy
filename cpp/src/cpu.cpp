@@ -2,6 +2,7 @@
 
 #include "consts.h"
 #include "cpu.h"
+#include "errors.h"
 
 using namespace std;
 
@@ -70,14 +71,13 @@ void CPU::interrupt(Interrupt::Interrupt i) {
     this->halt = false; // interrupts interrupt HALT state
 }
 
-bool CPU::tick() {
+void CPU::tick() {
     this->tick_dma();
-    if(!this->tick_clock()) return false;
-    if(!this->tick_interrupts()) return false;
-    if(this->halt) return true;
-    if(this->stop) return false;
-    if(!this->tick_instructions()) return false;
-    return true;
+    this->tick_clock();
+    this->tick_interrupts();
+    if(this->halt) throw new CpuHalted();
+    if(this->stop) return;
+    this->tick_instructions();
 }
 
 /**
@@ -99,7 +99,7 @@ void CPU::tick_dma() {
  * Increment the timer registers, and send an interrupt
  * when TIMA wraps around.
  */
-bool CPU::tick_clock() {
+void CPU::tick_clock() {
     cycle++;
 
     // TODO: writing any value to Mem::DIV should reset it to 0x00
@@ -117,7 +117,6 @@ bool CPU::tick_clock() {
             this->ram->_inc(Mem::TIMA);
         }
     }
-    return true;
 }
 
 /**
@@ -125,7 +124,7 @@ bool CPU::tick_clock() {
  * there are any interrupts which are both enabled and flagged,
  * clear the flag and call the handler for the first of them.
  */
-bool CPU::tick_interrupts() {
+void CPU::tick_interrupts() {
     u8 queued_interrupts = this->ram->get(Mem::IE) & this->ram->get(Mem::IF);
     if(this->interrupts && queued_interrupts) {
         if(debug) printf("Handling interrupts: %02X & %02X\n", this->ram->get(Mem::IE), this->ram->get(Mem::IF));
@@ -155,7 +154,6 @@ bool CPU::tick_interrupts() {
             this->ram->_and(Mem::IF, ~Interrupt::JOYPAD);
         }
     }
-    return true;
 }
 
 /**
@@ -163,12 +161,12 @@ bool CPU::tick_interrupts() {
  * Program Counter register; if the instruction takes
  * an argument then pick that too; then execute it.
  */
-bool CPU::tick_instructions() {
+void CPU::tick_instructions() {
     // if the previous instruction was large, let's not run any
     // more instructions until other subsystems have caught up
     if(owed_cycles) {
         owed_cycles--;
-        return true;
+        return;
     }
 
     if(this->debug) {
@@ -185,7 +183,6 @@ bool CPU::tick_instructions() {
         owed_cycles = OP_CYCLES[op] - 1;
     }
     if(owed_cycles < 0) owed_cycles = 0; // HALT has cycles=0
-    return true;
 }
 
 /**
@@ -441,21 +438,14 @@ void CPU::tick_main(u8 op) {
         case 0xF9: this->SP = this->HL; break;
         case 0xFA: this->A = this->ram->get(arg.as_u16); break;
         case 0xFB: this->interrupts = true; break;
-        case 0xFC:
-            // FIXME: exit cleanly
-            printf("Unit test passed\n");
-            exit(0);
-        case 0xFD:
-            printf("Unit test failed\n");
-            exit(1);
+        case 0xFC: throw new UnitTestPassed(); // unofficial
+        case 0xFD: throw new UnitTestFailed(); // unofficial
         case 0xFE: this->_cp(arg.as_u8); break;
         case 0xFF: this->push(this->PC); this->PC = 0x38; break;
 
         // missing ops
-        default:
-            printf("Op %02X not implemented\n", op);
-            throw std::invalid_argument("Op not implemented");
-            // clang-format on
+        default: throw new InvalidOpcode(op);
+        // clang-format on
     }
 }
 

@@ -43,7 +43,7 @@ func NewButtons(cpu *CPU, headless bool) (*Buttons, error) {
 	}, nil
 }
 
-func (buttons *Buttons) tick() bool {
+func (buttons *Buttons) tick() error {
 	buttons.cycle += 1
 	buttons.update_buttons()
 	if buttons.need_interrupt {
@@ -53,9 +53,8 @@ func (buttons *Buttons) tick() bool {
 	}
 	if buttons.cycle%17556 == 20 {
 		return buttons.handle_inputs()
-	} else {
-		return true
 	}
+	return nil
 }
 
 func (buttons *Buttons) update_buttons() {
@@ -92,22 +91,22 @@ func (buttons *Buttons) update_buttons() {
 	buttons.cpu.ram.data[IO_JOYP] = ^JOYP
 }
 
-func (buttons *Buttons) handle_inputs() bool {
+func (buttons *Buttons) handle_inputs() error {
 	if buttons.headless {
-		return true
+		return nil
 	}
 
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) {
 		case *sdl.QuitEvent:
-			return false
+			return &Quit{EmuError: EmuError{ExitCode: 0}}
 		case *sdl.KeyboardEvent:
 			switch t.Type {
 			case sdl.KEYDOWN:
 				buttons.need_interrupt = true
 				switch t.Keysym.Sym {
 				case sdl.K_ESCAPE:
-					return false
+					return &Quit{EmuError: EmuError{ExitCode: 0}}
 				case sdl.K_LSHIFT:
 					buttons.turbo = true
 					buttons.need_interrupt = false
@@ -155,5 +154,5 @@ func (buttons *Buttons) handle_inputs() bool {
 		}
 	}
 
-	return true
+	return nil
 }

@@ -2,6 +2,7 @@ import sdl2
 import ctypes
 from .consts import Interrupt, Mem
 from .cpu import CPU
+from .errors import Quit
 
 
 class Joypad:
@@ -35,7 +36,7 @@ class Buttons:
         self.start = False
         self.select = False
 
-    def tick(self) -> bool:
+    def tick(self) -> None:
         self.cycle += 1
         self.update_buttons()
         if self.need_interrupt:
@@ -43,9 +44,7 @@ class Buttons:
             self.cpu.interrupt(Interrupt.JOYPAD)
             self.need_interrupt = False
         if self.cycle % 17556 == 20:
-            return self.handle_inputs()
-        else:
-            return True
+            self.handle_inputs()
 
     def update_buttons(self) -> None:
         JOYP = ~self.cpu.ram[Mem.JOYP]
@@ -70,19 +69,19 @@ class Buttons:
                 JOYP |= Joypad.SELECT
         self.cpu.ram[Mem.JOYP] = ~JOYP
 
-    def handle_inputs(self) -> bool:
+    def handle_inputs(self) -> None:
         if self.headless:
-            return True
+            return
 
         event = sdl2.SDL_Event()
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
             if event.type == sdl2.SDL_QUIT:
-                return False
+                raise Quit()
             elif event.type == sdl2.SDL_KEYDOWN:
                 key = event.key.keysym.sym
                 self.need_interrupt = True
                 if key == sdl2.SDLK_ESCAPE:
-                    return False
+                    raise Quit()
                 elif key == sdl2.SDLK_LSHIFT:
                     self.turbo = True
                     self.need_interrupt = False
@@ -124,4 +123,3 @@ class Buttons:
                     self.left = False
                 elif key == sdl2.SDLK_RIGHT:
                     self.right = False
-        return True

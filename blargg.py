@@ -10,6 +10,7 @@ Eg:
 import os
 import subprocess
 import sys
+import itertools
 from glob import glob
 from multiprocessing.pool import ThreadPool
 
@@ -17,10 +18,10 @@ from multiprocessing.pool import ThreadPool
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
 END = "\033[0m"
+TEST_DIR = "gb-autotest-roms"
 
-
-if not os.path.exists("gb-autotest-roms"):
-    subprocess.run(["git", "clone", "https://github.com/shish/gb-autotest-roms"])
+if not os.path.exists(TEST_DIR):
+    subprocess.run(["git", "clone", "https://github.com/shish/gb-autotest-roms", TEST_DIR])
 
 
 def test(cwd, rom):
@@ -39,18 +40,16 @@ def test(cwd, rom):
     )
     ok = p.returncode == 0
     # ok = b"Passed" in p.stdout or b"Unit test" in p.stdout
-    print(f"{cwd} {rom} = {GREEN if ok else RED}{ok}{END}")
+    rom_name = rom.replace(f"{TEST_DIR}/", "")
+    print(f"{cwd} {rom_name} = {GREEN if ok else RED}{ok}{END}")
     return ok
 
 
 dirs = sys.argv[1:] or [n.replace("/run.sh", "") for n in glob("*/run.sh")]
 roms = glob("gb-autotest-roms/*/*.gb")
-tests_to_run = []
-for d in dirs:
-    for rom in roms:
-        tests_to_run.append((d, rom))
+tests_to_run = itertools.product(dirs, roms)
 
-p = ThreadPool(4)
+p = ThreadPool(8)
 results = p.starmap(test, tests_to_run)
 if all(results):
     sys.exit(0)

@@ -1,6 +1,7 @@
 import sdl2
 import time
 from .buttons import Buttons
+from .errors import Timeout
 
 
 class Clock:
@@ -13,7 +14,7 @@ class Clock:
         self.turbo = turbo
         self.last_frame_start = 0
 
-    def tick(self) -> bool:
+    def tick(self):
         self.cycle += 1
 
         # Do a whole frame's worth of sleeping at the start of each frame
@@ -28,12 +29,6 @@ class Clock:
             # Exit if we've hit the frame limit
             if self.profile != 0 and self.frame > self.profile:
                 duration = time.time() - self.start
-                print(
-                    "Emulated %d frames in %.2fs (%.2ffps)\n"
-                    % (self.profile, duration, self.profile / duration)
-                )
-                return False
+                raise Timeout(self.profile, duration)
 
             self.frame += 1
-
-        return True

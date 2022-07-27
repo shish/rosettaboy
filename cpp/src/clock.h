@@ -19,7 +19,7 @@ private:
 public:
     Clock(Buttons *buttons, int profile, bool turbo);
     ~Clock();
-    bool tick();
+    void tick();
 };
 
 #endif // ROSETTABOY_CLOCK_H

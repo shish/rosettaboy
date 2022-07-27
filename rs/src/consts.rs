@@ -82,32 +82,3 @@ bitflags! {
         const JOYPAD = 1<<4;
     }
 }
-
-#[derive(Debug)]
-pub enum EmuError {
-    Quit,
-    Timeout(u32, f32),
-    CpuHalted,
-    // UnsupportedCart(u32),
-    LogoChecksumFailed,
-    HeaderChecksumFailed,
-    UnitTestPassed,
-    UnitTestFailed,
-}
-
-impl std::error::Error for EmuError {}
-
-impl std::fmt::Display for EmuError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            EmuError::Timeout(frames, duration) => write!(
-                f,
-                "Emulated {} frames in {:.2}s ({:.2}fps)",
-                frames,
-                duration,
-                *frames as f32 / duration
-            ),
-            _ => write!(f, "{:?}", self),
-        }
-    }
-}

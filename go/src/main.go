@@ -1,10 +1,17 @@
 package main
 
-import "log"
-import "flag"
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"flag"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 func main() {
+	defer sdl.Quit()
+
 	var debug_cpu = flag.Bool("debug-cpu", false, "Debug CPU")
 	var debug_gpu = flag.Bool("debug-gpu", false, "Debug GPU")
 	var debug_apu = flag.Bool("debug-apu", false, "Debug APU")
@@ -39,21 +46,50 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	for {
-		if !cpu.tick() {
-			break
-		}
-		if !gpu.tick() {
-			break
-		}
-		if !buttons.tick() {
-			break
-		}
-		if !clock.tick() {
-			break
-		}
+	apu, err := NewAPU(&cpu, *debug_apu, *silent)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	sdl.Quit()
+	for {
+		err := cpu.tick()
+		if err != nil {
+			handle_error(err)
+		}
+
+		gpu.tick()
+
+		err = buttons.tick()
+		if err != nil {
+			handle_error(err)
+		}
+
+		err = clock.tick()
+		if err != nil {
+			handle_error(err)
+		}
+
+		apu.tick()
+	}
+}
+
+func handle_error(err error) {
+	// ... really? Surely there must be a better way :|
+	switch e := err.(type) {
+    case *EmuError:
+		fmt.Println(e)
+		os.Exit(e.ExitCode)
+    case *Timeout:
+		fmt.Println(e)
+		os.Exit(e.ExitCode)
+    case *UnitTestPassed:
+		fmt.Println(e)
+		os.Exit(e.ExitCode)
+    case *UnitTestFailed:
+		fmt.Println(e)
+		os.Exit(e.ExitCode)
+    default:
+        fmt.Println(e)
+		os.Exit(1)
+    }
 }

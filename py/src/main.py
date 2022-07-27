@@ -6,6 +6,7 @@ from typing import List
 
 from .cart import Cart
 from .cpu import CPU
+from .errors import EmuError
 from .gpu import GPU
 from .clock import Clock
 from .buttons import Buttons
@@ -49,20 +50,12 @@ def main(argv: List[str]) -> int:
 
         while True:
             cpu.tick()
-            if not gpu.tick():
-                break
-            if not buttons.tick():
-                break
-            if not clock.tick():
-                break
-    # except Exception as e:
-    #     print(f"Error: {e}\nWriting details to crash.txt")
-    #     with open("crash.txt", "w") as fp:
-    #         fp.write(str(e) + "\n\n")
-    #         fp.write(str(cpu._debug_str) + "\n\n")
-    #         fp.write(str(cpu) + "\n\n")
-    #         for n in range(0x0000, 0xFFFF, 0x0010):
-    #             fp.write(("%04X :" + (" %02X" * 16) + "\n") % (n, *cpu.ram[n : n + 0x0010]))
+            gpu.tick()
+            buttons.tick()
+            clock.tick()
+    except EmuError as e:
+        print(e)
+        return e.exit_code
     except (KeyboardInterrupt, BrokenPipeError):
         pass
     finally:

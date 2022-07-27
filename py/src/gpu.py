@@ -123,12 +123,12 @@ class GPU:
     #        if(self.hw_window) SDL_DestroyWindow(self.hw_window)
     #        SDL_Quit()
 
-    def tick(self) -> bool:
+    def tick(self) -> None:
         self.cycle += 1
 
         # CPU STOP stops all LCD activity until a button is pressed
         if self.cpu.stop:
-            return True
+            return
 
         # Check if LCD enabled at all
         lcdc = self.cpu.ram[Mem.LCDC]
@@ -137,7 +137,7 @@ class GPU:
             # Does it become 0 as soon as disabled??
             self.cpu.ram[Mem.LY] = 0
             if not self.debug:
-                return True
+                return
 
         lx = self.cycle % 114
         ly = (self.cycle // 114) % 154
@@ -208,8 +208,6 @@ class GPU:
                 self.cpu.interrupt(Interrupt.STAT)
 
             self.cpu.interrupt(Interrupt.VBLANK)
-
-        return True
 
     def update_palettes(self) -> None:
         raw_bgp = self.cpu.ram[Mem.BGP]

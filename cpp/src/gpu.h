@@ -64,7 +64,7 @@ private:
 public:
     GPU(CPU *cpu, char *title, bool headless, bool debug);
     ~GPU();
-    bool tick();
+    void tick();
 
 private:
     void update_palettes();

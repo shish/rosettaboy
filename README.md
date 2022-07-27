@@ -35,6 +35,7 @@ I wrote one copy of the documentation for all the implementations:
 - [cart](docs/cart.md): binary file I/O and parsing
 - [clock](docs/clock.md): timing / sleeping
 - [consts](docs/consts.md): lists of constant values
+- [errors](docs/errors.md): standard errors / exceptions / etc
 - [ram](docs/ram.md): array access where some array values are special
 
 Pull requests to translate into new languages, or fleshing out existing

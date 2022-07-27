@@ -3,6 +3,7 @@ from typing import Optional
 import sys
 from textwrap import dedent
 
+from .errors import UnitTestPassed, UnitTestFailed
 from .ram import RAM
 from .consts import *
 
@@ -387,19 +388,16 @@ class CPU:
     opEC = opcode("ERR EC", 4)(lambda self: self._err("EC"))
     opED = opcode("ERR ED", 4)(lambda self: self._err("ED"))
     opF4 = opcode("ERR F4", 4)(lambda self: self._err("F4"))
-    #opFC = opcode("ERR FC", 4)(lambda self: self._err("FC"))
-    #opFD = opcode("ERR FD", 4)(lambda self: self._err("FD"))
+    # opFC = opcode("ERR FC", 4)(lambda self: self._err("FC"))
+    # opFD = opcode("ERR FD", 4)(lambda self: self._err("FD"))
 
     @opcode("EXIT 0", 4)
     def opFC(self):
-        # FIXME: exit cleanly
-        print("Unit test passed")
-        sys.exit(0)
+        raise UnitTestPassed()
 
     @opcode("EXIT 1", 4)
     def opFD(self):
-        print("Unit test failed")
-        sys.exit(1)
+        raise UnitTestFailed()
 
     # </editor-fold>
 

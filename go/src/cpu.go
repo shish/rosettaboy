@@ -1,7 +1,6 @@
 package main
 
 import "fmt"
-import "os"
 
 var OP_CYCLES = [256]uint8{
 	1, 3, 2, 2, 1, 1, 2, 1, 5, 2, 2, 2, 1, 1, 2, 1,
@@ -166,24 +165,18 @@ func NewCPU(ram *RAM, debug bool) CPU {
 	}
 }
 
-func (cpu *CPU) tick() bool {
+func (cpu *CPU) tick() error {
 	cpu.tick_dma()
-	if !cpu.tick_clock() {
-		return false
-	}
-	if !cpu.tick_interrupts() {
-		return false
-	}
+	cpu.tick_clock()
+	cpu.tick_interrupts()
 	if cpu.halt {
-		return true
+		return &CpuHalted{EmuError: EmuError{ExitCode: 0}}
 	}
 	if cpu.stop {
-		return false
+		return nil
 	}
-	if !cpu.tick_instructions() {
-		return false
-	}
-	return true
+	cpu.tick_instructions()
+	return nil
 }
 
 func (cpu *CPU) interrupt(i byte) {
@@ -259,7 +252,7 @@ func (cpu *CPU) tick_dma() {
 	}
 
 }
-func (cpu *CPU) tick_clock() bool {
+func (cpu *CPU) tick_clock() {
 	cpu.cycle++
 
 	// TODO: writing any value to IO_DIV should reset it to 0x00
@@ -279,9 +272,8 @@ func (cpu *CPU) tick_clock() bool {
 			cpu.ram._inc(IO_TIMA)
 		}
 	}
-	return true
 }
-func (cpu *CPU) tick_interrupts() bool {
+func (cpu *CPU) tick_interrupts() {
 	var queued_interrupts = cpu.ram.get(IO_IE) & cpu.ram.get(IO_IF)
 	if cpu.interrupts && (queued_interrupts != 0x00) {
 		if cpu.debug {
@@ -313,14 +305,13 @@ func (cpu *CPU) tick_interrupts() bool {
 			cpu.ram._and(IO_IF, ^INT_JOYPAD)
 		}
 	}
-	return true
 }
-func (cpu *CPU) tick_instructions() bool {
+func (cpu *CPU) tick_instructions() error {
 	// if the previous instruction was large, let's not run any
 	// more instructions until other subsystems have caught up
 	if cpu.owed_cycles > 0 {
 		cpu.owed_cycles--
-		return true
+		return nil
 	}
 
 	if cpu.debug {
@@ -333,10 +324,13 @@ func (cpu *CPU) tick_instructions() bool {
 		op = cpu.ram.get(cpu.PC)
 		cpu.PC++
 		cpu.tick_cb(op)
-		cpu.owed_cycles = OP_CB_CYCLES[op] - 1
+		cpu.owed_cycles = OP_CB_CYCLES[op]
 	} else {
-		cpu.tick_main(op)
-		cpu.owed_cycles = OP_CYCLES[op] - 1
+		err := cpu.tick_main(op)
+		if err != nil {
+			return err
+		}
+		cpu.owed_cycles = OP_CYCLES[op]
 	}
 
 	// Flags should be union'ed with the F register, but go doesn't
@@ -357,13 +351,13 @@ func (cpu *CPU) tick_instructions() bool {
 	}
 
 	// HALT has cycles=0
-	if cpu.owed_cycles < 0 {
-		cpu.owed_cycles = 0
+	if cpu.owed_cycles > 0 {
+		cpu.owed_cycles--
 	}
-	return true
+	return nil
 }
 
-func (cpu *CPU) tick_main(op uint8) {
+func (cpu *CPU) tick_main(op uint8) error {
 	// Load args
 	var arg oparg
 	arg.as_u16 = 0
@@ -776,13 +770,10 @@ func (cpu *CPU) tick_main(op uint8) {
 		cpu.A = cpu.ram.get(arg.as_u16)
 	case 0xFB:
 		cpu.interrupts = true
-	case 0xFC:
-		// FIXME: exit cleanly
-		fmt.Println("Unit test passed")
-		os.Exit(0)
-	case 0xFD:
-		fmt.Println("Unit test failed")
-		os.Exit(1)
+	case 0xFC: // unofficial
+		return &UnitTestPassed{EmuError: EmuError{ExitCode: 0}}
+	case 0xFD: // unofficial
+		return &UnitTestFailed{EmuError: EmuError{ExitCode: 1}}
 	case 0xFE:
 		cpu._cp(arg.as_u8)
 	case 0xFF:
@@ -791,9 +782,10 @@ func (cpu *CPU) tick_main(op uint8) {
 
 	// missing ops
 	default:
-		println("Op %02X not implemented", op)
-		panic("Op not implemented")
+		return &InvalidOpcode{EmuError: EmuError{ExitCode: 1}, OpCode: op}
 	}
+
+	return nil
 }
 func (cpu *CPU) tick_cb(op uint8) {
 	var val, bit uint8

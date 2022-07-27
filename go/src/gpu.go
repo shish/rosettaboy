@@ -140,12 +140,12 @@ func (gpu *GPU) Destroy() {
 	gpu.renderer.Destroy()
 }
 
-func (gpu *GPU) tick() bool {
+func (gpu *GPU) tick() {
 	gpu.cycle += 1
 
 	// CPU STOP stops all LCD activity until a button is pressed
 	if gpu.cpu.stop {
-		return true
+		return
 	}
 
 	// Check if LCD enabled at all
@@ -155,7 +155,7 @@ func (gpu *GPU) tick() bool {
 		// Does it become 0 as soon as disabled??
 		gpu.cpu.ram.set(IO_LY, 0)
 		if !gpu.debug {
-			return true
+			return
 		}
 	}
 
@@ -219,8 +219,6 @@ func (gpu *GPU) tick() bool {
 		}
 		gpu.cpu.interrupt(INT_VBLANK)
 	}
-
-	return true
 }
 
 func (gpu *GPU) update_palettes() {

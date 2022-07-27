@@ -220,25 +220,18 @@ class CPU
         $this->FLAG_C = false;
     }
 
-    public function tick(): bool
+    public function tick(): void
     {
         $this->tick_dma();
-        if (!$this->tick_clock()) {
-            return false;
-        }
-        if (!$this->tick_interrupts()) {
-            return false;
-        }
+        $this->tick_clock();
+        $this->tick_interrupts();
         if ($this->halt) {
-            return true;
+            throw new CpuHalted();
         }
         if ($this->stop) {
-            return false;
+            return;
         }
-        if (!$this->tick_instructions()) {
-            return false;
-        }
-        return true;
+        $this->tick_instructions();
     }
 
     public function interrupt(int $i)
@@ -326,7 +319,7 @@ class CPU
         }
     }
 
-    public function tick_clock(): bool
+    public function tick_clock(): void
     {
         $this->cycle++;
 
@@ -347,10 +340,9 @@ class CPU
                 $this->ram->_inc(Mem::$TIMA);
             }
         }
-        return true;
     }
 
-    public function tick_interrupts(): bool
+    public function tick_interrupts(): void
     {
         $queued_interrupts = $this->ram->get(Mem::$IE) & $this->ram->get(Mem::$IF);
         if ($this->interrupts && ($queued_interrupts != 0x00)) {
@@ -383,17 +375,16 @@ class CPU
                 $this->ram->_and(Mem::$IF, ~Interrupt::$JOYPAD);
             }
         }
-        return true;
     }
 
-    public function tick_instructions(): bool
+    public function tick_instructions(): void
     {
         global $OP_CYCLES, $OP_CB_CYCLES;
         // if the previous instruction was large, let's not run any
         // more instructions until other subsystems have caught up
         if ($this->owed_cycles > 0) {
             $this->owed_cycles--;
-            return true;
+            return;
         }
 
         if ($this->debug) {
@@ -433,7 +424,6 @@ class CPU
         if ($this->owed_cycles < 0) {
             $this->owed_cycles = 0;
         }
-        return true;
     }
 
     public function tick_main(int $op)
@@ -1085,13 +1075,8 @@ class CPU
             case 0xFB:
                 $this->interrupts = true;
                 break;
-            case 0xFC:
-                // FIXME: exit cleanly
-                print("Unit test passed\n");
-                exit(0);
-            case 0xFD:
-                print("Unit test failed\n");
-                exit(1);
+            case 0xFC: throw new UnitTestPassed();
+            case 0xFD: throw new UnitTestFailed();
             case 0xFE:
                 $this->_cp($arg->as_u8);
                 break;
@@ -1101,9 +1086,7 @@ class CPU
                 break;
 
                 // missing ops
-            default:
-                printf("Op %02X not implemented\n", $op);
-                die("Op not implemented");
+            default: throw new InvalidOpcode($op);
         }
     }
 

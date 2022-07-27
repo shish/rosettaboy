@@ -1,6 +1,5 @@
 package main
 
-import "fmt"
 import "github.com/veandco/go-sdl2/sdl"
 
 type Clock struct {
@@ -21,7 +20,7 @@ func NewClock(buttons *Buttons, profile int, turbo bool) (*Clock, error) {
 	return &Clock{buttons, 0, 0, sdl.GetTicks(), sdl.GetTicks(), profile, turbo}, nil
 }
 
-func (clock *Clock) tick() bool {
+func (clock *Clock) tick() error {
 	clock.cycle++
 
 	// Do a whole frame's worth of sleeping at the start of each frame
@@ -37,16 +36,10 @@ func (clock *Clock) tick() bool {
 		// Exit if we've hit the frame limit
 		if clock.profile != 0 && clock.frame > clock.profile {
 			var duration = (float32)(sdl.GetTicks()-clock.start) / 1000.0
-			fmt.Printf(
-				"Emulated %d frames in %.2fs (%.2ffps)\n",
-				clock.profile, duration,
-				float32(clock.profile)/duration,
-			)
-			return false
+			return &Timeout{EmuError: EmuError{ExitCode: 0}, Frames: clock.profile, Duration: duration};
 		}
 
 		clock.frame++
 	}
-
-	return true
+	return nil
 }

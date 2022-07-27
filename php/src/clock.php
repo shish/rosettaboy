@@ -26,7 +26,7 @@ class Clock
         $this->turbo = $turbo;
     }
 
-    public function tick(): bool
+    public function tick(): void
     {
         $this->cycle++;
 
@@ -43,13 +43,10 @@ class Clock
             // Exit if we've hit the frame limit
             if ($this->profile != 0 && $this->frame > $this->profile) {
                 $duration = (float)(ticks() - $this->start) / 1000.0;
-                printf("Emulated %d frames in %.2fs (%.2ffps)\n", $this->profile, $duration, $this->profile / $duration);
-                return false;
+                throw new Timeout($this->profile, $duration);
             }
 
             $this->frame++;
         }
-
-        return true;
     }
 }

@@ -61,13 +61,13 @@ class GPU
         $this->colors[3] = new SDL_Color(0x0F, 0x38, 0x0F, 0xFF);
     }
 
-    public function tick(): bool
+    public function tick(): void
     {
         $this->cycle++;
 
         // CPU STOP stops all LCD activity until a button is pressed
         if ($this->cpu->stop) {
-            return true;
+            return;
         }
 
         // Check if LCD enabled at all
@@ -77,7 +77,7 @@ class GPU
             // Does it become 0 as soon as disabled??
             $this->cpu->ram->set(Mem::$LY, 0);
             if (!$this->debug) {
-                return true;
+                return;
             }
         }
 
@@ -136,8 +136,6 @@ class GPU
             }
             $this->cpu->interrupt(Interrupt::$VBLANK);
         }
-
-        return true;
     }
 
     public function update_palettes()

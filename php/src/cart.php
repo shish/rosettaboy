@@ -74,7 +74,7 @@ class Cart
             $logo_checksum += $i;
         }
         if ($logo_checksum != 5446) {
-            print("Logo checksum failed\n");
+            throw new LogoChecksumFailed($logo_checksum);
         }
 
         $header_checksum = 25;
@@ -82,7 +82,7 @@ class Cart
             $header_checksum += $this->data[$i];
         }
         if (($header_checksum & 0xFF) != 0) {
-            print("Header checksum failed\n");
+            throw new HeaderChecksumFailed($header_checksum);
         }
 
         $this->ram = array_fill(0, $this->ram_size, 0);

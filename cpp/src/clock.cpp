@@ -1,4 +1,5 @@
 #include "clock.h"
+#include "errors.h"
 
 Clock::Clock(Buttons *buttons, int profile, bool turbo) {
     this->buttons = buttons;
@@ -6,7 +7,7 @@ Clock::Clock(Buttons *buttons, int profile, bool turbo) {
     this->turbo = turbo;
 }
 
-bool Clock::tick() {
+void Clock::tick() {
     this->cycle++;
 
     // Do a whole frame's worth of sleeping at the start of each frame
@@ -22,12 +23,9 @@ bool Clock::tick() {
         // Exit if we've hit the frame limit
         if(this->profile != 0 && this->frame > this->profile) {
             auto duration = (double)(SDL_GetTicks() - this->start) / 1000.0;
-            printf("Emulated %d frames in %.2fs (%.2ffps)\n", this->profile, duration, this->profile / duration);
-            return false;
+            throw new Timeout(this->profile, duration);
         }
 
         this->frame++;
     }
-
-    return true;
 }

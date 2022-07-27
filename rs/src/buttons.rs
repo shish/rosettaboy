@@ -1,6 +1,7 @@
 extern crate sdl2;
 use crate::consts::*;
 use crate::cpu;
+use crate::errors::EmuError;
 use crate::ram;
 use anyhow::{anyhow, Result};
 

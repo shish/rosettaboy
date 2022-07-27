@@ -51,7 +51,7 @@ class Buttons
         $this->select = false;
     }
 
-    public function tick(): bool
+    public function tick(): void
     {
         $this->cycle++;
         $this->update_buttons();
@@ -61,9 +61,7 @@ class Buttons
             $this->need_interrupt = false;
         }
         if ($this->cycle % 17556 == 20) {
-            return $this->handle_inputs();
-        } else {
-            return true;
+            $this->handle_inputs();
         }
     }
 
@@ -102,10 +100,10 @@ class Buttons
         $this->cpu->ram->set(Mem::$JOYP, ~$JOYP);
     }
 
-    public function handle_inputs(): bool
+    public function handle_inputs(): void
     {
         if ($this->headless) {
-            return true;
+            return;
         }
 
         /*
@@ -113,10 +111,10 @@ class Buttons
         SDL_Event event;
         while(SDL_PollEvent(&event)) {
             if(event.type == SDL_QUIT) {
-                return false;
+                throw new Quit();
             }
             if(event.type == SDL_KEYDOWN) {
-                if(event.key.keysym.sym == SDLK_ESCAPE) return false;
+                if(event.key.keysym.sym == SDLK_ESCAPE) throw new Quit();
                 if(event.key.keysym.sym == SDLK_LSHIFT) this->turbo = true;
 
                 this->need_interrupt = true;
@@ -148,6 +146,5 @@ class Buttons
             }
         }
         */
-        return true;
     }
 }

@@ -1,4 +1,5 @@
 use crate::consts::*;
+use crate::errors::EmuError;
 use crate::ram;
 use anyhow::{anyhow, Result};
 
@@ -926,7 +927,7 @@ impl CPU {
                     self.push(self.pc, ram);
                     self.pc = 0x38;
                 }
-                _ => panic!("Unimplemented opcode: {:02X}", op),
+                _ => return Err(anyhow!(EmuError::InvalidOpcode(op))),
             }
         }
 

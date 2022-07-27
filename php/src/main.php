@@ -11,6 +11,7 @@ require "_sdl.php";
 require "apu.php";
 require "cart.php";
 require "cpu.php";
+require "errors.php";
 require "gpu.php";
 require "clock.php";
 require "buttons.php";
@@ -45,18 +46,15 @@ $apu = new APU($args['silent'], $args['debug-apu']);
 $buttons = new Buttons($cpu, $args['headless']);
 $clock = new Clock($buttons, $args['profile'], $args['turbo']);
 
-while (true) {
-    $cpu->tick();
-    if (!$gpu->tick()) {
-        break;
+try {
+    while (true) {
+        $cpu->tick();
+        $gpu->tick();
+        $buttons->tick();
+        $clock->tick();
+        $apu->tick();
     }
-    if (!$buttons->tick()) {
-        break;
-    }
-    if (!$clock->tick()) {
-        break;
-    }
-    if (!$apu->tick()) {
-        break;
-    }
+} catch (EmuError $e) {
+    print($e);
+    exit($e->exit_code);
 }

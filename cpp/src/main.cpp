@@ -7,6 +7,7 @@
 #include "cart.h"
 #include "clock.h"
 #include "cpu.h"
+#include "errors.h"
 #include "gpu.h"
 
 using namespace std;
@@ -58,11 +59,16 @@ int main(int argc, char *argv[]) {
      * cycles. So to avoid overhead, we run the main loop at 1MHz, and each
      * "cycle" that each subsystem counts represents 4 hardware cycles.
      */
-    while(true) {
-        if(!cpu->tick()) break;
-        if(!gpu->tick()) break;
-        if(!buttons->tick()) break;
-        if(!clock->tick()) break;
+    try {
+        while(true) {
+            cpu->tick();
+            gpu->tick();
+            buttons->tick();
+            clock->tick();
+        }
+    } catch(EmuException *e) {
+        std::cout << e->what() << std::endl;
+        return e->exit_code;
     }
 
     printf("\n");

@@ -208,15 +208,15 @@ public:
 
 public:
     CPU(RAM *ram, bool debug);
-    bool tick();
+    void tick();
     void interrupt(Interrupt::Interrupt i);
     void dump_regs();
 
 private:
     void tick_dma();
-    bool tick_clock();
-    bool tick_interrupts();
-    bool tick_instructions();
+    void tick_clock();
+    void tick_interrupts();
+    void tick_instructions();
     void tick_main(u8 op);
     void tick_cb(u8 op);
 

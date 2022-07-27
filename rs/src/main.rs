@@ -17,6 +17,7 @@ mod cart;
 mod clock;
 mod consts;
 mod cpu;
+mod errors;
 mod gpu;
 mod ram;
 
@@ -133,33 +134,9 @@ fn main() -> Result<()> {
     match Gameboy::new(args)?.run() {
         Ok(_) => Err(anyhow!("Main loop exited with no error??")),
         Err(e) => {
-            if let Some(emu_error) = e.downcast_ref::<consts::EmuError>() {
-                match emu_error {
-                    consts::EmuError::Quit => {
-                        std::process::exit(0);
-                    }
-                    consts::EmuError::Timeout(frames, duration) => {
-                        println!(
-                            "Emulated {} frames in {:.2}s ({:.2}fps)",
-                            frames,
-                            duration,
-                            *frames as f32 / duration
-                        );
-                        std::process::exit(0);
-                    }
-                    consts::EmuError::UnitTestPassed => {
-                        println!("Unit test passed");
-                        std::process::exit(0);
-                    }
-                    consts::EmuError::UnitTestFailed => {
-                        println!("Unit test failed");
-                        std::process::exit(2);
-                    }
-                    e => {
-                        println!("Error: {}", e);
-                        std::process::exit(1);
-                    }
-                }
+            if let Some(emu_error) = e.downcast_ref::<errors::EmuError>() {
+                println!("{}", emu_error);
+                std::process::exit(emu_error.exit_code());
             }
             Err(e)
         }

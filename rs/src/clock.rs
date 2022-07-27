@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use std::time::{Duration, SystemTime};
 
 use crate::buttons;
-use crate::consts::*;
+use crate::errors::EmuError;
 
 pub struct Clock {
     cycle: u32,

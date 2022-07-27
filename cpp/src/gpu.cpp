@@ -66,12 +66,12 @@ GPU::~GPU() {
     SDL_Quit();
 }
 
-bool GPU::tick() {
+void GPU::tick() {
     this->cycle++;
 
     // CPU STOP stops all LCD activity until a button is pressed
     if(this->cpu->stop) {
-        return true;
+        return;
     }
 
     // Check if LCD enabled at all
@@ -81,7 +81,7 @@ bool GPU::tick() {
         // Does it become 0 as soon as disabled??
         this->cpu->ram->set(Mem::LY, 0);
         if(!this->debug) {
-            return true;
+            return;
         }
     }
 
@@ -140,8 +140,6 @@ bool GPU::tick() {
         }
         this->cpu->interrupt(Interrupt::VBLANK);
     }
-
-    return true;
 }
 
 void GPU::update_palettes() {
