@@ -8,10 +8,10 @@ type Args struct {
 	DebugGpu bool
 	DebugRam bool
 	Headless bool
-	Silent bool
-	Turbo bool
-	Profile int
-	Rom string
+	Silent   bool
+	Turbo    bool
+	Profile  int
+	Rom      string
 }
 
 func NewArgs() *Args {
@@ -26,15 +26,15 @@ func NewArgs() *Args {
 	flag.Parse()
 	var rom = flag.Arg(0)
 
-	return &Args {
+	return &Args{
 		DebugCpu: *debug_cpu,
 		DebugGpu: *debug_gpu,
 		DebugApu: *debug_apu,
 		DebugRam: *debug_ram,
 		Headless: *headless,
-		Silent: *silent,
-		Turbo: *turbo,
-		Profile: *profile,
-		Rom: rom,
-	};
+		Silent:   *silent,
+		Turbo:    *turbo,
+		Profile:  *profile,
+		Rom:      rom,
+	}
 }

@@ -36,7 +36,7 @@ func (clock *Clock) tick() error {
 		// Exit if we've hit the frame limit
 		if clock.profile != 0 && clock.frame > clock.profile {
 			var duration = (float32)(sdl.GetTicks()-clock.start) / 1000.0
-			return &Timeout{EmuError: EmuError{ExitCode: 0}, Frames: clock.profile, Duration: duration};
+			return &Timeout{EmuError: EmuError{ExitCode: 0}, Frames: clock.profile, Duration: duration}
 		}
 
 		clock.frame++

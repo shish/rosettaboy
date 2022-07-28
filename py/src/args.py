@@ -1,5 +1,6 @@
 import argparse
 
+
 def parse_args(args):
     parser = argparse.ArgumentParser()
     parser.add_argument("rom")
@@ -20,4 +21,4 @@ def parse_args(args):
         default=0,
         metavar="N",
     )
-    args = parser.parse_args(args)
+    return parser.parse_args(args)

@@ -5,15 +5,7 @@ Main
 ------------
 - Parse arguments
   - [Args](args.md)
-- Initialise subsystems
-  - [Cart](cart.md)
-  - [Audio processing](apu.md) (background thread)
-  - [CPU](cpu.md)
-  - [GPU](gpu.md)
-  - [Buttons](buttons.md)
-  - [Clock](clock.md)
-- Run main loop
-  - CPU.tick()
-  - GPU.tick()
-  - Buttons.tick()
-  - Clock.tick()
+- Create the gamebody object and start it running
+  - [GameBoy](gameboy.md)
+- Handle any errors that get thrown
+  - [Errors](errors.md)

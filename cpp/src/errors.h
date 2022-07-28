@@ -33,8 +33,16 @@ public:
         this->exit_code = 0;
     }
 };
-class LogoChecksumFailed : public EmuException {};
-class HeaderChecksumFailed : public EmuException {};
+class CartError : public EmuException {};
+class CartOpenError : public CartError {
+public:
+    CartOpenError(const char *filename, int err) {
+        snprintf(this->buffer, 1000, "Error opening %s: %s", filename, strerror(err));
+
+    }
+};
+class LogoChecksumFailed : public CartError {};
+class HeaderChecksumFailed : public CartError {};
 class UnitTestPassed : public EmuException {
 public:
     UnitTestPassed() {

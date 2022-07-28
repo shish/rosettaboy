@@ -4,8 +4,6 @@
 #include "cpu.h"
 #include "errors.h"
 
-using namespace std;
-
 /**
  * Initialise registers and RAM, map the first banks of Cart
  * code into the RAM address space.

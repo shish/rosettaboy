@@ -7,8 +7,7 @@
 
 #include "cart.h"
 #include "consts.h"
-
-using namespace std;
+#include "errors.h"
 
 #define KB 1024
 
@@ -27,10 +26,16 @@ u32 parse_ram_size(u8 val) {
 
 Cart::Cart(const char *filename) {
     struct stat statbuf;
-    stat(filename, &statbuf);
+    int statok = stat(filename, &statbuf);
+    if (statok < 0) {
+        throw new CartOpenError(filename, errno);
+    }
 
-    if(debug) cout << "Reading " << statbuf.st_size << " bytes of cart data from " << filename << "\n";
+    if(debug) std::cout << "Reading " << statbuf.st_size << " bytes of cart data from " << filename << "\n";
     int fd = open(filename, O_RDONLY);
+    if (fd < 0) {
+        throw new CartOpenError(filename, errno);
+    }
     this->data = (unsigned char *)mmap(nullptr, (size_t)statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
 
     memcpy(this->logo, this->data + 0x0104, 48);
@@ -52,7 +57,7 @@ Cart::Cart(const char *filename) {
         logo_checksum += i;
     }
     if(logo_checksum != 5446) {
-        cout << "Logo checksum failed\n";
+        std::cout << "Logo checksum failed\n";
     }
 
     u16 header_checksum = 25;
@@ -60,15 +65,15 @@ Cart::Cart(const char *filename) {
         header_checksum += this->data[i];
     }
     if((header_checksum & 0xFF) != 0) {
-        cout << "Header checksum failed\n";
+        std::cout << "Header checksum failed\n";
     }
 
     if(this->ram_size) {
-        string fn2 = filename;
+        std::string fn2 = filename;
         fn2.replace(fn2.end() - 2, fn2.end(), "sav");
         int ram_fd = open(fn2.c_str(), O_RDWR | O_CREAT, 0600);
         if(ftruncate(ram_fd, this->ram_size) != 0) {
-            cout << "Truncate for .sav file failed\n";
+            std::cout << "Truncate for .sav file failed\n";
         }
         this->ram =
             (unsigned char *)mmap(nullptr, (size_t)statbuf.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, ram_fd, 0);

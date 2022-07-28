@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 include_directories(/usr/local/include/)
 
-add_executable(rosettaboy-cpp src/main.cpp src/args.cpp src/cpu.cpp src/cart.cpp src/gpu.cpp src/consts.h src/cart.h src/cpu.h src/gpu.h src/args.h src/apu.cpp src/apu.h src/ram.cpp src/ram.h src/buttons.cpp src/buttons.h src/clock.cpp src/clock.h)
+add_executable(rosettaboy-cpp src/main.cpp src/args.cpp src/cpu.cpp src/cart.cpp src/gameboy.cpp src/gpu.cpp src/consts.h src/cart.h src/cpu.h src/gpu.h src/args.h src/apu.cpp src/apu.h src/ram.cpp src/ram.h src/buttons.cpp src/buttons.h src/clock.cpp src/clock.h)
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
