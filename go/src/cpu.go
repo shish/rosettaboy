@@ -170,12 +170,15 @@ func (cpu *CPU) tick() error {
 	cpu.tick_clock()
 	cpu.tick_interrupts()
 	if cpu.halt {
-		return &CpuHalted{EmuError: EmuError{ExitCode: 0}}
+		return nil
 	}
 	if cpu.stop {
 		return nil
 	}
-	cpu.tick_instructions()
+	err := cpu.tick_instructions()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

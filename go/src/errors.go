@@ -26,7 +26,7 @@ type Timeout struct {
 }
 
 func (e *Timeout) Error() string {
-	return fmt.Sprintf("Emulated %d frames in %.2fs (%.2ffps)", e.Frames,
+	return fmt.Sprintf("Emulated %d frames in %5.2fs (%.0ffps)", e.Frames,
 		e.Duration,
 		float32(e.Frames)/e.Duration,
 	)

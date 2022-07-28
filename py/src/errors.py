@@ -14,15 +14,11 @@ class Timeout(EmuError):
         self.duration = duration
 
     def __str__(self) -> str:
-        return "Emulated %d frames in %.2fs (%.2ffps)" % (
+        return "Emulated %d frames in %5.2fs (%.0ffps)" % (
             self.frames,
             self.duration,
             self.frames / self.duration,
         )
-
-
-class CpuHalted(EmuError):
-    exit_code = 0
 
 
 class UnsupportedCart(EmuError):

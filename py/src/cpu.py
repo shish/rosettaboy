@@ -134,16 +134,15 @@ class CPU:
         self.ram[Mem.IF] |= i
         self.halt = False  # interrupts interrupt HALT state
 
-    def tick(self) -> bool:
+    def tick(self) -> None:
         self.tick_dma()
         self.tick_clock()
         self.tick_interrupts()
         if self.halt:
-            return True
+            return
         if self.stop:
-            return False
+            return
         self.tick_instructions()
-        return True
 
     def tick_dma(self) -> None:
         """

@@ -14,7 +14,7 @@ public:
     bool debug_apu;
     int profile;
     bool turbo;
-    const char *rom;
+    std::string rom;
 };
 
 #endif // ROSETTABOY_ARGS_H

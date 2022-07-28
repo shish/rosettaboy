@@ -4,6 +4,7 @@
 #include "consts.h"
 #include <exception>
 #include <string>
+#include <string.h>
 
 class EmuException : public std::exception {
 protected:
@@ -24,20 +25,14 @@ class Timeout : public EmuException {
 public:
     Timeout(int frames, double duration) {
         this->exit_code = 0;
-        snprintf(this->buffer, 1000, "Emulated %d frames in %.2fs (%.2ffps)", frames, duration, frames / duration);
-    }
-};
-class CpuHalted : public EmuException {
-public:
-    CpuHalted() {
-        this->exit_code = 0;
+        snprintf(this->buffer, 1000, "Emulated %d frames in %5.2fs (%.0ffps)", frames, duration, frames / duration);
     }
 };
 class CartError : public EmuException {};
 class CartOpenError : public CartError {
 public:
-    CartOpenError(const char *filename, int err) {
-        snprintf(this->buffer, 1000, "Error opening %s: %s", filename, strerror(err));
+    CartOpenError(std::string filename, int err) {
+        snprintf(this->buffer, 1000, "Error opening %s: %s", filename.c_str(), strerror(err));
 
     }
 };

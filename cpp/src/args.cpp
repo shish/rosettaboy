@@ -38,5 +38,5 @@ Args::Args(int argc, char *argv[]) {
     this->debug_gpu = debug_gpu;
     this->profile = profile ? args::get(profile) : 0;
     this->turbo = turbo;
-    this->rom = args::get(rom).c_str();
+    this->rom = args::get(rom);
 }

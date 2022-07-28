@@ -226,7 +226,7 @@ class CPU
         $this->tick_clock();
         $this->tick_interrupts();
         if ($this->halt) {
-            throw new CpuHalted();
+            return;
         }
         if ($this->stop) {
             return;

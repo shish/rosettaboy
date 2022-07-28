@@ -27,15 +27,7 @@ class Timeout extends EmuError
 
     public function __toString(): string
     {
-        return sprintf("Emulated %d frames in %.2fs (%.2ffps)\n", $this->frames, $this->duration, $this->frames / $this->duration);
-    }
-}
-
-class CpuHalted extends EmuError
-{
-    public function __construct()
-    {
-        $this->exit_code = 0;
+        return sprintf("Emulated %d frames in %5.2fs (%.0ffps)\n", $this->frames, $this->duration, $this->frames / $this->duration);
     }
 }
 

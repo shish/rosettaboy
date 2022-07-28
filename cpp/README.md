@@ -5,7 +5,7 @@ A GameBoy emulator, a simple project to see what C++ is like these days
 Usage
 -----
 ```
-cmake -DCMAKE_BUILD_TYPE=Debug .
+cmake -DCMAKE_BUILD_TYPE=Release .  # or Debug
 make -j
 ./rosettaboy-cpp game.gb
 ```

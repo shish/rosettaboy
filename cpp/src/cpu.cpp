@@ -73,7 +73,7 @@ void CPU::tick() {
     this->tick_dma();
     this->tick_clock();
     this->tick_interrupts();
-    if(this->halt) throw new CpuHalted();
+    if(this->halt) return;
     if(this->stop) return;
     this->tick_instructions();
 }

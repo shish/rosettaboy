@@ -24,15 +24,15 @@ u32 parse_ram_size(u8 val) {
     }
 }
 
-Cart::Cart(const char *filename) {
+Cart::Cart(std::string filename) {
     struct stat statbuf;
-    int statok = stat(filename, &statbuf);
+    int statok = stat(filename.c_str(), &statbuf);
     if (statok < 0) {
         throw new CartOpenError(filename, errno);
     }
 
     if(debug) std::cout << "Reading " << statbuf.st_size << " bytes of cart data from " << filename << "\n";
-    int fd = open(filename, O_RDONLY);
+    int fd = open(filename.c_str(), O_RDONLY);
     if (fd < 0) {
         throw new CartOpenError(filename, errno);
     }

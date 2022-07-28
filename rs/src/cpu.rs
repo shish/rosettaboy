@@ -238,7 +238,7 @@ impl CPU {
             return Ok(());
         }
         if self.stop {
-            return Err(anyhow!(EmuError::CpuHalted));
+            return Ok(());
         }
         self.tick_instructions(ram)?;
 
