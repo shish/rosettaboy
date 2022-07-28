@@ -4,6 +4,7 @@ from sdl2 import SDL_Quit
 import sys
 from typing import List
 
+from .args import parse_args
 from .cart import Cart
 from .cpu import CPU
 from .errors import EmuError
@@ -11,30 +12,10 @@ from .gpu import GPU
 from .clock import Clock
 from .buttons import Buttons
 from .ram import RAM
-import argparse
 
 
 def main(argv: List[str]) -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("rom")
-    parser.add_argument(
-        "--info", action="store_true", default=False, help="Show ROM metadata"
-    )
-    parser.add_argument("-c", "--debug-cpu", action="store_true", default=False)
-    parser.add_argument("-g", "--debug-gpu", action="store_true", default=False)
-    parser.add_argument("-r", "--debug-ram", action="store_true", default=False)
-    parser.add_argument("-H", "--headless", action="store_true", default=False)
-    parser.add_argument("-S", "--silent", action="store_true", default=False)
-    parser.add_argument("-t", "--turbo", action="store_true", default=False)
-    parser.add_argument(
-        "-p",
-        "--profile",
-        type=int,
-        help="Exit after N frames",
-        default=0,
-        metavar="N",
-    )
-    args = parser.parse_args(argv[1:])
+    args = parse_args(argv[1:])
 
     if args.info:
         print(Cart(args.rom))

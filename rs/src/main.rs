@@ -11,6 +11,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 #[macro_use]
 extern crate bitflags;
 
+mod args;
 mod apu;
 mod buttons;
 mod cart;
@@ -21,46 +22,6 @@ mod errors;
 mod gpu;
 mod ram;
 
-/// RosettaBoy - Rust
-#[derive(Parser)]
-#[clap(about, author, version)]
-struct Args {
-    /// Path to a .gb file
-    #[clap(default_value = "game.gb")]
-    rom: String,
-
-    /// Disable GUI
-    #[clap(short = 'H', long)]
-    headless: bool,
-
-    /// Disable Sound
-    #[clap(short = 'S', long)]
-    silent: bool,
-
-    /// Debug CPU
-    #[clap(short = 'c', long)]
-    debug_cpu: bool,
-
-    /// Debug GPU
-    #[clap(short = 'g', long)]
-    debug_gpu: bool,
-
-    /// Debug APU
-    #[clap(short = 'a', long)]
-    debug_apu: bool,
-
-    /// Debug RAM
-    #[clap(short = 'r', long)]
-    debug_ram: bool,
-
-    /// Exit after N frames
-    #[clap(short, long, default_value = "0")]
-    profile: u32,
-
-    /// No sleep()
-    #[clap(short, long)]
-    turbo: bool,
-}
 
 struct Gameboy<'a> {
     ram: ram::RAM,
@@ -72,7 +33,7 @@ struct Gameboy<'a> {
 }
 impl<'a> Gameboy<'a> {
     #[inline(never)]
-    fn new(args: Args) -> Result<Gameboy<'a>> {
+    fn new(args: args::Args) -> Result<Gameboy<'a>> {
         let sdl = sdl2::init().map_err(anyhow::Error::msg)?;
 
         let cart = cart::Cart::new(args.rom.as_str())?;
@@ -106,7 +67,7 @@ impl<'a> Gameboy<'a> {
     }
 }
 
-fn configure_logging(args: &Args) {
+fn configure_logging(args: &args::Args) {
     let mut levels = "rosettaboy_rs=warn".to_string();
     if args.debug_apu {
         levels.push_str(",rosettaboy_rs::apu=debug");
@@ -129,7 +90,7 @@ fn configure_logging(args: &Args) {
 }
 
 fn main() -> Result<()> {
-    let args = Args::parse();
+    let args = args::Args::parse();
     configure_logging(&args);
     match Gameboy::new(args)?.run() {
         Ok(_) => Err(anyhow!("Main loop exited with no error??")),
