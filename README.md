@@ -46,7 +46,7 @@ Completeness
 | Feature                       | Python  | C++     | Rust    | Go      | PHP     |
 | -------                       | ------- | ---     | ----    | --      | ---     |
 | *CPU*                         |         |         |         |         |         |
-| blargg's test suite          | &check; | &check; | &check; | &check; | &check; |
+| blargg's test suite           | &check; | &check; | &check; | &check; | &check; |
 | interrupts                    | &check; | &check; | &check; | &check; | &check; |
 | logging                       | &check; | &check; | &check; | &check; | &check; |
 | *Graphics*                    |         |         |         |         |         |
@@ -79,9 +79,9 @@ Running on an M1 Macbook Pro:
 
 ```
 $ ./bench.sh
-rs:  Emulated 600 frames in  0.34s (1753.36fps)
-go:  Emulated 600 frames in  0.96s (624.35fps)
-cpp: Emulated 600 frames in  1.05s (568.72fps)
-php: Emulated 600 frames in 23.55s (25.47fps)
-py:  Emulated 600 frames in 66.32s (9.05fps)
+  rs: Emulated 600 frames in  0.35s (1691fps)
+ cpp: Emulated 600 frames in  0.40s (1519fps)
+  go: Emulated 600 frames in  1.78s (338fps)
+ php: Emulated 600 frames in 23.80s (25fps)
+  py: Emulated 600 frames in 68.44s (9fps)
 ```
