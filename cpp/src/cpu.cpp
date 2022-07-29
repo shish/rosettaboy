@@ -443,7 +443,7 @@ void CPU::tick_main(u8 op) {
 
         // missing ops
         default: throw new InvalidOpcode(op);
-        // clang-format on
+            // clang-format on
     }
 }
 

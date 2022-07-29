@@ -1,8 +1,8 @@
 #ifndef ROSETTABOY_CONSTS_H
 #define ROSETTABOY_CONSTS_H
 
-#include <string>
 #include <exception>
+#include <string>
 
 typedef unsigned char u8;
 typedef unsigned short u16;

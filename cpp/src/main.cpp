@@ -1,8 +1,7 @@
-#include <iostream>
-
 #include "args.h"
-#include "gameboy.h"
 #include "errors.h"
+#include "gameboy.h"
+#include <iostream>
 
 int main(int argc, char *argv[]) {
     Args *args = new Args(argc, argv);
@@ -11,7 +10,7 @@ int main(int argc, char *argv[]) {
     }
 
     try {
-        GameBoy *gameboy = new GameBoy(args); 
+        GameBoy *gameboy = new GameBoy(args);
         gameboy->run();
     } catch(EmuException *e) {
         std::cout << e->what() << std::endl;

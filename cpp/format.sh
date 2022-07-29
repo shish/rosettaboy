@@ -1,2 +1,2 @@
 #!/bin/sh
-exit 1  # how do we do this?
+clang-format-12 -i $(find src -type f | grep -v _args.h) --ferror-limit 10 -Werror
