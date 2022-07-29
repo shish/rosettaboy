@@ -21,7 +21,9 @@ END = "\033[0m"
 TEST_DIR = "gb-autotest-roms"
 
 if not os.path.exists(TEST_DIR):
-    subprocess.run(["git", "clone", "https://github.com/shish/gb-autotest-roms", TEST_DIR])
+    subprocess.run(
+        ["git", "clone", "https://github.com/shish/gb-autotest-roms", TEST_DIR]
+    )
 
 
 def test(cwd, rom):
