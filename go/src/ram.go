@@ -284,8 +284,7 @@ func (ram *RAM) set(addr uint16, val uint8) {
 			)
 		}
 		if bank+offset >= ram.cart.ram_size {
-			// panic!("Writing beyond RAM limit")
-			return
+			panic("Writing beyond RAM limit")
 		}
 		panic("Cart RAM not supported") // TODO
 		// ram.cart.ram[bank + offset] = val

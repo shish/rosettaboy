@@ -5,6 +5,7 @@
 
 #include "cart.h"
 #include "consts.h"
+#include "errors.h"
 
 const u16 ROM_BANK_SIZE = 0x4000;
 const u16 RAM_BANK_SIZE = 0x2000;
@@ -65,6 +66,9 @@ inline u8 RAM::get(u16 addr) {
             }
             int bank = this->ram_bank * RAM_BANK_SIZE;
             int offset = addr - 0xA000;
+            if(bank + offset >= this->cart->ram_size) {
+                throw new InvalidRamRead(this->ram_bank, offset, this->cart->ram_size);
+            }
             return this->cart->ram[bank + offset];
         }
         case 0xC000 ... 0xCFFF:
@@ -150,11 +154,9 @@ inline void RAM::set(u16 addr, u8 val) {
             int bank = this->ram_bank * RAM_BANK_SIZE;
             int offset = addr - 0xA000;
             if(this->debug)
-                printf(
-                    "Writing external RAM: %04X=%02X (%02X:%04X)\n", bank + offset, val, this->ram_bank,
-                    (addr - 0xA000));
-            if(bank + offset > this->cart->ram_size) {
-                throw std::invalid_argument("Writing beyond RAM limit");
+                printf("Writing external RAM: %04X=%02X (%02X:%04X)\n", bank + offset, val, this->ram_bank, offset);
+            if(bank + offset >= this->cart->ram_size) {
+                throw new InvalidRamWrite(this->ram_bank, offset, this->cart->ram_size);
             }
             this->cart->ram[bank + offset] = val;
             break;

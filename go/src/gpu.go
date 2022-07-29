@@ -190,8 +190,8 @@ func (gpu *GPU) tick() {
 			// TODO: how often should we update palettes?
 			// Should every pixel reference them directly?
 			gpu.update_palettes()
-			// TODO: do we need to clear if we write every pixel?
-			gpu.renderer.SetDrawColor(gpu.bgp[0].R, gpu.bgp[0].G, gpu.bgp[0].B, gpu.bgp[0].A)
+			var c = gpu.bgp[0]
+			gpu.renderer.SetDrawColor(c.R, c.G, c.B, c.A)
 			gpu.renderer.Clear()
 		}
 		gpu.draw_line(int32(ly))

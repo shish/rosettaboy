@@ -81,8 +81,7 @@ impl Cart {
         logo.copy_from_slice(&data[0x104..0x104 + 48]);
         let mut name_bytes: [u8; 15] = [0; 15];
         name_bytes.copy_from_slice(&data[0x134..0x134 + 15]);
-        let name = std::str::from_utf8(&name_bytes)
-            .unwrap()
+        let name = std::str::from_utf8(&name_bytes)?
             .trim_matches(char::from(0))
             .to_string();
 

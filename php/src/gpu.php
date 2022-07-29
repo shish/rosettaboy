@@ -107,7 +107,6 @@ class GPU
                 // TODO: how often should we update palettes?
                 // Should every pixel reference them directly?
                 $this->update_palettes();
-                // TODO: do we need to clear if we write every pixel?
                 $c = $this->bgp[0];
                 SDL_SetRenderDrawColor($this->renderer, $c->r, $c->g, $c->b, $c->a);
                 SDL_RenderClear($this->renderer);

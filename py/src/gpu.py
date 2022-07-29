@@ -170,7 +170,6 @@ class GPU:
                 # TODO: how often should we update palettes?
                 # Should every pixel reference them directly?
                 self.update_palettes()
-                # TODO: do we need to clear if we write every pixel?
                 c = self.bgp[0]
                 SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
                 SDL_RenderClear(self.renderer)

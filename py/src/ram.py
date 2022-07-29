@@ -174,14 +174,14 @@ class RAM:
                 )
             bank = self.ram_bank * RAM_BANK_SIZE
             offset = addr - 0xA000
-            if bank + offset > self.cart.ram_size:
+            if bank + offset >= self.cart.ram_size:
                 # this should never happen because we die on ram_bank being
                 # set to a too-large value
                 raise Exception(
                     "Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})",
                     bank + offset,
                     self.ram_bank,
-                    (addr - 0xA000),
+                    offset,
                 )
             return self.cart.ram[bank + offset]
         elif addr < 0xD000:
@@ -269,11 +269,15 @@ class RAM:
                     bank + offset,
                     val,
                     self.ram_bank,
-                    (addr - 0xA000),
+                    offset,
                 )
             if bank + offset >= self.cart.ram_size:
-                # raise Exception!("Writing beyond RAM limit")
-                return
+                raise Exception(
+                    "Writing to external ram beyond limit: {:04x} ({:02x}:{:04x})",
+                    bank + offset,
+                    self.ram_bank,
+                    offset,
+                )
             self.cart.ram[bank + offset] = val
         elif addr < 0xD000:
             # work RAM, bank 0

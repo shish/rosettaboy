@@ -96,6 +96,9 @@ class RAM
             }
             $bank = $this->ram_bank * RAM_BANK_SIZE;
             $offset = $addr - 0xA000;
+            if ($bank + $offset >= $this->cart->ram_size) {
+                die("Reading beyond RAM limit");
+            }
             return $this->cart->ram[$bank + $offset];
         } elseif ($addr < 0xD000) {
             // work RAM, bank 0
@@ -177,7 +180,7 @@ class RAM
                     ($addr - 0xA000)
                 );
             }
-            if ($bank + $offset > $this->cart->ram_size) {
+            if ($bank + $offset >= $this->cart->ram_size) {
                 die("Writing beyond RAM limit");
             }
             $this->cart->ram[$bank + $offset] = $val;

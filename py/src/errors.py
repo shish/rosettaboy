@@ -30,10 +30,16 @@ class LogoChecksumFailed(EmuError):
     def __init__(self, logo_checksum: int) -> None:
         self.logo_checksum = logo_checksum
 
+    def __str__(self) -> str:
+        return "Logo checksum failed: %d != 5446" % self.logo_checksum
+
 
 class HeaderChecksumFailed(EmuError):
     def __init__(self, header_checksum: int) -> None:
         self.header_checksum = header_checksum
+
+    def __str__(self) -> str:
+        return "Header checksum failed: %02X != 0" % self.header_checksum
 
 
 class UnitTestPassed(EmuError):

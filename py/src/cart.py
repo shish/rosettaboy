@@ -105,15 +105,13 @@ class Cart:
 
         logo_checksum = sum(list(self.logo))
         if logo_checksum != 5446:
-            raise LogoChecksumFailed("Logo checksum failed: %d != 5446" % logo_checksum)
+            raise LogoChecksumFailed(logo_checksum)
 
         header_checksum = (
             sum(struct.unpack("26B", self.data[0x0134:0x014E])) + 25
         ) & 0xFF
         if header_checksum != 0:
-            raise HeaderChecksumFailed(
-                "Header checksum failed: %02X != 0" % header_checksum
-            )
+            raise HeaderChecksumFailed(header_checksum)
 
     def __str__(self) -> str:
         return "\n".join(

@@ -200,7 +200,6 @@ impl<'a> GPU<'a> {
                 // TODO: how often should we update palettes?
                 // Should every pixel reference them directly?
                 self.update_palettes(ram);
-                // TODO: do we need to clear if we write every pixel?
                 self.renderer.set_draw_color(self.bgp[0]);
                 self.renderer.clear();
             }

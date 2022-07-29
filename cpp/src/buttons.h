@@ -36,11 +36,11 @@ private:
 
 public:
     Buttons(CPU *cpu, bool headless);
-    bool tick();
+    void tick();
     bool turbo = false;
 
 private:
-    bool handle_inputs();
+    void handle_inputs();
     void update_buttons();
 };
 

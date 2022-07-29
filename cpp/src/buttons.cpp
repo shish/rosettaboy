@@ -1,4 +1,5 @@
 #include "buttons.h"
+#include "errors.h"
 
 Buttons::Buttons(CPU *cpu, bool headless) {
     SDL_InitSubSystem(SDL_INIT_EVENTS);
@@ -7,7 +8,7 @@ Buttons::Buttons(CPU *cpu, bool headless) {
     this->headless = headless;
 }
 
-bool Buttons::tick() {
+void Buttons::tick() {
     this->cycle++;
     this->update_buttons();
     if(this->need_interrupt) {
@@ -16,9 +17,7 @@ bool Buttons::tick() {
         this->need_interrupt = false;
     }
     if(this->cycle % 17556 == 20) {
-        return this->handle_inputs();
-    } else {
-        return true;
+        this->handle_inputs();
     }
 }
 
@@ -40,21 +39,21 @@ void Buttons::update_buttons() {
     this->cpu->ram->set(Mem::JOYP, ~JOYP);
 }
 
-bool Buttons::handle_inputs() {
+void Buttons::handle_inputs() {
     if(this->headless) {
-        return true;
+        return;
     }
 
     SDL_Event event;
 
     while(SDL_PollEvent(&event)) {
         if(event.type == SDL_QUIT) {
-            return false;
+            throw new Quit();
         }
         if(event.type == SDL_KEYDOWN) {
             this->need_interrupt = true;
             switch(event.key.keysym.sym) {
-                case SDLK_ESCAPE: return false;
+                case SDLK_ESCAPE: throw new Quit();
                 case SDLK_LSHIFT:
                     this->turbo = true;
                     this->need_interrupt = false;
@@ -84,6 +83,4 @@ bool Buttons::handle_inputs() {
             }
         }
     }
-
-    return true;
 }

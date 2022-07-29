@@ -57,7 +57,7 @@ Cart::Cart(std::string filename) {
         logo_checksum += i;
     }
     if(logo_checksum != 5446) {
-        std::cout << "Logo checksum failed\n";
+        throw new LogoChecksumFailed(logo_checksum);
     }
 
     u16 header_checksum = 25;
@@ -65,18 +65,21 @@ Cart::Cart(std::string filename) {
         header_checksum += this->data[i];
     }
     if((header_checksum & 0xFF) != 0) {
-        std::cout << "Header checksum failed\n";
+        throw new HeaderChecksumFailed(header_checksum);
     }
 
     if(this->ram_size) {
         std::string fn2 = filename;
         fn2.replace(fn2.end() - 2, fn2.end(), "sav");
         int ram_fd = open(fn2.c_str(), O_RDWR | O_CREAT, 0600);
+        if (ram_fd < 0) {
+            throw new CartOpenError(fn2, errno);
+        }
         if(ftruncate(ram_fd, this->ram_size) != 0) {
-            std::cout << "Truncate for .sav file failed\n";
+            throw new CartOpenError(fn2, errno);
         }
         this->ram =
-            (unsigned char *)mmap(nullptr, (size_t)statbuf.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, ram_fd, 0);
+            (unsigned char *)mmap(nullptr, (size_t)this->ram_size, PROT_READ | PROT_WRITE, MAP_SHARED, ram_fd, 0);
     }
 
     if(debug) {

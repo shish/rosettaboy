@@ -1,5 +1,7 @@
 use crate::cart;
 use crate::consts::*;
+
+use anyhow::Result;
 use std::io::Read;
 
 /**
@@ -62,12 +64,12 @@ pub struct RAM {
 }
 
 impl RAM {
-    pub fn new(cart: cart::Cart) -> RAM {
+    pub fn new(cart: cart::Cart) -> Result<RAM> {
         let boot = match ::std::fs::File::open("boot.gb") {
             Ok(mut fp) => {
                 tracing::debug!("Loading boot code from boot.gb");
                 let mut buf: [u8; 0x100] = [0; 0x100];
-                fp.read_exact(&mut buf).unwrap();
+                fp.read_exact(&mut buf)?;
                 buf[0xE9] = 0x00;
                 buf[0xEA] = 0x00;
                 buf[0xFA] = 0x00;
@@ -77,7 +79,7 @@ impl RAM {
             Err(_) => BOOT,
         };
 
-        RAM {
+        Ok(RAM {
             cart,
             ram_enable: true, // false,
             ram_bank_mode: false,
@@ -87,7 +89,7 @@ impl RAM {
             ram_bank: 0,
             boot,
             data: [0; 0xFFFF + 1],
-        }
+        })
     }
 
     #[inline(always)]
