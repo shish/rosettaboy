@@ -28,13 +28,13 @@ Cart::Cart(std::string filename) {
     struct stat statbuf;
     int statok = stat(filename.c_str(), &statbuf);
     if(statok < 0) {
-        throw new CartOpenError(filename, errno);
+        throw new RomMissing(filename, errno);
     }
 
     if(debug) std::cout << "Reading " << statbuf.st_size << " bytes of cart data from " << filename << "\n";
     int fd = open(filename.c_str(), O_RDONLY);
     if(fd < 0) {
-        throw new CartOpenError(filename, errno);
+        throw new RomMissing(filename, errno);
     }
     this->data = (unsigned char *)mmap(nullptr, (size_t)statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
 
@@ -73,10 +73,10 @@ Cart::Cart(std::string filename) {
         fn2.replace(fn2.end() - 2, fn2.end(), "sav");
         int ram_fd = open(fn2.c_str(), O_RDWR | O_CREAT, 0600);
         if(ram_fd < 0) {
-            throw new CartOpenError(fn2, errno);
+            throw new RomMissing(fn2, errno);
         }
         if(ftruncate(ram_fd, this->ram_size) != 0) {
-            throw new CartOpenError(fn2, errno);
+            throw new RomMissing(fn2, errno);
         }
         this->ram =
             (unsigned char *)mmap(nullptr, (size_t)this->ram_size, PROT_READ | PROT_WRITE, MAP_SHARED, ram_fd, 0);

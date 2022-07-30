@@ -11,87 +11,85 @@
 class EmuException : public std::exception {
 protected:
     char buffer[ERR_BUF_LEN] = "EmuException";
+    void set_msg(const char *format, ...) {
+        va_list args;
+        va_start(args, format);
+        vsnprintf(this->buffer, ERR_BUF_LEN, format, args);
+        va_end(args);
+    }
 
 public:
     i32 exit_code = 1;
     virtual const char *what() const throw() { return this->buffer; }
 };
 
-// User exit
-class Quit : public EmuException {
+// Controlled exit, ie we are deliberately stopping emulation
+class ControlledExit : public EmuException {
 public:
-    Quit() {
-        this->exit_code = 0;
-        snprintf(this->buffer, ERR_BUF_LEN, "User exited the emulator");
-    }
+    ControlledExit() { this->exit_code = 0; }
 };
-class Timeout : public EmuException {
+class Quit : public ControlledExit {
+public:
+    Quit() { this->set_msg("User exited the emulator"); }
+};
+class Timeout : public ControlledExit {
 public:
     Timeout(int frames, double duration) {
-        this->exit_code = 0;
-        snprintf(
-            this->buffer, ERR_BUF_LEN, "Emulated %d frames in %5.2fs (%.0ffps)", frames, duration, frames / duration);
+        this->set_msg("Emulated %d frames in %5.2fs (%.0ffps)", frames, duration, frames / duration);
     }
 };
-
-// Game errors, ie the game developer has a bug
-class GameError : public EmuException {};
-class InvalidOpcode : public GameError {
+class UnitTestPassed : public ControlledExit {
 public:
-    InvalidOpcode(u8 opcode) { snprintf(this->buffer, ERR_BUF_LEN, "Invalid opcode: 0x%02X", opcode); }
+    UnitTestPassed() { this->set_msg("Unit test passed"); }
 };
-class InvalidRamRead : public GameError {
-public:
-    InvalidRamRead(u8 ram_bank, int offset, u32 ram_size) {
-        snprintf(
-            this->buffer, ERR_BUF_LEN, "Read from RAM bank 0x%02X offset 0x%04X >= ram size 0x%04X", ram_bank, offset,
-            ram_size);
-    }
-};
-class InvalidRamWrite : public GameError {
-public:
-    InvalidRamWrite(u8 ram_bank, int offset, u32 ram_size) {
-        snprintf(
-            this->buffer, ERR_BUF_LEN, "Write to RAM bank 0x%02X offset 0x%04X >= ram size 0x%04X", ram_bank, offset,
-            ram_size);
-    }
-};
-
-// Cart errors, ie the user passed an invalid .gb file on the command line
-class CartError : public EmuException {};
-class CartOpenError : public CartError {
-public:
-    CartOpenError(std::string filename, int err) {
-        snprintf(this->buffer, ERR_BUF_LEN, "Error opening %s: %s", filename.c_str(), strerror(err));
-    }
-};
-class LogoChecksumFailed : public CartError {
-public:
-    LogoChecksumFailed(int logo_checksum) {
-        snprintf(this->buffer, ERR_BUF_LEN, "Invalid logo checksum: %d", logo_checksum);
-    }
-};
-class HeaderChecksumFailed : public CartError {
-public:
-    HeaderChecksumFailed(int header_checksum) {
-        snprintf(this->buffer, ERR_BUF_LEN, "Invalid header checksum: %d", header_checksum);
-    }
-};
-
-// Testing
-class UnitTestPassed : public EmuException {
-public:
-    UnitTestPassed() {
-        this->exit_code = 0;
-        snprintf(this->buffer, ERR_BUF_LEN, "Unit test passed");
-    }
-};
-class UnitTestFailed : public EmuException {
+class UnitTestFailed : public ControlledExit {
 public:
     UnitTestFailed() {
         this->exit_code = 2;
-        snprintf(this->buffer, ERR_BUF_LEN, "Unit test failed");
+        this->set_msg("Unit test failed");
     }
+};
+
+// Game error, ie the game developer has a bug
+class GameException : public EmuException {
+public:
+    GameException() { this->exit_code = 3; }
+};
+class InvalidOpcode : public GameException {
+public:
+    InvalidOpcode(u8 opcode) { this->set_msg("Invalid opcode: 0x%02X", opcode); }
+};
+class InvalidRamRead : public GameException {
+public:
+    InvalidRamRead(u8 ram_bank, int offset, u32 ram_size) {
+        this->set_msg("Read from RAM bank 0x%02X offset 0x%04X >= ram size 0x%04X", ram_bank, offset, ram_size);
+    }
+};
+class InvalidRamWrite : public GameException {
+public:
+    InvalidRamWrite(u8 ram_bank, int offset, u32 ram_size) {
+        this->set_msg("Write to RAM bank 0x%02X offset 0x%04X >= ram size 0x%04X", ram_bank, offset, ram_size);
+    }
+};
+
+// User error, ie the user gave us an invalid or corrupt input file
+class UserException : public EmuException {
+public:
+    UserException() { this->exit_code = 4; }
+};
+class RomMissing : public UserException {
+public:
+    RomMissing(std::string filename, int err) {
+        this->set_msg("Error opening %s: %s", filename.c_str(), strerror(err));
+    }
+};
+class LogoChecksumFailed : public UserException {
+public:
+    LogoChecksumFailed(int logo_checksum) { this->set_msg("Invalid logo checksum: %d", logo_checksum); }
+};
+class HeaderChecksumFailed : public UserException {
+public:
+    HeaderChecksumFailed(int header_checksum) { this->set_msg("Invalid header checksum: %d", header_checksum); }
 };
 
 #endif // ROSETTABOY_ERRORS_H
