@@ -26,7 +26,7 @@ proc parse_args*(): Args =
     # FIXME: --help
     # FIXME: options without "="
     # FIXME: get options from actual command line
-    var p = initOptParser("--headless --silent --turbo --profile=600 test.gb")
+    var p = initOptParser("--headless --silent --turbo --profile=600 ../test_roms/games/opus5.gb")
     while true:
         p.next()
         case p.kind
