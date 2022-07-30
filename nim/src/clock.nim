@@ -2,6 +2,7 @@ import os
 import std/times
 import std/strformat
 import buttons
+import errors
 
 # FIXME: use getTime() instead of epochTime()
 type
@@ -40,9 +41,7 @@ proc tick*(self: var Clock) =
         # Exit if we've hit the frame limit
         if self.profile != 0 and self.frame > self.profile:
             let duration = epochTime() - self.start
-            # FIXME: not OSError
-            raise newException(
-              OSError,
+            raise errors.Timeout.newException(
               fmt"Emulated {self.profile} frames in {duration:5.2}s ({(self.profile.float/duration).int}fps)"
             )
 
