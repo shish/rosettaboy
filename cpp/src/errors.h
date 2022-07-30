@@ -3,6 +3,7 @@
 
 #include "consts.h"
 #include <exception>
+#include <stdarg.h>
 #include <string.h>
 #include <string>
 
