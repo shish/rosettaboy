@@ -23,7 +23,7 @@ proc create*(cart_name: string, headless: bool, debug: bool): GPU =
             window: WindowPtr
             render: RendererPtr
 
-        window = createWindow("SDL Skeleton", 100, 100, 640,480, SDL_WINDOW_SHOWN)
+        window = createWindow("SDL Skeleton", 100, 100, 640, 480, SDL_WINDOW_SHOWN)
         render = createRenderer(window, -1, Renderer_Accelerated or Renderer_PresentVsync or Renderer_TargetTexture)
 
         var
@@ -36,7 +36,7 @@ proc create*(cart_name: string, headless: bool, debug: bool): GPU =
                     runGame = false
                     break
 
-            render.setDrawColor 0,0,0,255
+            render.setDrawColor 0, 0, 0, 255
             render.clear
             render.present
 

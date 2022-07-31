@@ -22,7 +22,7 @@ proc create*(args: args.Args): GameBoy =
     let cpu = cpu.create(args.debug_cpu);
     let gpu = gpu.create(cart.name, args.headless, args.debug_gpu)
     let apu = apu.create(args.silent, args.debug_apu)
-    let buttons = buttons.create(args.headless)
+    let buttons = buttons.create(cpu, ram, args.headless)
     let clock = clock.create(buttons, args.profile, args.turbo)
     return GameBoy(
         ram: ram,
