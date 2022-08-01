@@ -38,13 +38,12 @@ func (e *UnitTestFailed) Error() string {
 
 // Game Errors
 type InvalidOpcode struct {
-	OpCode   uint8
+	OpCode uint8
 }
 
 func (e *InvalidOpcode) Error() string {
 	return fmt.Sprintf("Invalid opcode: %02X", e.OpCode)
 }
-
 
 // User Errors
 type UnsupportedCart struct {

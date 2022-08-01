@@ -110,7 +110,9 @@ impl Cart {
             header_checksum += *i as u16;
         }
         if (header_checksum & 0xFF) != 0 {
-            return Err(anyhow!(UserException::HeaderChecksumFailed(header_checksum)));
+            return Err(anyhow!(UserException::HeaderChecksumFailed(
+                header_checksum
+            )));
         }
 
         if cart_type != CartType::RomOnly && cart_type != CartType::RomMbc1 {
