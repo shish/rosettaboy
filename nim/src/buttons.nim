@@ -40,9 +40,8 @@ incredibly confusing, we invert the bits when reading the byte and invert
 them back when writing.
 ]#
 proc update_buttons(self: var Buttons) =
-    return # FIXME
+    var joyp = bitops.bitnot(self.ram.get(consts.Mem_JOYP))
 #[
-    let mut joyp = !Joypad::from_bits_truncate(ram.get(consts.Mem_JOYP));
     joyp.remove(Joypad::BUTTON_BITS);
     if joyp.contains(Joypad::MODE_DPAD):
         if self.up:
@@ -62,8 +61,8 @@ proc update_buttons(self: var Buttons) =
             joyp.insert(Joypad::START);
         if self.select:
             joyp.insert(Joypad::SELECT);
-    ram.set(consts.Mem_JOYP, !joyp.bits());
 ]#
+    self.ram.set(consts.Mem_JOYP, bitops.bitnot(joyp));
 
 
 #[
@@ -173,7 +172,7 @@ proc tick*(self: var Buttons) =
     self.update_buttons()
     if self.need_interrupt:
         self.cpu.stop = false
-        # cpu.interrupt(ram, consts.Interrupt.JOYPAD)  # FIXME
+        self.cpu.interrupt(consts.Interrupt_JOYPAD)
         self.need_interrupt = false
     if self.cycle mod 17556 == 20:
         self.handle_inputs()
