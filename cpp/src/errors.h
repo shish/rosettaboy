@@ -41,9 +41,7 @@ public:
 };
 class UnitTestFailed : public ControlledExit {
 public:
-    UnitTestFailed() {
-        this->set_msg("Unit test failed");
-    }
+    UnitTestFailed() { this->set_msg("Unit test failed"); }
 };
 
 // Game error, ie the game developer has a bug

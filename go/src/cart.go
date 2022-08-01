@@ -69,7 +69,7 @@ func NewCart(rom string) (*Cart, error) {
 		logo_checksum += uint16(logo[i])
 	}
 	if logo_checksum != 5446 {
-		return nil, &LogoChecksumFailed{EmuError: EmuError{ExitCode: 1}}
+		return nil, &LogoChecksumFailed{}
 	}
 
 	var header_checksum uint16 = 25
@@ -77,7 +77,7 @@ func NewCart(rom string) (*Cart, error) {
 		header_checksum += uint16(data[i])
 	}
 	if (header_checksum & 0xFF) != 0 {
-		return nil, &HeaderChecksumFailed{EmuError: EmuError{ExitCode: 1}}
+		return nil, &HeaderChecksumFailed{}
 	}
 
 	return &Cart{

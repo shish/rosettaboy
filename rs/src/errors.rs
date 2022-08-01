@@ -32,7 +32,7 @@ impl std::fmt::Display for GameException {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             GameException::InvalidOpcode(opcode) => write!(f, "Invalid Opcode: {}", opcode),
-            _ => write!(f, "Unspecified game error: {:?}", self),
+            // _ => write!(f, "Unspecified game error: {:?}", self),
         }
     }
 }

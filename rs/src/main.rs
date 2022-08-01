@@ -6,7 +6,6 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
 extern crate sdl2;
-use sdl2::sys::ConfigureRequest;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::errors::ControlledExit;

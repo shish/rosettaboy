@@ -99,14 +99,14 @@ func (buttons *Buttons) handle_inputs() error {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) {
 		case *sdl.QuitEvent:
-			return &Quit{EmuError: EmuError{ExitCode: 0}}
+			return &Quit{}
 		case *sdl.KeyboardEvent:
 			switch t.Type {
 			case sdl.KEYDOWN:
 				buttons.need_interrupt = true
 				switch t.Keysym.Sym {
 				case sdl.K_ESCAPE:
-					return &Quit{EmuError: EmuError{ExitCode: 0}}
+					return &Quit{}
 				case sdl.K_LSHIFT:
 					buttons.turbo = true
 					buttons.need_interrupt = false

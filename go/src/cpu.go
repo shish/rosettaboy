@@ -774,9 +774,9 @@ func (cpu *CPU) tick_main(op uint8) error {
 	case 0xFB:
 		cpu.interrupts = true
 	case 0xFC: // unofficial
-		return &UnitTestPassed{EmuError: EmuError{ExitCode: 0}}
+		return &UnitTestPassed{}
 	case 0xFD: // unofficial
-		return &UnitTestFailed{EmuError: EmuError{ExitCode: 1}}
+		return &UnitTestFailed{}
 	case 0xFE:
 		cpu._cp(arg.as_u8)
 	case 0xFF:
@@ -785,7 +785,7 @@ func (cpu *CPU) tick_main(op uint8) error {
 
 	// missing ops
 	default:
-		return &InvalidOpcode{EmuError: EmuError{ExitCode: 1}, OpCode: op}
+		return &InvalidOpcode{OpCode: op}
 	}
 
 	return nil
