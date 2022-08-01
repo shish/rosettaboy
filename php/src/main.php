@@ -17,7 +17,16 @@ $args = parse_args($argv);
 try {
     $gameboy = new GameBoy($args);
     $gameboy->run();
-} catch (EmuError $e) {
+} catch (UnitTestFailed $e) {
     print($e);
-    exit($e->exit_code);
+    exit(2);
+} catch (ControlledExit $e) {
+    print($e);
+    exit(0);
+} catch (GameException $e) {
+    print($e);
+    exit(3);
+} catch (UserException $e) {
+    print($e);
+    exit(4);
 }

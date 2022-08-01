@@ -1,7 +1,7 @@
 extern crate sdl2;
 use crate::consts::*;
 use crate::cpu;
-use crate::errors::EmuError;
+use crate::errors::ControlledExit;
 use crate::ram;
 use anyhow::{anyhow, Result};
 
@@ -160,7 +160,7 @@ impl Buttons {
         {
             tracing::debug!("Event: {:?}", event);
             match event {
-                Event::Quit { .. } => return Err(anyhow!(EmuError::Quit)),
+                Event::Quit { .. } => return Err(anyhow!(ControlledExit::Quit)),
 
                 Event::KeyDown {
                     keycode: Some(keycode),
@@ -168,7 +168,7 @@ impl Buttons {
                 } => {
                     self.need_interrupt = true;
                     match keycode {
-                        Keycode::Escape => return Err(anyhow!(EmuError::Quit)),
+                        Keycode::Escape => return Err(anyhow!(ControlledExit::Quit)),
                         Keycode::LShift => {
                             self.turbo = true;
                             self.need_interrupt = false

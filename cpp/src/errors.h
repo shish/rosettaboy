@@ -20,15 +20,11 @@ protected:
     }
 
 public:
-    i32 exit_code = 1;
     virtual const char *what() const throw() { return this->buffer; }
 };
 
 // Controlled exit, ie we are deliberately stopping emulation
-class ControlledExit : public EmuException {
-public:
-    ControlledExit() { this->exit_code = 0; }
-};
+class ControlledExit : public EmuException {};
 class Quit : public ControlledExit {
 public:
     Quit() { this->set_msg("User exited the emulator"); }
@@ -46,16 +42,12 @@ public:
 class UnitTestFailed : public ControlledExit {
 public:
     UnitTestFailed() {
-        this->exit_code = 2;
         this->set_msg("Unit test failed");
     }
 };
 
 // Game error, ie the game developer has a bug
-class GameException : public EmuException {
-public:
-    GameException() { this->exit_code = 3; }
-};
+class GameException : public EmuException {};
 class InvalidOpcode : public GameException {
 public:
     InvalidOpcode(u8 opcode) { this->set_msg("Invalid opcode: 0x%02X", opcode); }
@@ -74,10 +66,7 @@ public:
 };
 
 // User error, ie the user gave us an invalid or corrupt input file
-class UserException : public EmuException {
-public:
-    UserException() { this->exit_code = 4; }
-};
+class UserException : public EmuException {};
 class RomMissing : public UserException {
 public:
     RomMissing(std::string filename, int err) {

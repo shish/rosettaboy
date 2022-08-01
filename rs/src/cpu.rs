@@ -1,5 +1,5 @@
 use crate::consts::*;
-use crate::errors::EmuError;
+use crate::errors::*;
 use crate::ram;
 use anyhow::{anyhow, Result};
 
@@ -920,14 +920,14 @@ impl CPU {
                 0xF9 => self.sp = self.regs.r16.hl,
                 0xFA => self.regs.r8.a = ram.get(arg.u16),
                 0xFB => self.interrupts = true,
-                0xFC => return Err(anyhow!(EmuError::UnitTestPassed)), // unofficial
-                0xFD => return Err(anyhow!(EmuError::UnitTestFailed)), // unofficial
+                0xFC => return Err(anyhow!(ControlledExit::UnitTestPassed)), // unofficial
+                0xFD => return Err(anyhow!(ControlledExit::UnitTestFailed)), // unofficial
                 0xFE => self._cp(arg.u8),
                 0xFF => {
                     self.push(self.pc, ram);
                     self.pc = 0x38;
                 }
-                _ => return Err(anyhow!(EmuError::InvalidOpcode(op))),
+                _ => return Err(anyhow!(GameException::InvalidOpcode(op))),
             }
         }
 

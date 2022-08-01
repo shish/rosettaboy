@@ -6,7 +6,10 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
 extern crate sdl2;
+use sdl2::sys::ConfigureRequest;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+use crate::errors::ControlledExit;
 
 #[macro_use]
 extern crate bitflags;
@@ -51,9 +54,21 @@ fn main() -> Result<()> {
     match gameboy::GameBoy::new(args)?.run() {
         Ok(_) => Err(anyhow!("Main loop exited with no error??")),
         Err(e) => {
-            if let Some(emu_error) = e.downcast_ref::<errors::EmuError>() {
-                println!("{}", emu_error);
-                std::process::exit(emu_error.exit_code());
+            if let Some(e) = e.downcast_ref::<errors::ControlledExit>() {
+                println!("{}", e);
+                let exit_code = match e {
+                    ControlledExit::UnitTestFailed => 2,
+                    _ => 0,
+                };
+                std::process::exit(exit_code)
+            }
+            if let Some(e) = e.downcast_ref::<errors::GameException>() {
+                println!("{}", e);
+                std::process::exit(3);
+            }
+            if let Some(e) = e.downcast_ref::<errors::UserException>() {
+                println!("{}", e);
+                std::process::exit(4);
             }
             Err(e)
         }

@@ -12,9 +12,18 @@ int main(int argc, char *argv[]) {
     try {
         GameBoy *gameboy = new GameBoy(args);
         gameboy->run();
-    } catch(EmuException *e) {
+    } catch(UnitTestFailed *e) {
         std::cout << e->what() << std::endl;
-        return e->exit_code;
+        return 2;
+    } catch(ControlledExit *e) {
+        std::cout << e->what() << std::endl;
+        return 0;
+    } catch(GameException *e) {
+        std::cout << e->what() << std::endl;
+        return 3;
+    } catch(UserException *e) {
+        std::cout << e->what() << std::endl;
+        return 4;
     }
 
     printf("\n");

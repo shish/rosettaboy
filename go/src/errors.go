@@ -2,17 +2,8 @@ package main
 
 import "fmt"
 
-type EmuError struct {
-	// TODO: can this not have a default value?
-	ExitCode int
-}
-
-func (e *EmuError) Error() string {
-	return "EmuError"
-}
-
+// Controlled Exits
 type Quit struct {
-	EmuError // ExitCode = 0
 }
 
 func (e *Quit) Error() string {
@@ -20,7 +11,6 @@ func (e *Quit) Error() string {
 }
 
 type Timeout struct {
-	EmuError
 	Frames   int
 	Duration float32
 }
@@ -32,16 +22,32 @@ func (e *Timeout) Error() string {
 	)
 }
 
-type CpuHalted struct {
-	EmuError // ExitCode = 0
+type UnitTestPassed struct {
 }
 
-func (e *CpuHalted) Error() string {
-	return "CPU Halted"
+func (e *UnitTestPassed) Error() string {
+	return "Unit test passed"
 }
 
+type UnitTestFailed struct {
+}
+
+func (e *UnitTestFailed) Error() string {
+	return "Unit test failed"
+}
+
+// Game Errors
+type InvalidOpcode struct {
+	OpCode   uint8
+}
+
+func (e *InvalidOpcode) Error() string {
+	return fmt.Sprintf("Invalid opcode: %02X", e.OpCode)
+}
+
+
+// User Errors
 type UnsupportedCart struct {
-	EmuError // ExitCode = 1
 	CartType int
 }
 
@@ -50,7 +56,6 @@ func (e *UnsupportedCart) Error() string {
 }
 
 type LogoChecksumFailed struct {
-	EmuError     // ExitCode = 1
 	LogoChecksum int
 }
 
@@ -59,35 +64,9 @@ func (e *LogoChecksumFailed) Error() string {
 }
 
 type HeaderChecksumFailed struct {
-	EmuError       // ExitCode = 1
 	HeaderChecksum int
 }
 
 func (e *HeaderChecksumFailed) Error() string {
 	return fmt.Sprintf("Header checksum failed %d", e.HeaderChecksum)
-}
-
-type UnitTestPassed struct {
-	EmuError // ExitCode = 0
-}
-
-func (e *UnitTestPassed) Error() string {
-	return "Unit test passed"
-}
-
-type UnitTestFailed struct {
-	EmuError // ExitCode = 2
-}
-
-func (e *UnitTestFailed) Error() string {
-	return "Unit test failed"
-}
-
-type InvalidOpcode struct {
-	EmuError // ExitCode = 1
-	OpCode   uint8
-}
-
-func (e *InvalidOpcode) Error() string {
-	return fmt.Sprintf("Invalid opcode: %02X", e.OpCode)
 }

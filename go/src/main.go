@@ -18,18 +18,18 @@ func main() {
 	if err != nil {
 		// ... really? Surely there must be a better way :|
 		switch e := err.(type) {
-		case *EmuError:
+		case *Quit:
 			fmt.Println(e)
-			os.Exit(e.ExitCode)
+			os.Exit(0)
 		case *Timeout:
 			fmt.Println(e)
-			os.Exit(e.ExitCode)
+			os.Exit(0)
 		case *UnitTestPassed:
 			fmt.Println(e)
-			os.Exit(e.ExitCode)
+			os.Exit(0)
 		case *UnitTestFailed:
 			fmt.Println(e)
-			os.Exit(e.ExitCode)
+			os.Exit(2)
 		default:
 			fmt.Println(e)
 			os.Exit(1)

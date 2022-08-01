@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use std::time::{Duration, SystemTime};
 
 use crate::buttons;
-use crate::errors::EmuError;
+use crate::errors::ControlledExit;
 
 pub struct Clock {
     cycle: u32,
@@ -45,7 +45,7 @@ impl Clock {
             // Exit if we've hit the frame limit
             if self.profile != 0 && self.frame > self.profile {
                 let duration = SystemTime::now().duration_since(self.start)?.as_secs_f32();
-                return Err(anyhow!(EmuError::Timeout(self.profile, duration)));
+                return Err(anyhow!(ControlledExit::Timeout(self.profile, duration)));
             }
 
             self.frame += 1;

@@ -1,26 +1,18 @@
 <?php
 
-class EmuError extends Exception
+// Controlled Exits
+class ControlledExit extends Exception
 {
-    public function __construct()
-    {
-        $this->exit_code = 1;
-    }
 }
 
-class Quit extends EmuError
+class Quit extends ControlledExit
 {
-    public function __construct()
-    {
-        $this->exit_code = 0;
-    }
 }
 
-class Timeout extends EmuError
+class Timeout extends ControlledExit
 {
     public function __construct(int $frames, float $duration)
     {
-        $this->exit_code = 0;
         $this->frames = $frames;
         $this->duration = $duration;
     }
@@ -31,7 +23,31 @@ class Timeout extends EmuError
     }
 }
 
-class UnsupportedCart extends EmuError
+class UnitTestPassed extends ControlledExit
+{
+}
+
+class UnitTestFailed extends ControlledExit
+{
+}
+
+// Game Errors
+class GameException extends Exception
+{
+}
+class InvalidOpcode extends GameException
+{
+    public function __construct($opcode)
+    {
+        $this->opcode = $opcode;
+    }
+}
+
+// User Errors
+class UserException extends Exception
+{
+}
+class UnsupportedCart extends UserException
 {
     public function __construct($cart_type)
     {
@@ -39,7 +55,7 @@ class UnsupportedCart extends EmuError
     }
 }
 
-class LogoChecksumFailed extends EmuError
+class LogoChecksumFailed extends UserException
 {
     public function __construct($logo_checksum)
     {
@@ -47,34 +63,10 @@ class LogoChecksumFailed extends EmuError
     }
 }
 
-class HeaderChecksumFailed extends EmuError
+class HeaderChecksumFailed extends UserException
 {
     public function __construct($header_checksum)
     {
         $this->header_checksum = $header_checksum;
-    }
-}
-
-class UnitTestPassed extends EmuError
-{
-    public function __construct()
-    {
-        $this->exit_code = 0;
-    }
-}
-
-class UnitTestFailed extends EmuError
-{
-    public function __construct()
-    {
-        $this->exit_code = 2;
-    }
-}
-
-class InvalidOpcode extends EmuError
-{
-    public function __construct($opcode)
-    {
-        $this->opcode = $opcode;
     }
 }

@@ -1,4 +1,4 @@
-use crate::errors::EmuError;
+use crate::errors::UserException;
 use anyhow::{anyhow, Result};
 use num_enum::TryFromPrimitive;
 use std::fs::File;
@@ -102,7 +102,7 @@ impl Cart {
             logo_checksum += *i as u16;
         }
         if logo_checksum != 5446 {
-            return Err(anyhow!(EmuError::LogoChecksumFailed(logo_checksum)));
+            return Err(anyhow!(UserException::LogoChecksumFailed(logo_checksum)));
         }
 
         let mut header_checksum: u16 = 25;
@@ -110,11 +110,11 @@ impl Cart {
             header_checksum += *i as u16;
         }
         if (header_checksum & 0xFF) != 0 {
-            return Err(anyhow!(EmuError::HeaderChecksumFailed(header_checksum)));
+            return Err(anyhow!(UserException::HeaderChecksumFailed(header_checksum)));
         }
 
         if cart_type != CartType::RomOnly && cart_type != CartType::RomMbc1 {
-            return Err(anyhow!(EmuError::UnsupportedCart(cart_type)));
+            return Err(anyhow!(UserException::UnsupportedCart(cart_type)));
         }
 
         // FIXME: ram should be synced with .sav file
