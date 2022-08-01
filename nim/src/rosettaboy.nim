@@ -1,6 +1,7 @@
+import system
+
 import args
 import gameboy
-import system
 import errors
 
 when isMainModule:

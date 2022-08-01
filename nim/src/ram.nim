@@ -1,9 +1,9 @@
-import streams
-import os
-import bitops
+import std/streams
+import std/os
+import std/bitops
+
 import consts
 import errors
-
 import cart
 
 const BOOT: array[0x100, int] = [

@@ -1,6 +1,7 @@
-import errors
-import bitops
 import std/strformat
+import std/bitops
+
+import errors
 
 type
     Cart* = object

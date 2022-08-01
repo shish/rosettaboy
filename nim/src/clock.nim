@@ -1,6 +1,7 @@
-import os
+import std/os
 import std/times
 import std/strformat
+
 import buttons
 import errors
 

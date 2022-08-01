@@ -1,5 +1,5 @@
 import std/parseopt
-import strutils
+import std/strutils
 
 type
     Args* = object

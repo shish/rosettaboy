@@ -1,4 +1,7 @@
+import std/bitops
+
 import sdl2
+
 import errors
 import consts
 import cpu
@@ -39,7 +42,7 @@ them back when writing.
 proc update_buttons(self: var Buttons) =
     return # FIXME
 #[
-    let mut joyp = !Joypad::from_bits_truncate(ram.get(Mem::JOYP));
+    let mut joyp = !Joypad::from_bits_truncate(ram.get(consts.Mem_JOYP));
     joyp.remove(Joypad::BUTTON_BITS);
     if joyp.contains(Joypad::MODE_DPAD):
         if self.up:
@@ -59,7 +62,7 @@ proc update_buttons(self: var Buttons) =
             joyp.insert(Joypad::START);
         if self.select:
             joyp.insert(Joypad::SELECT);
-    ram.set(Mem::JOYP, !joyp.bits());
+    ram.set(consts.Mem_JOYP, !joyp.bits());
 ]#
 
 
