@@ -30,12 +30,12 @@ jobs:
     steps:
     - name: Install Deps
       run: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
-    - name: Set Up Toolchain Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/go
-        key: ${{ runner.os }}-go-toolchain
+#    - name: Set Up Toolchain Cache
+#      uses: actions/cache@v2
+#      with:
+#        path: |
+#          ~/go
+#        key: ${{ runner.os }}-go-toolchain
     - name: Install Go Deps
       run: go get github.com/veandco/go-sdl2/sdl
     - name: Checkout
