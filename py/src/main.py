@@ -6,7 +6,10 @@ from typing import List
 
 from .args import parse_args
 from .gameboy import GameBoy
-from .errors import EmuError
+from .errors import GameException, UserException, ControlledExit, EmuError, 
+                    InvalidOpcode, InvalidRamRead, InvalidRamWrite, Quit, Timeout,
+                    UnitTestFailed, UnitTestPassed, RomMissing, LogoChecksumFailed,
+                    HeaderChecksumFailed
 
 
 def main(argv: List[str]) -> int:
@@ -15,11 +18,19 @@ def main(argv: List[str]) -> int:
     try:
         gameboy = GameBoy(args)
         gameboy.run()
+    except (InvalidOpcode, InvalidRamRead, InvalidRamWrite) as e:
+        raise GameException(e) 
+    except (Quit, Timeout, UnitTestFailed, UnitTestPassed) as e:
+        raise ControlledExit(e)
+    except (RomMissing, LogoChecksumFailed, HeaderChecksumFailed) as e:
+        raise UserException(e)
     except EmuError as e:
         print(e)
         return e.exit_code
     except (KeyboardInterrupt, BrokenPipeError):
         pass
+    except Exception as e:
+        print(str(e))
     finally:
         SDL_Quit()
 
