@@ -24,6 +24,18 @@ type
         start: bool
         select: bool
 
+const Joypad_MODE_BUTTONS = 1 shl 5
+const Joypad_MODE_DPAD = 1 shl 4
+const Joypad_DOWN = 1 shl 3
+const Joypad_START = 1 shl 3
+const Joypad_UP = 1 shl 2
+const Joypad_SELECT = 1 shl 2
+const Joypad_LEFT = 1 shl 1
+const Joypad_B = 1 shl 1
+const Joypad_RIGHT = 1 shl 0
+const Joypad_A = 1 shl 0
+const Joypad_BUTTON_BITS = 0b00001111
+
 proc create*(cpu: cpu.CPU, ram: ram.RAM, headless: bool): Buttons =
     return Buttons(
         cpu: cpu,
@@ -41,28 +53,26 @@ them back when writing.
 ]#
 proc update_buttons(self: var Buttons) =
     var joyp = bitops.bitnot(self.ram.get(consts.Mem_JOYP))
-#[
-    joyp.remove(Joypad::BUTTON_BITS);
-    if joyp.contains(Joypad::MODE_DPAD):
+    joyp = bitops.bitand(joyp, 0xF0)
+    if bitops.bitand(joyp, Joypad_MODE_DPAD) != 0:
         if self.up:
-            joyp.insert(Joypad::UP);
+            joyp = bitops.bitor(joyp, Joypad_UP)
         if self.down:
-            joyp.insert(Joypad::DOWN);
+            joyp = bitops.bitor(joyp, Joypad_DOWN)
         if self.left:
-            joyp.insert(Joypad::LEFT);
+            joyp = bitops.bitor(joyp, Joypad_LEFT)
         if self.right:
-            joyp.insert(Joypad::RIGHT);
-    if joyp.contains(Joypad::MODE_BUTTONS):
+            joyp = bitops.bitor(joyp, Joypad_RIGHT)
+    if bitops.bitand(joyp, Joypad_MODE_BUTTONS) != 0:
         if self.b:
-            joyp.insert(Joypad::B);
+            joyp = bitops.bitor(joyp, Joypad_B)
         if self.a:
-            joyp.insert(Joypad::A);
+            joyp = bitops.bitor(joyp, Joypad_A)
         if self.start:
-            joyp.insert(Joypad::START);
+            joyp = bitops.bitor(joyp, Joypad_START)
         if self.select:
-            joyp.insert(Joypad::SELECT);
-]#
-    self.ram.set(consts.Mem_JOYP, bitops.bitnot(joyp));
+            joyp = bitops.bitor(joyp, Joypad_SELECT)
+    self.ram.set(consts.Mem_JOYP, bitops.bitnot(joyp))
 
 
 #[
