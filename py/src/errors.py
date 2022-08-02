@@ -5,11 +5,11 @@ class EmuError(Exception):
 class UnsupportedCart(EmuError):
     def __init__(self, cart_type):
         self.cart_type = cart_type
-        
 
-#Controlled exit, ie we are deliberately stopping emulation
+
+# Controlled exit, ie we are deliberately stopping emulation
 class ControlledExit(EmuError):
-    '''Inheriting from EmuError'''
+    """Inheriting from EmuError"""
 
 
 class Quit(ControlledExit):
@@ -30,7 +30,7 @@ class Timeout(ControlledExit):
         return "Emulated %d frames in %5.2fs (%.0ffps)" % (
             self.frames,
             self.duration,
-            self.frames / self.duration
+            self.frames / self.duration,
         )
 
 
@@ -48,9 +48,10 @@ class UnitTestFailed(ControlledExit):
         return "Unit test failed"
 
 
-#Game error, ie the game developer has a bug
+# Game error, ie the game developer has a bug
 class GameException(EmuError):
-    '''Inheriting from EmuError'''
+    """Inheriting from EmuError"""
+
     exit_code = 3
 
 
@@ -82,9 +83,10 @@ class InvalidRamWrite(GameException):
         return f"Write to RAM bank {self.ram_bank} offset {self.offset} >= ram size {self.ram_size}"
 
 
-#User error, ie the user gave us an ivalid or corrupt input file
+# User error, ie the user gave us an ivalid or corrupt input file
 class UserException(EmuError):
-    '''Inheriting From EmuError'''
+    """Inheriting From EmuError"""
+
     exit_code = 4
 
 
@@ -102,7 +104,7 @@ class LogoChecksumFailed(UserException):
         self.logo_checksum = logo_checksum
 
     def __str__(self) -> str:
-        return f"Logo checksum failed: {self.logo_checksum} != 5446" 
+        return f"Logo checksum failed: {self.logo_checksum} != 5446"
 
 
 class HeaderChecksumFailed(UserException):
@@ -110,4 +112,4 @@ class HeaderChecksumFailed(UserException):
         self.header_checksum = header_checksum
 
     def __str__(self) -> str:
-        return f"Header checksum failed: {self.header_checksum} != 0" 
+        return f"Header checksum failed: {self.header_checksum} != 0"

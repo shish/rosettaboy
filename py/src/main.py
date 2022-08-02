@@ -6,10 +6,7 @@ from typing import List
 
 from .args import parse_args
 from .gameboy import GameBoy
-from .errors import GameException, UserException, ControlledExit, EmuError, 
-                    InvalidOpcode, InvalidRamRead, InvalidRamWrite, Quit, Timeout,
-                    UnitTestFailed, UnitTestPassed, RomMissing, LogoChecksumFailed,
-                    HeaderChecksumFailed
+from .errors import GameException, UserException, ControlledExit, EmuError
 
 
 def main(argv: List[str]) -> int:
