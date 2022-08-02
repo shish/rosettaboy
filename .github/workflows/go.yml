@@ -36,8 +36,6 @@ jobs:
         path: |
           ~/go
         key: ${{ runner.os }}-go-toolchain
-    - name: Install Go Deps
-      run: go get github.com/veandco/go-sdl2/sdl
     - name: Checkout
       uses: actions/checkout@v2
     - name: Set Up Build Cache
