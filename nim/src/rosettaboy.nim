@@ -1,4 +1,5 @@
 import system
+import os
 
 import args
 import gameboy
@@ -6,7 +7,7 @@ import errors
 
 when isMainModule:
     try:
-        const args_obj = args.parse_args()
+        const args_obj = args.parse_args(commandLineParams())
         var gameboy_obj = gameboy.create(args_obj)
         gameboy_obj.run()
     except errors.UnitTestFailed as e:

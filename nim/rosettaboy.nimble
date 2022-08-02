@@ -12,3 +12,4 @@ bin           = @["rosettaboy"]
 
 requires "nim >= 1.6.6"
 requires "sdl2"
+requires "argparse"

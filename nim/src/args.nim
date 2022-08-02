@@ -1,5 +1,6 @@
-import std/parseopt
-import std/strutils
+import std/os
+
+import argparse
 
 type
     Args* = object
@@ -8,49 +9,32 @@ type
         headless*, silent*: bool
         turbo*, debug_cpu*, debug_apu*, debug_gpu*, debug_ram*: bool
 
-proc parse_args*(): Args =
-    var args = Args(
-        rom: "",
-        headless: false,
-        silent: false,
-        debug_cpu: false,
-        debug_gpu: false,
-        debug_apu: false,
-        debug_ram: false,
-        profile: 0,
-        turbo: false,
-    )
+proc parse_args*(args: seq[string]): Args =
+    var p = newParser("rosettaboy-nim"):
+        flag("-H", "--headless")
+        flag("-S", "--silent")
+        flag("-c", "--debug-cpu")
+        flag("-g", "--debug-gpu")
+        flag("-r", "--debug-ram")
+        flag("-a", "--debug-apu")
+        flag("-t", "--turbo")
+        option("-p", "--profile", default=some("0"), help="Exit after N frames")
+        arg("rom")
 
-    # FIXME: this feels awful on so many levels?
-    # FIXME: short options
-    # FIXME: --help
-    # FIXME: options without "="
-    # FIXME: get options from actual command line
-    var p = initOptParser("--headless --silent --turbo --profile=600 ../test_roms/games/opus5.gb")
-    while true:
-        p.next()
-        case p.kind
-        of cmdEnd: break
-        of cmdShortOption, cmdLongOption:
-            if p.val == "":
-                if p.key == "headless":
-                    args.headless = true
-                if p.key == "silent":
-                    args.silent = true
-                if p.key == "turbo":
-                    args.turbo = true
-                if p.key == "debug_cpu":
-                    args.debug_cpu = true
-                if p.key == "debug_gpu":
-                    args.debug_gpu = true
-                if p.key == "debug_apu":
-                    args.debug_apu = true
-                if p.key == "debug_ram":
-                    args.debug_ram = true
-            else:
-                if p.key == "profile":
-                    args.profile = parseInt(p.val)
-        of cmdArgument:
-            args.rom = p.key
-
-    return args
+    try:
+        var opts = p.parse(args)
+        return  Args(
+            rom: opts.rom,
+            headless: opts.headless,
+            silent: false,
+            debug_cpu: false,
+            debug_gpu: false,
+            debug_apu: false,
+            debug_ram: false,
+            profile: parseInt(opts.profile),
+            turbo: false,
+        )
+    except ShortCircuit as e:
+        if e.flag == "argparse_help":
+            echo p.help
+            quit(1)
