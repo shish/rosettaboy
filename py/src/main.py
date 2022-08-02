@@ -18,12 +18,6 @@ def main(argv: List[str]) -> int:
     try:
         gameboy = GameBoy(args)
         gameboy.run()
-    except (InvalidOpcode, InvalidRamRead, InvalidRamWrite) as e:
-        raise GameException(e) 
-    except (Quit, Timeout, UnitTestFailed, UnitTestPassed) as e:
-        raise ControlledExit(e)
-    except (RomMissing, LogoChecksumFailed, HeaderChecksumFailed) as e:
-        raise UserException(e)
     except EmuError as e:
         print(e)
         return e.exit_code
