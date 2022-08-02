@@ -26,13 +26,13 @@ proc parse_args*(args: seq[string]): Args =
         return  Args(
             rom: opts.rom,
             headless: opts.headless,
-            silent: false,
-            debug_cpu: false,
-            debug_gpu: false,
-            debug_apu: false,
-            debug_ram: false,
+            silent: opts.silent,
+            debug_cpu: opts.debug_cpu,
+            debug_gpu: opts.debug_gpu,
+            debug_apu: opts.debug_apu,
+            debug_ram: opts.debug_ram,
             profile: parseInt(opts.profile),
-            turbo: false,
+            turbo: opts.turbo,
         )
     except ShortCircuit as e:
         if e.flag == "argparse_help":
