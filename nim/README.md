@@ -7,6 +7,8 @@ Thoughts on Nim
 ===============
 For the most part, it seems ok.
 
+Argument parsing
+----------------
 Unless I'm missing something, command line parsing is really bad. Like
 I'd be tempted to do it myself, but the documentation for the command
 line parser doesn't even include an example of parsing the command line,
@@ -35,3 +37,11 @@ their library, maybe I can get some hints there:
 
 No shit! Yes, of course, I would want to use this command line parsing
 library to parse a command line. HOW DO I DO THAT???
+
+Const
+-----
+Apparently many of the random ungooglable errors I hit while trying to
+make arg parsing work were because I did `const args = parse_args()`,
+thinking that args is something which will never change once defined.
+Apparently in this case `const` means "compile-time constant", which
+is a pretty neat feature, but it makes everything break in weird ways.

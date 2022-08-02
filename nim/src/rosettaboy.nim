@@ -7,7 +7,7 @@ import errors
 
 when isMainModule:
     try:
-        const args_obj = args.parse_args(commandLineParams())
+        let args_obj = args.parse_args(commandLineParams())
         var gameboy_obj = gameboy.create(args_obj)
         gameboy_obj.run()
     except errors.UnitTestFailed as e:
