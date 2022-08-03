@@ -44,4 +44,11 @@ Apparently many of the random ungooglable errors I hit while trying to
 make arg parsing work were because I did `const args = parse_args()`,
 thinking that args is something which will never change once defined.
 Apparently in this case `const` means "compile-time constant", which
-is a pretty neat feature, but it makes everything break in weird ways.
+is a pretty neat feature, but it makes everything break in weird ways
+when you aren't expecting it.
+
+Bit-mangling
+------------
+Having bitops as a library of functions rather than using punctuation like
+`&` for `binary AND` actually makes a lot of sense, even if it's kind of
+painful for a binary-operation-heavy use-case like an emulator...

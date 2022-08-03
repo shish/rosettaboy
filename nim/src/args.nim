@@ -18,12 +18,12 @@ proc parse_args*(args: seq[string]): Args =
         flag("-r", "--debug-ram")
         flag("-a", "--debug-apu")
         flag("-t", "--turbo")
-        option("-p", "--profile", default=some("0"), help="Exit after N frames")
+        option("-p", "--profile", default = some("0"), help = "Exit after N frames")
         arg("rom")
 
     try:
         var opts = p.parse(args)
-        return  Args(
+        return Args(
             rom: opts.rom,
             headless: opts.headless,
             silent: opts.silent,
