@@ -1,2 +1,3 @@
 #!/bin/bash
-nimble run -- $*
+nimble build
+./rosettaboy $*

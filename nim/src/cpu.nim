@@ -634,13 +634,13 @@ proc tick_main(self: var CPU, op: uint8) =
         of 0xE0:
             self.ram.set(0xFF00 + arg.as_u8.uint16, self.regs.r8.a);
             if(arg.as_u8 == 0x01):
-                echo self.regs.r8.a.char
+                write(stdout, self.regs.r8.a.char)
         of 0xE1:
             self.regs.r16.hl = self.pop();
         of 0xE2:
             self.ram.set(0xFF00 + self.regs.r8.c.uint16, self.regs.r8.a);
             if(self.regs.r8.c == 0x01):
-                echo self.regs.r8.a.char
+                write(stdout, self.regs.r8.a.char)
         # of 0xE3: break;
         # of 0xE4: break;
         of 0xE5:
@@ -705,9 +705,9 @@ proc tick_main(self: var CPU, op: uint8) =
         of 0xFB:
             self.interrupts = true;
         of 0xFC:
-            raise errors.UnitTestPassed.newException("Passed"); # unofficial
+            raise errors.UnitTestPassed.newException("Unit test passed"); # unofficial
         of 0xFD:
-            raise errors.UnitTestFailed.newException("Failed"); # unofficial
+            raise errors.UnitTestFailed.newException("Unit test failed"); # unofficial
         of 0xFE:
             self.cpu_cp(arg.as_u8);
         of 0xFF:
@@ -861,17 +861,18 @@ proc dump_regs(self: var CPU) =
             let arg = bitor(self.ram.get(self.pc + 2) shl 8, self.ram.get(self.pc + 1));
             op_str = OP_NAMES[op]  # FIXME: fmt
         if(OP_ARG_TYPES[op] == 3):
-            let arg = self.ram.get(self.pc + 1).int8
+            var arg = self.ram.get(self.pc + 1).int16
+            if arg > 127:
+                arg -= 128
+            arg = arg.int8
             op_str = OP_NAMES[op]  # FIXME: fmt
     # if(cycle % 10 == 0)
     # printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
-#    echo (
-#        fmt"{self.regs.r16.af:X} {self.regs.r16.bc:X} {self.regs.r16.de:X} {self.regs.r16.hl:X} : " .
-#        fmt"{self.sp:04X} = {self.ram.get(self.sp + 1):02X}{self.ram.get(self.sp):02X} : "# .
-#        fmt"{z}{n}{h}{c} : {v}{l}{t}{s}{j} : {self.pc:04X} = {op:02X} : {op_str}\n"
-#    );
-    # crashes the compiler??
-    echo fmt"{h}" . fmt"{j}"
+    var line = ""
+    line.add(fmt"{self.regs.r16.af:04X} {self.regs.r16.bc:04X} {self.regs.r16.de:04X} {self.regs.r16.hl:04X} : ")
+    line.add(fmt"{self.sp:04X} = {self.ram.get(self.sp + 1):02X}{self.ram.get(self.sp):02X} : ")
+    line.add(fmt"{z}{n}{h}{c} : {v}{l}{t}{s}{j} : {self.pc:04X} = {op:02X} : {op_str}")
+    echo line
 
 #[
 Pick an instruction from RAM as pointed to by the
