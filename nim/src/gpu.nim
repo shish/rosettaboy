@@ -55,34 +55,6 @@ const bmask: uint32 = 0x00ff0000
 const amask: uint32 = 0xff000000.uint32
 
 proc create*(cpu: cpu.CPU, ram: ram.RAM, cart_name: string, headless: bool, debug: bool): GPU =
-#[
-    if not headless:
-        discard sdl2.init(INIT_EVERYTHING)
-        var
-            window: WindowPtr
-            render: RendererPtr
-
-        window = createWindow("SDL Skeleton", 100, 100, 640, 480, SDL_WINDOW_SHOWN)
-        render = createRenderer(window, -1, Renderer_Accelerated or Renderer_PresentVsync or Renderer_TargetTexture)
-
-        var
-            evt = sdl2.defaultEvent
-            runGame = true
-
-        while runGame:
-            while pollEvent(evt):
-                if evt.kind == QuitEvent:
-                    runGame = false
-                    break
-
-            render.setDrawColor 0, 0, 0, 255
-            render.clear
-            render.present
-
-        destroy render
-        destroy window
-]#
-
     var w = 160
     var h = 144
     var hw_window: sdl2.WindowPtr
