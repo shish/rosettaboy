@@ -1,4 +1,5 @@
 import std/bitops
+import std/strformat
 
 import sdl2
 
@@ -14,15 +15,16 @@ type
         headless: bool
         debug: bool
         cycle: int
-        #[
-        hw_renderer: Option<sdl2::render::Canvas<sdl2::video::Window>>,
-        hw_buffer: Option<sdl2::render::Texture>,
-        renderer: sdl2::render::Canvas<sdl2::surface::Surface<'a>>,
-        colors: [Color; 4],
-        bgp: [Color; 4],
-        obp0: [Color; 4],
-        obp1: [Color; 4],
-        ]#
+        hw_window: sdl2.WindowPtr
+        hw_renderer: sdl2.RendererPtr
+        hw_buffer: sdl2.TexturePtr
+        renderer: sdl2.RendererPtr
+        buffer: sdl2.SurfacePtr
+        colors: array[4, sdl2.Color]
+        bgp: array[4, sdl2.Color]
+        obp0: array[4, sdl2.Color]
+        obp1: array[4, sdl2.Color]
+
 
 const LCDC_ENABLED*: uint8 = 1 shl 7
 const LCDC_WINDOW_MAP*: uint8 = 1 shl 6
@@ -46,8 +48,14 @@ const Stat_VBLANK*: uint8 = 0x01
 const Stat_OAM*: uint8 = 0x02
 const Stat_DRAWING*: uint8 = 0x03
 
+const SCALE = 2
+const rmask: uint32 = 0x000000ff
+const gmask: uint32 = 0x0000ff00
+const bmask: uint32 = 0x00ff0000
+const amask: uint32 = 0xff000000.uint32
 
 proc create*(cpu: cpu.CPU, ram: ram.RAM, cart_name: string, headless: bool, debug: bool): GPU =
+#[
     if not headless:
         discard sdl2.init(INIT_EVERYTHING)
         var
@@ -73,6 +81,41 @@ proc create*(cpu: cpu.CPU, ram: ram.RAM, cart_name: string, headless: bool, debu
 
         destroy render
         destroy window
+]#
+
+    var w = 160
+    var h = 144
+    var hw_window: sdl2.WindowPtr
+    var hw_renderer: sdl2.RendererPtr
+    var hw_buffer: sdl2.TexturePtr
+    if debug:
+        w = 160 + 256
+        h = 144
+    if not headless:
+        discard sdl2.init(sdl2.INIT_VIDEO)
+        hw_window = sdl2.createWindow(
+            fmt"RosettaBoy - {cart_name}".cstring,
+            SDL_WINDOWPOS_UNDEFINED,
+            SDL_WINDOWPOS_UNDEFINED,
+            (w * SCALE).cint,
+            (h * SCALE).cint,
+            bitor(SDL_WINDOW_SHOWN, SDL_WINDOW_ALLOW_HIGHDPI, SDL_WINDOW_RESIZABLE)
+        )
+        hw_renderer = sdl2.createRenderer(hw_window, -1, 0)
+        discard sdl2.setHint(HINT_RENDER_SCALE_QUALITY, "nearest")  # vs "linear"
+        discard hw_renderer.setLogicalSize(w.cint, h.cint)
+        hw_buffer = sdl2.createTexture(hw_renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, w.cint, h.cint)
+
+    var buffer = sdl2.createRGBSurface(0, w.cint, h.cint, 32, rmask, gmask, bmask, amask)
+    var renderer = sdl2.createSoftwareRenderer(buffer)
+
+    # Colors
+    let colors = [
+        sdl2.color(0x9B, 0xBC, 0x0F, 0xFF),
+        sdl2.color(0x8B, 0xAC, 0x0F, 0xFF),
+        sdl2.color(0x30, 0x62, 0x30, 0xFF),
+        sdl2.color(0x0F, 0x38, 0x0F, 0xFF),
+    ]
 
     return GPU(
         cpu: cpu,
@@ -80,6 +123,12 @@ proc create*(cpu: cpu.CPU, ram: ram.RAM, cart_name: string, headless: bool, debu
         cart_name: cart_name,
         headless: headless,
         debug: debug,
+        hw_window: hw_window,
+        hw_renderer: hw_renderer,
+        hw_buffer: hw_buffer,
+        renderer: renderer,
+        buffer: buffer,
+        colors: colors,
     )
 
 # FIXME: implement self
@@ -101,7 +150,6 @@ proc tick*(self: var GPU) =
 
     let lx = (self.cycle mod 114).uint8;
     let ly = ((self.cycle div 114) mod 154).uint8;
-    # echo self.cycle, " ", ly, " ", lx
     self.ram.set(consts.Mem_LY, ly);
 
     # LYC compare & interrupt
@@ -119,22 +167,22 @@ proc tick*(self: var GPU) =
             self.cpu.interrupt(consts.Interrupt_STAT);
     elif(lx == 20 and ly < 144):
         self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)), Stat_DRAWING));
-#        if(ly == 0):
-#            # TODO: how often should we update palettes?
-#            # Should every pixel reference them directly?
+        if(ly == 0):
+            # TODO: how often should we update palettes?
+            # Should every pixel reference them directly?
 #            self.update_palettes();
-#            auto c = self.bgp[0];
-#            SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a);
-#            SDL_RenderClear(self.renderer);
+            var c = self.bgp[0];
+            self.renderer.setDrawColor(c.r, c.g, c.b, c.a);
+            self.renderer.clear()
 #        self.draw_line(ly);
-#        if(ly == 143):
+        if(ly == 143):
 #            if(self.debug):
 #                self.draw_debug()
-#            if(self.hw_renderer):
-#                SDL_UpdateTexture(self.hw_buffer, NULL, self.buffer.pixels, self.buffer.pitch);
-#                SDL_RenderClear(self.hw_renderer);
-#                SDL_RenderCopy(self.hw_renderer, self.hw_buffer, NULL, NULL);
-#                SDL_RenderPresent(self.hw_renderer);
+            if self.hw_renderer != nil:
+                self.hw_buffer.updateTexture(nil, self.buffer.pixels, self.buffer.pitch);
+                self.hw_renderer.clear()
+                self.renderer.copy(self.hw_buffer, nil, nil)
+                self.hw_renderer.present()
     elif(lx == 63 and ly < 144):
         self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)), Stat_HBLANK));
         if bitand(self.ram.get(consts.Mem_STAT), Stat_HBLANK_INTERRUPT) > 0:
