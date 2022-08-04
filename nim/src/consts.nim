@@ -54,7 +54,7 @@ const Mem_LCDC*: uint16 = 0xFF40
 const Mem_STAT*: uint16 = 0xFF41
 const Mem_SCY*: uint16 = 0xFF42 # SCROLL_Y
 const Mem_SCX*: uint16 = 0xFF43 # SCROLL_X
-const Mem_LY*: uint16 = 0xFF44  # LY aka currently drawn line, 0-153, >144 = vblank
+const Mem_LY*: uint16 = 0xFF44 # LY aka currently drawn line, 0-153, >144 = vblank
 const Mem_LYC*: uint16 = 0xFF45
 const Mem_DMA*: uint16 = 0xFF46
 const Mem_BGP*: uint16 = 0xFF47

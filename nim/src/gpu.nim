@@ -102,7 +102,7 @@ proc create*(cpu: cpu.CPU, ram: ram.RAM, cart_name: string, headless: bool, debu
             bitor(SDL_WINDOW_SHOWN, SDL_WINDOW_ALLOW_HIGHDPI, SDL_WINDOW_RESIZABLE)
         )
         hw_renderer = sdl2.createRenderer(hw_window, -1, 0)
-        discard sdl2.setHint(HINT_RENDER_SCALE_QUALITY, "nearest")  # vs "linear"
+        discard sdl2.setHint(HINT_RENDER_SCALE_QUALITY, "nearest") # vs "linear"
         discard hw_renderer.setLogicalSize(w.cint, h.cint)
         hw_buffer = sdl2.createTexture(hw_renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, w.cint, h.cint)
 
@@ -166,29 +166,32 @@ proc tick*(self: var GPU) =
         if bitand(self.ram.get(consts.Mem_STAT), Stat_OAM_INTERRUPT) > 0:
             self.cpu.interrupt(consts.Interrupt_STAT);
     elif(lx == 20 and ly < 144):
-        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)), Stat_DRAWING));
+        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)),
+                Stat_DRAWING));
         if(ly == 0):
             # TODO: how often should we update palettes?
             # Should every pixel reference them directly?
-#            self.update_palettes();
+            # FIXME: self.update_palettes();
             var c = self.bgp[0];
             self.renderer.setDrawColor(c.r, c.g, c.b, c.a);
             self.renderer.clear()
-#        self.draw_line(ly);
+        # FIXME: self.draw_line(ly);
         if(ly == 143):
-#            if(self.debug):
-#                self.draw_debug()
+            # FIXME: if(self.debug):
+            # FIXME:     self.draw_debug()
             if self.hw_renderer != nil:
                 self.hw_buffer.updateTexture(nil, self.buffer.pixels, self.buffer.pitch);
                 self.hw_renderer.clear()
                 self.renderer.copy(self.hw_buffer, nil, nil)
                 self.hw_renderer.present()
     elif(lx == 63 and ly < 144):
-        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)), Stat_HBLANK));
+        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)),
+                Stat_HBLANK));
         if bitand(self.ram.get(consts.Mem_STAT), Stat_HBLANK_INTERRUPT) > 0:
             self.cpu.interrupt(consts.Interrupt_STAT);
     elif(lx == 0 and ly == 144):
-        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)), Stat_VBLANK));
+        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)),
+                Stat_VBLANK));
         if bitand(self.ram.get(consts.Mem_STAT), Stat_VBLANK_INTERRUPT) > 0:
             self.cpu.interrupt(consts.Interrupt_STAT);
         self.cpu.interrupt(consts.Interrupt_VBLANK);
