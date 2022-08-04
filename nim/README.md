@@ -52,3 +52,24 @@ Bit-mangling
 Having bitops as a library of functions rather than using punctuation like
 `&` for `binary AND` actually makes a lot of sense, even if it's kind of
 painful for a binary-operation-heavy use-case like an emulator...
+
+Formatting
+----------
+Mostly, I love having One True Formatting Tool. But then I ran nimpretty
+on my code...
+
+```
+$ cat test.nim
+if true:
+  if true:
+# what
+    echo "hello world"
+
+$ nim r test.nim
+hello world
+
+$ nimpretty test.nim
+
+$ nim r test.nim
+test.nim(5, 3) Error: invalid indentation
+```
