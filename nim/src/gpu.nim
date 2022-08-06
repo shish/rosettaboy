@@ -151,7 +151,8 @@ proc gen_hue(n: uint8): sdl2.Color =
         of 4: sdl2.color(t, 0, 255, 0xFF)
         else: sdl2.color(255, 0, q, 0xFF)
 
-proc paint_tile_line(self: GPU, tile_id: int16, offset: sdl2.Point, palette: array[4, sdl2.Color], flip_x: bool, flip_y: bool, y: int32) =
+proc paint_tile_line(self: GPU, tile_id: int16, offset: sdl2.Point, palette: array[4, sdl2.Color], flip_x: bool,
+        flip_y: bool, y: int32) =
     let addr_x: uint16 = (consts.Mem_TILE_DATA.int + tile_id.int * 16 + y.int * 2).uint16
     let low_byte: uint8 = self.ram.get(addr_x)
     let high_byte: uint8 = self.ram.get(addr_x + 1)
@@ -169,7 +170,8 @@ proc paint_tile_line(self: GPU, tile_id: int16, offset: sdl2.Point, palette: arr
             self.renderer.setDrawColor(c.r, c.g, c.b, c.a)
             self.renderer.drawPoint(xy.x, xy.y)
 
-proc paint_tile(self: GPU, tile_id: int16, offset: sdl2.Point, palette: array[4, sdl2.Color], flip_x: bool, flip_y: bool) =
+proc paint_tile(self: GPU, tile_id: int16, offset: sdl2.Point, palette: array[4, sdl2.Color], flip_x: bool,
+        flip_y: bool) =
     for y in 0..8:
         self.paint_tile_line(tile_id, offset, palette, flip_x, flip_y, y.int32)
 
@@ -221,7 +223,7 @@ proc draw_line(self: GPU, ly: uint32) =
         let scroll_y = self.ram.get(consts.Mem_SCY)
         let scroll_x = self.ram.get(consts.Mem_SCX)
         let tile_offset = bitnot(bitand(lcdc, LCDC_DATA_SRC)) != 0
-        let tile_map =  if bitand(lcdc, LCDC_BG_MAP) != 0: consts.Mem_MAP_1 else: consts.Mem_MAP_0
+        let tile_map = if bitand(lcdc, LCDC_BG_MAP) != 0: consts.Mem_MAP_1 else: consts.Mem_MAP_0
 
         if self.debug:
             let xy = sdl2.point(256 - scroll_x, ly)
