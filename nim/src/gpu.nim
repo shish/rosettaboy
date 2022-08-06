@@ -8,6 +8,11 @@ import cpu
 import ram
 
 type
+    Sprite = object
+        y: uint8
+        x: uint8
+        tile_id: uint8
+        flags: uint8
     GPU* = object
         cpu: cpu.CPU
         ram: ram.RAM
@@ -103,7 +108,205 @@ proc create*(cpu: cpu.CPU, ram: ram.RAM, cart_name: string, headless: bool, debu
         colors: colors,
     )
 
-# FIXME: implement self
+proc palette(self: Sprite): bool =
+    false # FIXME
+
+proc x_flip(self: Sprite): bool =
+    false # FIXME
+
+proc y_flip(self: Sprite): bool =
+    false # FIXME
+
+proc update_palettes(self: var GPU) =
+    let raw_bgp = self.ram.get(consts.Mem_BGP)
+    self.bgp[0] = self.colors[bitand((raw_bgp shr 0), 0x3)]
+    self.bgp[1] = self.colors[bitand((raw_bgp shr 2), 0x3)]
+    self.bgp[2] = self.colors[bitand((raw_bgp shr 4), 0x3)]
+    self.bgp[3] = self.colors[bitand((raw_bgp shr 6), 0x3)]
+
+    let raw_obp0 = self.ram.get(consts.Mem_OBP0)
+    self.obp0[0] = self.colors[bitand((raw_obp0 shr 0), 0x3)]
+    self.obp0[1] = self.colors[bitand((raw_obp0 shr 2), 0x3)]
+    self.obp0[2] = self.colors[bitand((raw_obp0 shr 4), 0x3)]
+    self.obp0[3] = self.colors[bitand((raw_obp0 shr 6), 0x3)]
+
+    let raw_obp1 = self.ram.get(consts.Mem_OBP1)
+    self.obp1[0] = self.colors[bitand((raw_obp1 shr 0), 0x3)]
+    self.obp1[1] = self.colors[bitand((raw_obp1 shr 2), 0x3)]
+    self.obp1[2] = self.colors[bitand((raw_obp1 shr 4), 0x3)]
+    self.obp1[3] = self.colors[bitand((raw_obp1 shr 6), 0x3)]
+
+proc gen_hue(n: uint8): sdl2.Color =
+    let region: uint8 = n div 43
+    let remainder: uint8 = (n - (region * 43)) * 6
+
+    let q: uint8 = 255 - remainder
+    let t = remainder
+
+    return case region:
+        of 0: sdl2.color(255, t, 0, 0xFF)
+        of 1: sdl2.color(q, 255, 0, 0xFF)
+        of 2: sdl2.color(0, 255, t, 0xFF)
+        of 3: sdl2.color(0, q, 255, 0xFF)
+        of 4: sdl2.color(t, 0, 255, 0xFF)
+        else: sdl2.color(255, 0, q, 0xFF)
+
+proc paint_tile_line(self: GPU, tile_id: int16, offset: sdl2.Point, palette: array[4, sdl2.Color], flip_x: bool, flip_y: bool, y: int32) =
+    let addr_x: uint16 = (consts.Mem_TILE_DATA.int + tile_id.int * 16 + y.int * 2).uint16
+    let low_byte: uint8 = self.ram.get(addr_x)
+    let high_byte: uint8 = self.ram.get(addr_x + 1)
+    for x in 0..8:
+        let low_bit = bitand((low_byte shr (7 - x)), 0x01)
+        let high_bit = bitand((high_byte shr (7 - x)), 0x01)
+        let px = bitor((high_bit shl 1), low_bit)
+        # pallette #0 = transparent, so don't draw anything
+        if(px > 0):
+            let xy = sdl2.point(
+                offset.x + (if flip_x: 7 - x else: x),
+                offset.y + (if flip_y: 7 - y else: y),
+            )
+            let c = palette[px]
+            self.renderer.setDrawColor(c.r, c.g, c.b, c.a)
+            self.renderer.drawPoint(xy.x, xy.y)
+
+proc paint_tile(self: GPU, tile_id: int16, offset: sdl2.Point, palette: array[4, sdl2.Color], flip_x: bool, flip_y: bool) =
+    for y in 0..8:
+        self.paint_tile_line(tile_id, offset, palette, flip_x, flip_y, y.int32)
+
+    if(self.debug):
+        var rect = sdl2.rect(
+            offset.x,
+            offset.y,
+            8,
+            8,
+        )
+        let c = gen_hue(tile_id.uint8) # FIXME: uint8 vs uint16??
+        self.renderer.setDrawColor(c.r, c.g, c.b, c.a)
+        self.renderer.drawRect(rect)
+
+proc draw_debug(self: GPU) =
+    let lcdc = self.ram.get(consts.Mem_LCDC)
+
+    # Tile data
+    let tile_display_width = 32
+    for tile_id in 0..384:
+        let xy = sdl2.point(
+            160 + (tile_id mod tile_display_width) * 8,
+            (tile_id div tile_display_width) * 8,
+        )
+        self.paint_tile(tile_id.int16, xy, self.bgp, false, false)
+
+    # Background scroll border
+    if bitand(lcdc, LCDC_BG_WIN_ENABLED) != 0:
+        var rect = sdl2.rect(0, 0, 160, 144)
+        self.renderer.setDrawColor(255, 0, 0, 0xFF)
+        self.renderer.drawRect(rect)
+
+    # Window tiles
+    if bitand(lcdc, LCDC_WINDOW_ENABLED) != 0:
+        let wnd_y = self.ram.get(consts.Mem_WY)
+        let wnd_x = self.ram.get(consts.Mem_WX)
+        var rect = sdl2.rect((wnd_x - 7).cint, wnd_y.cint, 160, 144)
+        self.renderer.setDrawColor(0, 0, 255, 0xFF)
+        self.renderer.drawRect(rect)
+
+proc is_live(self: Sprite): bool =
+    return self.x > 0 and self.x < 168 and self.y > 0 and self.y < 160
+
+proc draw_line(self: GPU, ly: uint32) =
+    let lcdc = self.ram.get(consts.Mem_LCDC)
+
+    # Background tiles
+    if bitand(lcdc, LCDC_BG_WIN_ENABLED) != 0:
+        let scroll_y = self.ram.get(consts.Mem_SCY)
+        let scroll_x = self.ram.get(consts.Mem_SCX)
+        let tile_offset = bitnot(bitand(lcdc, LCDC_DATA_SRC)) != 0
+        let tile_map =  if bitand(lcdc, LCDC_BG_MAP) != 0: consts.Mem_MAP_1 else: consts.Mem_MAP_0
+
+        if self.debug:
+            let xy = sdl2.point(256 - scroll_x, ly)
+            self.renderer.setDrawColor(255, 0, 0, 0xFF)
+            self.renderer.drawPoint(xy.x, xy.y)
+
+        let y_in_bgmap = (ly + scroll_y) mod 256
+        let tile_y = y_in_bgmap div 8
+        let tile_sub_y = y_in_bgmap mod 8
+
+        for lx in countup(0, 160, 8):
+            let x_in_bgmap = (lx.uint8 + scroll_x) mod 256
+            let tile_x = x_in_bgmap div 8
+            let tile_sub_x = x_in_bgmap mod 8
+
+            var tile_id: int16 = self.ram.get((tile_map + tile_y * 32 + tile_x).uint16).int16
+            if(tile_offset and tile_id < 0x80):
+                tile_id += 0x100
+            let xy = sdl2.point(
+                (lx.int - tile_sub_x.int).cint,
+                (ly.int - tile_sub_y.int).cint,
+            )
+            self.paint_tile_line(tile_id, xy, self.bgp, false, false, tile_sub_y.int32)
+
+    # Window tiles
+    if bitand(lcdc, LCDC_WINDOW_ENABLED) != 0:
+        let wnd_y = self.ram.get(consts.Mem_WY)
+        let wnd_x = self.ram.get(consts.Mem_WX)
+        let tile_offset = bitnot(bitand(lcdc, LCDC_DATA_SRC)) != 0
+        let tile_map = if bitand(lcdc, LCDC_WINDOW_MAP) != 0: consts.Mem_MAP_1 else: consts.Mem_MAP_0
+
+        # blank out the background
+        var rect = sdl2.rect(
+            (wnd_x - 7).cint,
+            (wnd_y).cint,
+            160.cint,
+            144.cint,
+        )
+        let c = self.bgp[0]
+        self.renderer.setDrawColor(c.r, c.g, c.b, c.a)
+        self.renderer.fillRect(rect)
+
+        let y_in_bgmap = ly - wnd_y
+        let tile_y = y_in_bgmap div 8
+        let tile_sub_y = y_in_bgmap mod 8
+
+        for tile_x in 0..20:
+            var tile_id: int16 = self.ram.get((tile_map + tile_y * 32 + tile_x.uint32).uint16).int16
+            if(tile_offset and tile_id < 0x80):
+                tile_id += 0x100
+            let xy = sdl2.point(
+                (tile_x.uint8 * 8 + wnd_x - 7).cint,
+                (tile_y * 8 + wnd_y).cint,
+            )
+            self.paint_tile_line(tile_id, xy, self.bgp, false, false, tile_sub_y.int32)
+
+    # Sprites
+    if bitand(lcdc, LCDC_OBJ_ENABLED) != 0:
+        let dbl = bitand(lcdc, LCDC_OBJ_SIZE) != 0
+
+        # TODO: sorted by x
+        # let sprites: [Sprite; 40] = []
+        # memcpy(sprites, &ram.data[OAM_BASE], 40 * sizeof(Sprite))
+        # for sprite in sprites.iter() {
+        for n in 0..40:
+            let sprite = Sprite(
+                y: self.ram.get(consts.Mem_OAM_BASE + 4 * n.uint16 + 0),
+                x: self.ram.get(consts.Mem_OAM_BASE + 4 * n.uint16 + 1),
+                tile_id: self.ram.get(consts.Mem_OAM_BASE + 4 * n.uint16 + 2),
+                flags: self.ram.get(consts.Mem_OAM_BASE + 4 * n.uint16 + 3),
+            )
+
+            if sprite.is_live():
+                let palette = if sprite.palette(): self.obp1 else: self.obp0
+                # printf("Drawing sprite %d (from %04X) at %d,%d\n", tile_id, OAM_BASE + (sprite_id * 4) + 0, x, y)
+                var xy = sdl2.point(
+                    (sprite.x - 8).cint,
+                    (sprite.y - 16).cint,
+                )
+                self.paint_tile(sprite.tile_id.int16, xy, palette, sprite.x_flip(), sprite.y_flip())
+
+                if(dbl):
+                    xy.y = (sprite.y - 8).cint
+                    self.paint_tile(sprite.tile_id.int16 + 1, xy, palette, sprite.x_flip(), sprite.y_flip())
+
 proc tick*(self: var GPU) =
     self.cycle += 1
 
@@ -113,57 +316,57 @@ proc tick*(self: var GPU) =
 
     # Check if LCD enabled at all
     let lcdc = self.ram.get(consts.Mem_LCDC)
-    if bitnot(bitand(lcdc, LCDC_ENABLED)) > 0:
+    if bitnot(bitand(lcdc, LCDC_ENABLED)) != 0:
         # When LCD is re-enabled, LY is 0
         # Does it become 0 as soon as disabled??
-        self.ram.set(consts.Mem_LY, 0);
+        self.ram.set(consts.Mem_LY, 0)
         if not self.debug:
             return
 
-    let lx = (self.cycle mod 114).uint8;
-    let ly = ((self.cycle div 114) mod 154).uint8;
-    self.ram.set(consts.Mem_LY, ly);
+    let lx = (self.cycle mod 114).uint8
+    let ly = ((self.cycle div 114) mod 154).uint8
+    self.ram.set(consts.Mem_LY, ly)
 
     # LYC compare & interrupt
     if(self.ram.get(consts.Mem_LY) == self.ram.get(consts.Mem_LYC)):
-        if bitand(self.ram.get(consts.Mem_STAT), Stat_LYC_INTERRUPT) > 0:
-            self.cpu.interrupt(consts.Interrupt_STAT);
-        self.ram.mem_or(consts.Mem_STAT, Stat_LYC_EQUAL);
+        if bitand(self.ram.get(consts.Mem_STAT), Stat_LYC_INTERRUPT) != 0:
+            self.cpu.interrupt(consts.Interrupt_STAT)
+        self.ram.mem_or(consts.Mem_STAT, Stat_LYC_EQUAL)
     else:
-        self.ram.mem_and(consts.Mem_STAT, bitnot(Stat_LYC_EQUAL));
+        self.ram.mem_and(consts.Mem_STAT, bitnot(Stat_LYC_EQUAL))
 
     # Set mode
     if(lx == 0 and ly < 144):
-        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)), Stat_OAM));
-        if bitand(self.ram.get(consts.Mem_STAT), Stat_OAM_INTERRUPT) > 0:
-            self.cpu.interrupt(consts.Interrupt_STAT);
+        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)), Stat_OAM))
+        if bitand(self.ram.get(consts.Mem_STAT), Stat_OAM_INTERRUPT) != 0:
+            self.cpu.interrupt(consts.Interrupt_STAT)
     elif(lx == 20 and ly < 144):
         self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)),
-                Stat_DRAWING));
+                Stat_DRAWING))
         if(ly == 0):
             # TODO: how often should we update palettes?
             # Should every pixel reference them directly?
-            # FIXME: self.update_palettes();
-            var c = self.bgp[0];
-            self.renderer.setDrawColor(c.r, c.g, c.b, c.a);
+            self.update_palettes()
+            var c = self.bgp[0]
+            self.renderer.setDrawColor(c.r, c.g, c.b, c.a)
             self.renderer.clear()
-        # FIXME: self.draw_line(ly);
+        self.draw_line(ly)
         if(ly == 143):
-            # FIXME: if(self.debug):
-            # FIXME:     self.draw_debug()
+            if self.debug:
+                self.draw_debug()
             if self.hw_renderer != nil:
-                self.hw_buffer.updateTexture(nil, self.buffer.pixels, self.buffer.pitch);
+                self.hw_buffer.updateTexture(nil, self.buffer.pixels, self.buffer.pitch)
                 self.hw_renderer.clear()
                 self.renderer.copy(self.hw_buffer, nil, nil)
                 self.hw_renderer.present()
     elif(lx == 63 and ly < 144):
         self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)),
-                Stat_HBLANK));
-        if bitand(self.ram.get(consts.Mem_STAT), Stat_HBLANK_INTERRUPT) > 0:
-            self.cpu.interrupt(consts.Interrupt_STAT);
+                Stat_HBLANK))
+        if bitand(self.ram.get(consts.Mem_STAT), Stat_HBLANK_INTERRUPT) != 0:
+            self.cpu.interrupt(consts.Interrupt_STAT)
     elif(lx == 0 and ly == 144):
         self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)),
-                Stat_VBLANK));
-        if bitand(self.ram.get(consts.Mem_STAT), Stat_VBLANK_INTERRUPT) > 0:
-            self.cpu.interrupt(consts.Interrupt_STAT);
-        self.cpu.interrupt(consts.Interrupt_VBLANK);
+                Stat_VBLANK))
+        if bitand(self.ram.get(consts.Mem_STAT), Stat_VBLANK_INTERRUPT) != 0:
+            self.cpu.interrupt(consts.Interrupt_STAT)
+        self.cpu.interrupt(consts.Interrupt_VBLANK)
