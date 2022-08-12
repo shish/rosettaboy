@@ -359,7 +359,7 @@ proc tick*(self: var GPU) =
             if self.hw_renderer != nil:
                 self.hw_buffer.updateTexture(nil, self.buffer.pixels, self.buffer.pitch)
                 self.hw_renderer.clear()
-                self.renderer.copy(self.hw_buffer, nil, nil)
+                self.hw_renderer.copy(self.hw_buffer, nil, nil)
                 self.hw_renderer.present()
     elif(lx == 63 and ly < 144):
         self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)),
