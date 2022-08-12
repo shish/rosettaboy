@@ -175,12 +175,12 @@ void CPU::tick_instructions() {
     if(op == 0xCB) {
         op = this->ram->get(this->PC++);
         this->tick_cb(op);
-        owed_cycles = OP_CB_CYCLES[op] - 1;
+        owed_cycles = OP_CB_CYCLES[op];
     } else {
         this->tick_main(op);
-        owed_cycles = OP_CYCLES[op] - 1;
+        owed_cycles = OP_CYCLES[op];
     }
-    if(owed_cycles < 0) owed_cycles = 0; // HALT has cycles=0
+    if(owed_cycles > 0) owed_cycles -= 1; // HALT has cycles=0
 }
 
 /**
@@ -308,7 +308,7 @@ void CPU::tick_main(u8 op) {
             }
             if(op == 0x0F) { // RRCA
                 this->FLAG_C = (this->A & (1 << 0)) != 0;
-                this->A = (this-> A >> 1) | (this->A << 7);
+                this->A = (this->A >> 1) | (this->A << 7);
             }
             if(op == 0x1F) { // RRA
                 this->FLAG_C = (this->A & (1 << 0)) != 0;
@@ -323,10 +323,10 @@ void CPU::tick_main(u8 op) {
         case 0x19:
         case 0x29:
         case 0x39:
-            if(op == 0x09) val16 = BC;
-            if(op == 0x19) val16 = DE;
-            if(op == 0x29) val16 = HL;
-            if(op == 0x39) val16 = SP;
+            if(op == 0x09) val16 = this->BC;
+            if(op == 0x19) val16 = this->DE;
+            if(op == 0x29) val16 = this->HL;
+            if(op == 0x39) val16 = this->SP;
             this->FLAG_H = ((this->HL & 0x0FFF) + (val16 & 0x0FFF) > 0x0FFF);
             this->FLAG_C = (this->HL + val16 > 0xFFFF);
             this->HL += val16;
@@ -459,7 +459,8 @@ void CPU::tick_main(u8 op) {
  * data based on the 3 again.
  */
 void CPU::tick_cb(u8 op) {
-    u8 val, orig_c, bit;
+    u8 val, bit;
+    bool orig_c;
 
     val = this->get_reg(op);
     switch(op & 0xF8) {

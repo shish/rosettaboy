@@ -1,0 +1,41 @@
+name: Nim
+
+on:
+  push:
+    paths:
+    - 'nim/**'
+    - '.github/workflows/nim.yml'
+  workflow_dispatch:
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Install Tools
+      uses: jiro4989/setup-nim-action@v1
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Check
+      run: if [ "$(./format.sh && git diff)" -gt 0 ]; then exit 1; fi
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Install Tools
+      uses: jiro4989/setup-nim-action@v1
+    - name: Install Deps
+      run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Build
+      working-directory: nim
+      run: nimble build -Y
+#    - name: Test
+#      working-directory: nim
+#      run: nimble test -Y
+    - name: Benchmark
+      working-directory: nim
+      run: |
+        wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
+        ./run.sh --silent --headless --profile 600 --turbo opus5.gb
