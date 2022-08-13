@@ -73,3 +73,18 @@ $ nimpretty test.nim
 $ nim r test.nim
 test.nim(5, 3) Error: invalid indentation
 ```
+
+
+Copy / Reference / ???
+----------------------
+Somehow I appear to have accidentally copied an object:
+
+```
+ram = createRAM()
+cpu = createCPU(ram)
+gpu = createGPU(ram)
+```
+
+And now `cpu.ram != gpu.ram` ???
+
+I feel like maaaaybe this has something to do with `let` vs `var`?
