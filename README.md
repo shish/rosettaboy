@@ -81,6 +81,7 @@ Running on an M1 Macbook Pro:
 $ ./bench.sh
   rs: Emulated 600 frames in  0.35s (1691fps)
  cpp: Emulated 600 frames in  0.40s (1519fps)
+ nim: Emulated 600 frames in  1.60s (374fps)
   go: Emulated 600 frames in  1.78s (338fps)
  php: Emulated 600 frames in 23.80s (25fps)
   py: Emulated 600 frames in 68.44s (9fps)
