@@ -12,7 +12,7 @@ pub const GPU = struct {
         };
     }
 
-    pub fn tick(self: GPU) !void {
+    pub fn tick(self: *GPU) !void {
         _ = self;
     }
 };

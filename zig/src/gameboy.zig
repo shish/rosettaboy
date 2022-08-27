@@ -19,12 +19,12 @@ pub const GameBoy = struct {
         // let sdl = sdl2.init().map_err(anyhow.Error.msg)?;
 
         var cart = try Cart.new(args.rom);
-        var ram = try RAM.new(cart);
+        var ram = try RAM.new(&cart);
         var cpu = try CPU.new(args.debug_cpu);
         var gpu = try GPU.new(cart.name, args.headless, args.debug_gpu);
         var apu = try APU.new(args.silent, args.debug_apu);
-        var buttons = try Buttons.new(args.headless);
-        var clock = try Clock.new(buttons, args.profile, args.turbo);
+        var buttons = try Buttons.new(&cpu, &ram, args.headless);
+        var clock = try Clock.new(&buttons, args.profile, args.turbo);
 
         return GameBoy{
             .ram = ram,

@@ -31,19 +31,19 @@ pub const Args = struct {
             clap.parseParam("<POS>                  ROM filename") catch unreachable,
         };
 
-    var diag = clap.Diagnostic{};
-    var args = clap.parse(clap.Help, &params, .{ .diagnostic = &diag }) catch |err| {
-        // Report useful error and exit
-        diag.report(io.getStdErr().writer(), err) catch {};
-        return err;
-    };
-    defer args.deinit();
+        var diag = clap.Diagnostic{};
+        var args = clap.parse(clap.Help, &params, .{ .diagnostic = &diag }) catch |err| {
+            // Report useful error and exit
+            diag.report(io.getStdErr().writer(), err) catch {};
+            return err;
+        };
+        defer args.deinit();
 
         if (args.flag("--help")) {
             try clap.help(std.io.getStdErr().writer(), &params);
             return errors.ControlledExit.Help;
         }
-                    
+
         var profile: u32 = 0;
         if (args.option("--profile")) |n|
             profile = try std.fmt.parseInt(u32, n, 10);
