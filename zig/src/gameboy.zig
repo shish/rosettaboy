@@ -24,7 +24,7 @@ pub const GameBoy = struct {
         var gpu = try GPU.new(cart.name, args.headless, args.debug_gpu);
         var apu = try APU.new(args.silent, args.debug_apu);
         var buttons = try Buttons.new(args.headless);
-        var clock = try Clock.new(args.profile, args.turbo);
+        var clock = try Clock.new(buttons, args.profile, args.turbo);
 
         return GameBoy{
             .ram = ram,
@@ -36,13 +36,13 @@ pub const GameBoy = struct {
         };
     }
 
-    pub fn run(self: GameBoy) !void {
+    pub fn run(self: *GameBoy) !void {
         while (true) {
             try self.tick();
         }
     }
 
-    pub fn tick(self: GameBoy) !void {
+    pub fn tick(self: *GameBoy) !void {
         try self.cpu.tick();
         try self.gpu.tick();
         try self.buttons.tick();

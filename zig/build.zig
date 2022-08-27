@@ -11,10 +11,12 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    const exe = b.addExecutable("zig", "src/main.zig");
+    const exe = b.addExecutable("rosettaboy", "src/main.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
     exe.install();
+    // exe.addPackage(.{ .name = "clap", .path = "lib/clap/clap.zig" });
+    exe.addPackagePath("clap", "lib/clap/clap.zig");
 
     const run_cmd = exe.run();
     run_cmd.step.dependOn(b.getInstallStep());

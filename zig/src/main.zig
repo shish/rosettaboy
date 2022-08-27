@@ -4,8 +4,7 @@ const GameBoy = @import("gameboy.zig").GameBoy;
 const errors = @import("errors.zig");
 
 pub fn main() anyerror!void {
-    var args = Args.parse_args();
-    std.log.info("All your codebase are belong to us.", .{});
+    var args = try Args.parse_args();
 
     // TODO: catch errors
     var gameboy = try GameBoy.new(args);

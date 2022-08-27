@@ -1,15 +1,16 @@
-const ControlledExit = error{
+pub const ControlledExit = error{
     Quit,
+    Help,
     Timeout,
     UnitTestPassed,
     UnitTestFailed,
 };
-const GameException = error{
+pub const GameException = error{
     InvalidOpcode,
     InvalidRamRead,
     InvalidRamWrite,
 };
-const UserException = error{
+pub const UserException = error{
     RomMissing,
     LogoChecksumFailed,
     HeaderChecksumFailed,
