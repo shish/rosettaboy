@@ -15,7 +15,7 @@ pub const CPU = struct {
         _ = self;
     }
 
-    pub fn interrupt(self: *CPU, i: consts.Interrupt) void {
+    pub fn interrupt(self: *CPU, i: u8) void {
         _ = self;
         _ = i;
     }

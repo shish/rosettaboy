@@ -1,4 +1,5 @@
 const std = @import("std");
+const Sdk = @import("lib/sdl/Sdk.zig");
 
 pub fn build(b: *std.build.Builder) void {
     // Standard target options allows the person running `zig build` to choose
@@ -6,6 +7,7 @@ pub fn build(b: *std.build.Builder) void {
     // means any target is allowed, and the default is native. Other options
     // for restricting supported target set are available.
     const target = b.standardTargetOptions(.{});
+    const sdk = Sdk.init(b);
 
     // Standard release options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
@@ -14,8 +16,9 @@ pub fn build(b: *std.build.Builder) void {
     const exe = b.addExecutable("rosettaboy", "src/main.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
+    sdk.link(exe, .dynamic);
+    exe.addPackage(sdk.getWrapperPackage("sdl2"));
     exe.install();
-    // exe.addPackage(.{ .name = "clap", .path = "lib/clap/clap.zig" });
     exe.addPackagePath("clap", "lib/clap/clap.zig");
 
     const run_cmd = exe.run();
