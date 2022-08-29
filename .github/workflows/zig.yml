@@ -1,0 +1,49 @@
+name: Zig
+
+on:
+  push:
+    paths:
+    - 'zig/**'
+    - '.github/workflows/zig.yml'
+  workflow_dispatch:
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Set Up Toolchain
+      uses: goto-bus-stop/setup-zig@v1
+      with:
+        version: 0.9.1
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Check
+      run: |
+        cd zig
+        git diff >/tmp/a
+        ./format.sh
+        git diff >/tmp/b
+        cmp --silent /tmp/a /tmp/b || exit 1
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Install Deps
+      run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+    - name: Set Up Toolchain
+      uses: goto-bus-stop/setup-zig@v1
+      with:
+        version: 0.9.1
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build
+      working-directory: zig
+      run: zig build
+    - name: CPU Integration Tests
+      run: ./blargg.py zig
+    - name: Benchmark
+      working-directory: zig
+      run: |
+        wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
+        ./run.sh --silent --headless --profile 600 --turbo opus5.gb
