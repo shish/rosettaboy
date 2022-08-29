@@ -37,6 +37,8 @@ jobs:
         version: 0.9.1
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        submodules: recursive
     - name: Build
       working-directory: zig
       run: zig build
