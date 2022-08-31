@@ -42,10 +42,10 @@ jobs:
     - name: Build
       working-directory: zig
       run: zig build
-    - name: CPU Integration Tests
-      run: ./blargg.py zig
-    - name: Benchmark
-      working-directory: zig
-      run: |
-        wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
-        ./run.sh --silent --headless --profile 600 --turbo opus5.gb
+    #- name: CPU Integration Tests
+    #  run: ./blargg.py zig
+    #- name: Benchmark
+    #  working-directory: zig
+    #  run: |
+    #    wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
+    #    ./run.sh --silent --headless --profile 600 --turbo opus5.gb
