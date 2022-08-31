@@ -1,4 +1,5 @@
 const consts = @import("consts.zig");
+const errors = @import("errors.zig");
 
 pub const CPU = packed struct {
     regs: packed union {

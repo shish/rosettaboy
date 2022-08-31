@@ -15,6 +15,7 @@ pub const Mem = struct {
     pub const OamBase: u16 = 0xFE00;
 
     pub const JOYP: u16 = 0xFF00;
+    pub const BOOT: u16 = 0xFF50;
 
     _SB: u16 = 0xFF01, // Serial Data
     _SC: u16 = 0xFF02, // Serial Control
