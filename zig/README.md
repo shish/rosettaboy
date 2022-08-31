@@ -20,3 +20,7 @@ that works with your compiler...
 
 Packed structs seem pretty great though, especially useful for emulators
 where there are a lot of bitwise operations.
+
+Ints of any size are also nice -- compared to eg Rust where we have u8,
+and so `match op & 0x07` needs to support all 256 possible values even
+if it only has 8, zig lets us say "this is a u3"
