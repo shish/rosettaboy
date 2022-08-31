@@ -33,7 +33,8 @@ pub const Args = struct {
 
         var diag = clap.Diagnostic{};
         var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
-        .diagnostic = &diag, }) catch |err| {
+            .diagnostic = &diag,
+        }) catch |err| {
             // Report useful error and exit
             diag.report(io.getStdErr().writer(), err) catch {};
             return err;
