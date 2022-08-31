@@ -52,7 +52,10 @@ pub const CPU = packed struct {
     }
 
     pub fn tick(self: *CPU) !void {
-        _ = self;
+        self.cycle += 1;
+        if(self.cycle > 1000) {
+            return errors.ControlledExit.UnitTestFailed;
+        }
     }
 
     pub fn interrupt(self: *CPU, i: u8) void {
