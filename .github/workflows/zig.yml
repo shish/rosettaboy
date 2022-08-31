@@ -15,7 +15,7 @@ jobs:
     - name: Set Up Toolchain
       uses: goto-bus-stop/setup-zig@v1
       with:
-        version: 0.10.0-dev.3824+9f9e51eb1
+        version: master
     - name: Checkout
       uses: actions/checkout@v2
     - name: Check
@@ -34,7 +34,7 @@ jobs:
     - name: Set Up Toolchain
       uses: goto-bus-stop/setup-zig@v1
       with:
-        version: 0.10.0-dev.3824+9f9e51eb1
+        version: master
     - name: Checkout
       uses: actions/checkout@v2
       with:
