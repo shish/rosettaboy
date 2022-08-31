@@ -32,6 +32,8 @@ def test(cwd, rom):
         "--turbo",
         "--silent",
         "--headless",
+        "--profile",
+        "2000",
         f"../{rom}",
     ]
     p = subprocess.run(
