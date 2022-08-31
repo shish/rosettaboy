@@ -14,7 +14,8 @@ pub fn main() anyerror!void {
     });
     defer SDL.quit();
 
-    // TODO: catch errors
+    // TODO: catch errors, don't print a stack trace for
+    // ControlledExit variants
     var gameboy = try GameBoy.new(args);
     try gameboy.run();
 }

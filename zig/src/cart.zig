@@ -41,7 +41,7 @@ pub const Cart = struct {
     pub fn new(fname: []const u8) !Cart {
         _ = fname;
 
-        var f = try fs.cwd().openFile(fname, fs.File.OpenFlags{ .read = true });
+        var f = try fs.cwd().openFile(fname, fs.File.OpenFlags{ .mode = .read_only });
         defer f.close();
 
         const allocator = std.heap.page_allocator;

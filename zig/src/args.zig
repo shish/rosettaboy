@@ -26,42 +26,43 @@ pub const Args = struct {
             clap.parseParam("-g, --debug-gpu        Debug GPU") catch unreachable,
             clap.parseParam("-a, --debug-apu        Debug APU") catch unreachable,
             clap.parseParam("-r, --debug-ram        Debug RAM") catch unreachable,
-            clap.parseParam("-p, --profile <NUM>    Exit after N frames") catch unreachable,
+            clap.parseParam("-p, --profile <u32>    Exit after N frames") catch unreachable,
             clap.parseParam("-t, --turbo            No sleep()") catch unreachable,
-            clap.parseParam("<POS>                  ROM filename") catch unreachable,
+            clap.parseParam("<str>                  ROM filename") catch unreachable,
         };
 
         var diag = clap.Diagnostic{};
-        var args = clap.parse(clap.Help, &params, .{ .diagnostic = &diag }) catch |err| {
+        var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
+        .diagnostic = &diag, }) catch |err| {
             // Report useful error and exit
             diag.report(io.getStdErr().writer(), err) catch {};
             return err;
         };
-        defer args.deinit();
+        defer res.deinit();
 
-        if (args.flag("--help")) {
-            try clap.help(std.io.getStdErr().writer(), &params);
+        if (res.args.help) {
+            try clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
             return errors.ControlledExit.Help;
         }
 
         var profile: u32 = 0;
-        if (args.option("--profile")) |n|
-            profile = try std.fmt.parseInt(u32, n, 10);
+        if (res.args.profile) |n|
+            profile = n;
 
         var rom: []const u8 = "";
-        for (args.positionals()) |pos|
+        for (res.positionals) |pos|
             rom = pos;
 
         return Args{
             .rom = rom,
-            .headless = args.flag("--headless"),
-            .silent = args.flag("--silent"),
-            .debug_cpu = args.flag("--debug-cpu"),
-            .debug_gpu = args.flag("--debug-gpu"),
-            .debug_apu = args.flag("--debug-apu"),
-            .debug_ram = args.flag("--debug-ram"),
+            .headless = res.args.headless,
+            .silent = res.args.silent,
+            .debug_cpu = res.args.@"debug-cpu",
+            .debug_gpu = res.args.@"debug-gpu",
+            .debug_apu = res.args.@"debug-apu",
+            .debug_ram = res.args.@"debug-ram",
             .profile = profile,
-            .turbo = args.flag("--turbo"),
+            .turbo = res.args.turbo,
         };
     }
 };
