@@ -24,3 +24,10 @@ where there are a lot of bitwise operations.
 Ints of any size are also nice -- compared to eg Rust where we have u8,
 and so `match op & 0x07` needs to support all 256 possible values even
 if it only has 8, zig lets us say "this is a u3"
+
+No way to iterate over a range? Again: u wot m8?
+
+No nested functions? :(
+
+I really like zig's way of formatting long lists of short strings
+(eg the names of CPU instructions at the top of `cpu.zig`)
