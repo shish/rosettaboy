@@ -20,7 +20,7 @@ pub const GameBoy = struct {
 
         var cart = try Cart.new(args.rom);
         var ram = try RAM.new(&cart);
-        var cpu = try CPU.new(args.debug_cpu);
+        var cpu = try CPU.new(&ram, args.debug_cpu);
         var gpu = try GPU.new(cart.name, args.headless, args.debug_gpu);
         var apu = try APU.new(args.silent, args.debug_apu);
         var buttons = try Buttons.new(&cpu, &ram, args.headless);
