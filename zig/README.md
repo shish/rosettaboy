@@ -30,4 +30,16 @@ No way to iterate over a range? Again: u wot m8?
 No nested functions? :(
 
 I really like zig's way of formatting long lists of short strings
-(eg the names of CPU instructions at the top of `cpu.zig`)
+(eg the names of CPU instructions at the top of `cpu.zig`) - it renders
+them as a table, the same way I would do by hand <3
+
+No string formatting without single compile-time-known format strings?
+This is pretty painful because most other implementations print CPU
+instructions with their parameters by having an array of CPU instruction
+names like `op_names = [..., "LD A,%02X", ...]` and then we do
+`printf(op_names[op], op_param);`, but that doesn't work for zig... I do
+appreciate that this means there will be no runtime "format string vs
+number of parameter mismatch" errors - and Rust actually has the same
+thing... but in Rust I can at least have a workaround of doing things like 
+`op_names = [..., "LD A,xx", ...]` + `print(op_names[op].replace("xx", op_param));`,
+and zig has no string library so no "replace" :(

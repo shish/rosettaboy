@@ -321,6 +321,6 @@ pub const RAM = struct {
     }
 
     pub fn _inc(self: *RAM, addr: u16) void {
-        self.set(addr, self.get(addr) + 1);
+        self.set(addr, self.get(addr) +% 1);
     }
 };

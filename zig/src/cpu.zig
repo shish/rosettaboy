@@ -69,38 +69,38 @@ pub const OP_TYPES = [_]u2{
 pub const OP_LENS = [_]u2{ 0, 1, 2, 1 };
 
 pub const OP_NAMES = [_][]const u8{
-    "NOP",           "LD BC,$%04X", "LD [BC],A",    "INC BC",    "INC B",         "DEC B",      "LD B,$%02X",    "RCLA",
-    "LD [$%04X],SP", "ADD HL,BC",   "LD A,[BC]",    "DEC BC",    "INC C",         "DEC C",      "LD C,$%02X",    "RRCA",
-    "STOP",          "LD DE,$%04X", "LD [DE],A",    "INC DE",    "INC D",         "DEC D",      "LD D,$%02X",    "RLA",
-    "JR %+d",        "ADD HL,DE",   "LD A,[DE]",    "DEC DE",    "INC E",         "DEC E",      "LD E,$%02X",    "RRA",
-    "JR NZ,%+d",     "LD HL,$%04X", "LD [HL+],A",   "INC HL",    "INC H",         "DEC H",      "LD H,$%02X",    "DAA",
-    "JR Z,%+d",      "ADD HL,HL",   "LD A,[HL+]",   "DEC HL",    "INC L",         "DEC L",      "LD L,$%02X",    "CPL",
-    "JR NC,%+d",     "LD SP,$%04X", "LD [HL-],A",   "INC SP",    "INC [HL]",      "DEC [HL]",   "LD [HL],$%02X", "SCF",
-    "JR C,%+d",      "ADD HL,SP",   "LD A,[HL-]",   "DEC SP",    "INC A",         "DEC A",      "LD A,$%02X",    "CCF",
-    "LD B,B",        "LD B,C",      "LD B,D",       "LD B,E",    "LD B,H",        "LD B,L",     "LD B,[HL]",     "LD B,A",
-    "LD C,B",        "LD C,C",      "LD C,D",       "LD C,E",    "LD C,H",        "LD C,L",     "LD C,[HL]",     "LD C,A",
-    "LD D,B",        "LD D,C",      "LD D,D",       "LD D,E",    "LD D,H",        "LD D,L",     "LD D,[HL]",     "LD D,A",
-    "LD E,B",        "LD E,C",      "LD E,D",       "LD E,E",    "LD E,H",        "LD E,L",     "LD E,[HL]",     "LD E,A",
-    "LD H,B",        "LD H,C",      "LD H,D",       "LD H,E",    "LD H,H",        "LD H,L",     "LD H,[HL]",     "LD H,A",
-    "LD L,B",        "LD L,C",      "LD L,D",       "LD L,E",    "LD L,H",        "LD L,L",     "LD L,[HL]",     "LD L,A",
-    "LD [HL],B",     "LD [HL],C",   "LD [HL],D",    "LD [HL],E", "LD [HL],H",     "LD [HL],L",  "HALT",          "LD [HL],A",
-    "LD A,B",        "LD A,C",      "LD A,D",       "LD A,E",    "LD A,H",        "LD A,L",     "LD A,[HL]",     "LD A,A",
-    "ADD A,B",       "ADD A,C",     "ADD A,D",      "ADD A,E",   "ADD A,H",       "ADD A,L",    "ADD A,[HL]",    "ADD A,A",
-    "ADC A,B",       "ADC A,C",     "ADC A,D",      "ADC A,E",   "ADC A,H",       "ADC A,L",    "ADC A,[HL]",    "ADC A,A",
-    "SUB A,B",       "SUB A,C",     "SUB A,D",      "SUB A,E",   "SUB A,H",       "SUB A,L",    "SUB A,[HL]",    "SUB A,A",
-    "SBC A,B",       "SBC A,C",     "SBC A,D",      "SBC A,E",   "SBC A,H",       "SBC A,L",    "SBC A,[HL]",    "SBC A,A",
-    "AND B",         "AND C",       "AND D",        "AND E",     "AND H",         "AND L",      "AND [HL]",      "AND A",
-    "XOR B",         "XOR C",       "XOR D",        "XOR E",     "XOR H",         "XOR L",      "XOR [HL]",      "XOR A",
-    "OR B",          "OR C",        "OR D",         "OR E",      "OR H",          "OR L",       "OR [HL]",       "OR A",
-    "CP B",          "CP C",        "CP D",         "CP E",      "CP H",          "CP L",       "CP [HL]",       "CP A",
-    "RET NZ",        "POP BC",      "JP NZ,$%04X",  "JP $%04X",  "CALL NZ,$%04X", "PUSH BC",    "ADD A,$%02X",   "RST 00",
-    "RET Z",         "RET",         "JP Z,$%04X",   "ERR CB",    "CALL Z,$%04X",  "CALL $%04X", "ADC A,$%02X",   "RST 08",
-    "RET NC",        "POP DE",      "JP NC,$%04X",  "ERR D3",    "CALL NC,$%04X", "PUSH DE",    "SUB A,$%02X",   "RST 10",
-    "RET C",         "RETI",        "JP C,$%04X",   "ERR DB",    "CALL C,$%04X",  "ERR DD",     "SBC A,$%02X",   "RST 18",
-    "LDH [$%02X],A", "POP HL",      "LDH [C],A",    "DBG",       "ERR E4",        "PUSH HL",    "AND $%02X",     "RST 20",
-    "ADD SP %+d",    "JP HL",       "LD [$%04X],A", "ERR EB",    "ERR EC",        "ERR ED",     "XOR $%02X",     "RST 28",
-    "LDH A,[$%02X]", "POP AF",      "LDH A,[C]",    "DI",        "ERR F4",        "PUSH AF",    "OR $%02X",      "RST 30",
-    "LD HL,SP%+d",   "LD SP,HL",    "LD A,[$%04X]", "EI",        "ERR FC",        "ERR FD",     "CP $%02X",      "RST 38",
+    "NOP",          "LD BC,$u16", "LD [BC],A",   "INC BC",    "INC B",        "DEC B",     "LD B,$u8",    "RCLA",
+    "LD [$u16],SP", "ADD HL,BC",  "LD A,[BC]",   "DEC BC",    "INC C",        "DEC C",     "LD C,$u8",    "RRCA",
+    "STOP",         "LD DE,$u16", "LD [DE],A",   "INC DE",    "INC D",        "DEC D",     "LD D,$u8",    "RLA",
+    "JR i8",        "ADD HL,DE",  "LD A,[DE]",   "DEC DE",    "INC E",        "DEC E",     "LD E,$u8",    "RRA",
+    "JR NZ,i8",     "LD HL,$u16", "LD [HL+],A",  "INC HL",    "INC H",        "DEC H",     "LD H,$u8",    "DAA",
+    "JR Z,i8",      "ADD HL,HL",  "LD A,[HL+]",  "DEC HL",    "INC L",        "DEC L",     "LD L,$u8",    "CPL",
+    "JR NC,i8",     "LD SP,$u16", "LD [HL-],A",  "INC SP",    "INC [HL]",     "DEC [HL]",  "LD [HL],$u8", "SCF",
+    "JR C,i8",      "ADD HL,SP",  "LD A,[HL-]",  "DEC SP",    "INC A",        "DEC A",     "LD A,$u8",    "CCF",
+    "LD B,B",       "LD B,C",     "LD B,D",      "LD B,E",    "LD B,H",       "LD B,L",    "LD B,[HL]",   "LD B,A",
+    "LD C,B",       "LD C,C",     "LD C,D",      "LD C,E",    "LD C,H",       "LD C,L",    "LD C,[HL]",   "LD C,A",
+    "LD D,B",       "LD D,C",     "LD D,D",      "LD D,E",    "LD D,H",       "LD D,L",    "LD D,[HL]",   "LD D,A",
+    "LD E,B",       "LD E,C",     "LD E,D",      "LD E,E",    "LD E,H",       "LD E,L",    "LD E,[HL]",   "LD E,A",
+    "LD H,B",       "LD H,C",     "LD H,D",      "LD H,E",    "LD H,H",       "LD H,L",    "LD H,[HL]",   "LD H,A",
+    "LD L,B",       "LD L,C",     "LD L,D",      "LD L,E",    "LD L,H",       "LD L,L",    "LD L,[HL]",   "LD L,A",
+    "LD [HL],B",    "LD [HL],C",  "LD [HL],D",   "LD [HL],E", "LD [HL],H",    "LD [HL],L", "HALT",        "LD [HL],A",
+    "LD A,B",       "LD A,C",     "LD A,D",      "LD A,E",    "LD A,H",       "LD A,L",    "LD A,[HL]",   "LD A,A",
+    "ADD A,B",      "ADD A,C",    "ADD A,D",     "ADD A,E",   "ADD A,H",      "ADD A,L",   "ADD A,[HL]",  "ADD A,A",
+    "ADC A,B",      "ADC A,C",    "ADC A,D",     "ADC A,E",   "ADC A,H",      "ADC A,L",   "ADC A,[HL]",  "ADC A,A",
+    "SUB A,B",      "SUB A,C",    "SUB A,D",     "SUB A,E",   "SUB A,H",      "SUB A,L",   "SUB A,[HL]",  "SUB A,A",
+    "SBC A,B",      "SBC A,C",    "SBC A,D",     "SBC A,E",   "SBC A,H",      "SBC A,L",   "SBC A,[HL]",  "SBC A,A",
+    "AND B",        "AND C",      "AND D",       "AND E",     "AND H",        "AND L",     "AND [HL]",    "AND A",
+    "XOR B",        "XOR C",      "XOR D",       "XOR E",     "XOR H",        "XOR L",     "XOR [HL]",    "XOR A",
+    "OR B",         "OR C",       "OR D",        "OR E",      "OR H",         "OR L",      "OR [HL]",     "OR A",
+    "CP B",         "CP C",       "CP D",        "CP E",      "CP H",         "CP L",      "CP [HL]",     "CP A",
+    "RET NZ",       "POP BC",     "JP NZ,$u16",  "JP $u16",   "CALL NZ,$u16", "PUSH BC",   "ADD A,$u8",   "RST 00",
+    "RET Z",        "RET",        "JP Z,$u16",   "ERR CB",    "CALL Z,$u16",  "CALL $u16", "ADC A,$u8",   "RST 08",
+    "RET NC",       "POP DE",     "JP NC,$u16",  "ERR D3",    "CALL NC,$u16", "PUSH DE",   "SUB A,$u8",   "RST 10",
+    "RET C",        "RETI",       "JP C,$u16",   "ERR DB",    "CALL C,$u16",  "ERR DD",    "SBC A,$u8",   "RST 18",
+    "LDH [$u8],A",  "POP HL",     "LDH [C],A",   "DBG",       "ERR E4",       "PUSH HL",   "AND $u8",     "RST 20",
+    "ADD SP i8",    "JP HL",      "LD [$u16],A", "ERR EB",    "ERR EC",       "ERR ED",    "XOR $u8",     "RST 28",
+    "LDH A,[$u8]",  "POP AF",     "LDH A,[C]",   "DI",        "ERR F4",       "PUSH AF",   "OR $u8",      "RST 30",
+    "LD HL,SPi8",   "LD SP,HL",   "LD A,[$u16]", "EI",        "ERR FC",       "ERR FD",    "CP $u8",      "RST 38",
 };
 
 pub const OP_CB_NAMES = [_][]const u8{
@@ -236,14 +236,33 @@ pub const CPU = packed struct {
 
     fn dump_regs(self: *CPU) !void {
         var op = self.ram.get(self.pc);
-        var op_str: [16]u8 = "FIXME           ".*;
+        var op_str: [16]u8 = "                ".*;
         if (op == 0xCB) {
             op = self.ram.get(self.pc + 1);
-            //std.mem.copy(u8, op_str[0..], OP_CB_NAMES[op][0..]);
-            //op_str = OP_CB_NAMES[op];
-            //_ = try std.fmt.bufPrint(&op_str, "{s}", .{OP_CB_NAMES[op]});
+            std.mem.copy(u8, op_str[0..], OP_CB_NAMES[op][0..]);
         } else {
-            //std.mem.copy(u8, op_str[0..], OP_NAMES[op][0..]);
+            var base = OP_NAMES[op][0..];
+            var arg = self.load_op(self.pc + 1, OP_TYPES[op]);
+            switch (OP_TYPES[op]) {
+                0 => {
+                    std.mem.copy(u8, op_str[0..], base);
+                },
+                1 => {
+                    var param = "xx".*;
+                    _ = try std.fmt.bufPrint(&param, "{X:0>2}", .{arg.u8});
+                    _ = std.mem.replace(u8, base, "u8", &param, &op_str);
+                },
+                2 => {
+                    var param = "xxxx".*;
+                    _ = try std.fmt.bufPrint(&param, "{X:0>4}", .{arg.u16});
+                    _ = std.mem.replace(u8, base, "u16", &param, &op_str);
+                },
+                3 => {
+                    var param = "xxxx".*;
+                    _ = try std.fmt.bufPrint(&param, "{d}", .{arg.i8});
+                    _ = std.mem.replace(u8, base, "i8", &param, &op_str);
+                },
+            }
             //_ = try std.fmt.bufPrint(&op_str, "{s}", .{OP_NAMES[op]});
             //var arg = self.load_op(self.pc + 1, OP_TYPES[op]);
             //switch(OP_TYPES[op]) {
@@ -269,7 +288,7 @@ pub const CPU = packed struct {
 
         // printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
         std.debug.print("{X:0>4} {X:0>4} {X:0>4} {X:0>4} : ", .{ self.regs.r16.af, self.regs.r16.bc, self.regs.r16.de, self.regs.r16.hl });
-        std.debug.print("{X:0>4} = {X:0>2}{X:0>2}", .{ self.sp, self.ram.get(self.sp + 1), self.ram.get(self.sp) });
+        std.debug.print("{X:0>4} = {X:0>2}{X:0>2} : ", .{ self.sp, self.ram.get(self.sp + 1), self.ram.get(self.sp) });
         std.debug.print("{c}{c}{c}{c} : {c}{c}{c}{c}{c} : ", .{ z, n, h, c, v, l, t, s, j });
         std.debug.print("{X:0>4} = {X:0>2} : {s}\n", .{ self.pc, op, op_str });
     }
@@ -391,7 +410,7 @@ pub const CPU = packed struct {
                 .u16 = @intCast(u16, self.ram.get(addr + 1)) << 8 | (self.ram.get(addr)),
             },
             3 => OpArg{
-                .i8 = @intCast(i8, self.ram.get(addr)),
+                .i8 = @bitCast(i8, self.ram.get(addr)),
             },
         };
     }
@@ -411,7 +430,7 @@ pub const CPU = packed struct {
                 self.ram.set(self.regs.r16.bc, self.regs.r8.a);
             },
             0x03 => {
-                self.regs.r16.bc = self.regs.r16.bc + 1;
+                self.regs.r16.bc = self.regs.r16.bc +% 1;
             },
             0x08 => {
                 self.ram.set(arg.u16 + 1, @intCast(u8, (self.sp >> 8) & 0xFF));
@@ -421,7 +440,7 @@ pub const CPU = packed struct {
                 self.regs.r8.a = self.ram.get(self.regs.r16.bc);
             },
             0x0B => {
-                self.regs.r16.bc = self.regs.r16.bc - 1;
+                self.regs.r16.bc = self.regs.r16.bc -% 1;
             },
 
             0x10 => {
@@ -434,7 +453,7 @@ pub const CPU = packed struct {
                 self.ram.set(self.regs.r16.de, self.regs.r8.a);
             },
             0x13 => {
-                self.regs.r16.de = self.regs.r16.de + 1;
+                self.regs.r16.de = self.regs.r16.de +% 1;
             },
             0x18 => {
                 self.pc = @intCast(u16, @intCast(i32, self.pc) + arg.i8);
@@ -443,7 +462,7 @@ pub const CPU = packed struct {
                 self.regs.r8.a = self.ram.get(self.regs.r16.de);
             },
             0x1B => {
-                self.regs.r16.de = self.regs.r16.de - 1;
+                self.regs.r16.de = self.regs.r16.de -% 1;
             },
 
             0x20 => {
@@ -456,29 +475,29 @@ pub const CPU = packed struct {
             },
             0x22 => {
                 self.ram.set(self.regs.r16.hl, self.regs.r8.a);
-                self.regs.r16.hl = self.regs.r16.hl + 1;
+                self.regs.r16.hl = self.regs.r16.hl +% 1;
             },
             0x23 => {
-                self.regs.r16.hl = self.regs.r16.hl + 1;
+                self.regs.r16.hl = self.regs.r16.hl +% 1;
             },
             0x27 => {
                 var val16: u16 = self.regs.r8.a;
                 if (!self.regs.flags.n) {
                     if (self.regs.flags.h or (val16 & 0x0F) > 9) {
-                        val16 = val16 + 6;
+                        val16 = val16 +% 6;
                     }
                     if (self.regs.flags.c or val16 > 0x9F) {
-                        val16 = val16 + 0x60;
+                        val16 = val16 +% 0x60;
                     }
                 } else {
                     if (self.regs.flags.h) {
-                        val16 = val16 - 6;
+                        val16 = val16 -% 6;
                         if (!self.regs.flags.c) {
                             val16 &= 0xFF;
                         }
                     }
                     if (self.regs.flags.c) {
-                        val16 = val16 - 0x60;
+                        val16 = val16 -% 0x60;
                     }
                 }
                 self.regs.flags.h = false;
@@ -495,10 +514,10 @@ pub const CPU = packed struct {
             },
             0x2A => {
                 self.regs.r8.a = self.ram.get(self.regs.r16.hl);
-                self.regs.r16.hl = self.regs.r16.hl + 1;
+                self.regs.r16.hl = self.regs.r16.hl +% 1;
             },
             0x2B => {
-                self.regs.r16.hl = self.regs.r16.hl - 1;
+                self.regs.r16.hl = self.regs.r16.hl -% 1;
             },
             0x2F => {
                 self.regs.r8.a ^= 0xFF;
@@ -516,10 +535,10 @@ pub const CPU = packed struct {
             },
             0x32 => {
                 self.ram.set(self.regs.r16.hl, self.regs.r8.a);
-                self.regs.r16.hl = self.regs.r16.hl - 1;
+                self.regs.r16.hl = self.regs.r16.hl -% 1;
             },
             0x33 => {
-                self.sp = self.sp + 1;
+                self.sp = self.sp +% 1;
             },
             0x37 => {
                 self.regs.flags.n = false;
@@ -533,10 +552,10 @@ pub const CPU = packed struct {
             },
             0x3A => {
                 self.regs.r8.a = self.ram.get(self.regs.r16.hl);
-                self.regs.r16.hl = self.regs.r16.hl - 1;
+                self.regs.r16.hl = self.regs.r16.hl -% 1;
             },
             0x3B => {
-                self.sp = self.sp - 1;
+                self.sp = self.sp -% 1;
             },
             0x3F => {
                 self.regs.flags.c = !self.regs.flags.c;
@@ -545,30 +564,30 @@ pub const CPU = packed struct {
             },
 
             // INC r
-            0x04 | 0x0C | 0x14 | 0x1C | 0x24 | 0x2C | 0x34 | 0x3C => {
+            0x04, 0x0C, 0x14, 0x1C, 0x24, 0x2C, 0x34, 0x3C => {
                 var val = self.get_reg((op - 0x04) / 8);
                 self.regs.flags.h = (val & 0x0F) == 0x0F;
-                self.regs.flags.z = val + 1 == 0;
+                self.regs.flags.z = val +% 1 == 0;
                 self.regs.flags.n = false;
-                self.set_reg((op - 0x04) / 8, val + 1);
+                self.set_reg((op - 0x04) / 8, val +% 1);
             },
 
             // DEC r
-            0x05 | 0x0D | 0x15 | 0x1D | 0x25 | 0x2D | 0x35 | 0x3D => {
+            0x05, 0x0D, 0x15, 0x1D, 0x25, 0x2D, 0x35, 0x3D => {
                 var val = self.get_reg((op - 0x05) / 8);
-                self.regs.flags.h = (val - 1 & 0x0F) == 0x0F;
-                self.regs.flags.z = val - 1 == 0;
+                self.regs.flags.h = (val -% 1 & 0x0F) == 0x0F;
+                self.regs.flags.z = val -% 1 == 0;
                 self.regs.flags.n = true;
-                self.set_reg((op - 0x05) / 8, val - 1);
+                self.set_reg((op - 0x05) / 8, val -% 1);
             },
 
             // LD r,n
-            0x06 | 0x0E | 0x16 | 0x1E | 0x26 | 0x2E | 0x36 | 0x3E => {
+            0x06, 0x0E, 0x16, 0x1E, 0x26, 0x2E, 0x36, 0x3E => {
                 self.set_reg((op - 0x06) / 8, arg.u8);
             },
 
             // RCLA, RLA, RRCA, RRA
-            0x07 | 0x17 | 0x0F | 0x1F => {
+            0x07, 0x17, 0x0F, 0x1F => {
                 var carry: u8 = if (self.regs.flags.c) 1 else 0;
                 if (op == 0x07) {
                     // RCLA
@@ -596,7 +615,7 @@ pub const CPU = packed struct {
             },
 
             // ADD HL,rr
-            0x09 | 0x19 | 0x29 | 0x39 => {
+            0x09, 0x19, 0x29, 0x39 => {
                 var val16 = switch (op) {
                     0x09 => self.regs.r16.bc,
                     0x19 => self.regs.r16.de,
@@ -605,8 +624,8 @@ pub const CPU = packed struct {
                     else => 0,
                 };
                 self.regs.flags.h = (self.regs.r16.hl & 0x0FFF) + (val16 & 0x0FFF) > 0x0FFF;
-                self.regs.flags.c = (self.regs.r16.hl + val16) > 0xFFFF;
-                self.regs.r16.hl = self.regs.r16.hl + val16;
+                self.regs.flags.c = (@intCast(u32, self.regs.r16.hl) + @intCast(u32, val16)) > 0xFFFF;
+                self.regs.r16.hl = self.regs.r16.hl +% val16;
                 self.regs.flags.n = false;
             },
 
@@ -764,8 +783,6 @@ pub const CPU = packed struct {
                     _ = std.c.printf("%c", self.regs.r8.a);
                 }
             },
-            //0xE3 => self._err(op),
-            //0xE4 => self._err(op),
             0xE5 => {
                 self.push(self.regs.r16.hl);
             },
@@ -777,13 +794,10 @@ pub const CPU = packed struct {
                 self.pc = 0x20;
             },
             0xE8 => {
-                var val16: u16 = @intCast(u16, @intCast(i32, self.sp) + arg.i8);
-                //self.regs.flags.h = ((self.sp & 0x0FFF) + (arg.i8 & 0x0FFF) > 0x0FFF);
-                //self.regs.flags.c = (self.sp + arg.i8 > 0xFFFF);
-                // FIXME: was originally "i8", does "u16" work?
-                self.regs.flags.h = ((self.sp ^ arg.u16 ^ val16) & 0x10) != 0;
-                self.regs.flags.c = ((self.sp ^ arg.u16 ^ val16) & 0x100) != 0;
-                self.sp = @intCast(u16, @intCast(i32, self.sp) + arg.i8);
+                var val16: u16 = @intCast(u16, @intCast(i64, (@intCast(i32, self.sp) + arg.i8)) & 0xFFFF);
+                self.regs.flags.h = ((self.sp ^ @bitCast(u16, @intCast(i16, arg.i8)) ^ val16) & 0x10) != 0;
+                self.regs.flags.c = ((self.sp ^ @bitCast(u16, @intCast(i16, arg.i8)) ^ val16) & 0x100) != 0;
+                self.sp = val16;
                 self.regs.flags.z = false;
                 self.regs.flags.n = false;
             },
@@ -822,7 +836,7 @@ pub const CPU = packed struct {
                 self.pc = 0x30;
             },
             0xF8 => {
-                var new_hl = @intCast(u16, @intCast(i32, self.sp) + arg.i8);
+                var new_hl = @intCast(u16, @intCast(i64, @intCast(i32, self.sp) + arg.i8) & 0xFFFF);
                 if (arg.i8 >= 0) {
                     self.regs.flags.c = (@intCast(i32, self.sp & 0xFF) + (arg.i8)) > 0xFF;
                     self.regs.flags.h = (@intCast(i32, self.sp & 0x0F) + (arg.i8 & 0x0F)) > 0x0F;
@@ -844,7 +858,10 @@ pub const CPU = packed struct {
                 self.push(self.pc);
                 self.pc = 0x38;
             },
-            else => return errors.GameException.InvalidOpcode,
+            else => {
+                std.debug.print("Invalid op: {X:0>2}\n", .{op});
+                return errors.GameException.InvalidOpcode;
+            },
         }
     }
 
@@ -999,42 +1016,42 @@ pub const CPU = packed struct {
     }
 
     fn _add(self: *CPU, val: u8) void {
-        self.regs.flags.c = self.regs.r8.a + val > 0xFF;
+        self.regs.flags.c = @intCast(u16, self.regs.r8.a) + @intCast(u16, val) > 0xFF;
         self.regs.flags.h = (self.regs.r8.a & 0x0F) + (val & 0x0F) > 0x0F;
         self.regs.flags.n = false;
-        self.regs.r8.a = self.regs.r8.a + val;
+        self.regs.r8.a = self.regs.r8.a +% val;
         self.regs.flags.z = self.regs.r8.a == 0;
     }
 
     fn _adc(self: *CPU, val: u8) void {
         var carry: u8 = if (self.regs.flags.c) 1 else 0;
-        self.regs.flags.c = self.regs.r8.a + val + carry > 0xFF;
+        self.regs.flags.c = @intCast(u16, self.regs.r8.a) + @intCast(u16, val) + @intCast(u16, carry) > 0xFF;
         self.regs.flags.h = (self.regs.r8.a & 0x0F) + (val & 0x0F) + carry > 0x0F;
         self.regs.flags.n = false;
         self.regs.r8.a = self
             .regs
             .r8
-            .a + val + carry;
+            .a +% val +% carry;
         self.regs.flags.z = self.regs.r8.a == 0;
     }
 
     fn _sub(self: *CPU, val: u8) void {
         self.regs.flags.c = self.regs.r8.a < val;
         self.regs.flags.h = (self.regs.r8.a & 0x0F) < (val & 0x0F);
-        self.regs.r8.a = self.regs.r8.a - val;
+        self.regs.r8.a = self.regs.r8.a -% val;
         self.regs.flags.z = self.regs.r8.a == 0;
         self.regs.flags.n = true;
     }
 
     fn _sbc(self: *CPU, val: u8) void {
         var carry: u8 = if (self.regs.flags.c) 1 else 0;
-        var res = self.regs.r8.a - val - carry;
+        var res: i16 = @intCast(i16, self.regs.r8.a) -% @intCast(i16, val) -% @intCast(i16, carry);
         self.regs.flags.h = ((self.regs.r8.a ^ val ^ (res & 0xff)) & (1 << 4)) != 0;
         self.regs.flags.c = res < 0;
         self.regs.r8.a = self
             .regs
             .r8
-            .a + val + carry;
+            .a -% val -% carry;
         self.regs.flags.z = self.regs.r8.a == 0;
         self.regs.flags.n = true;
     }

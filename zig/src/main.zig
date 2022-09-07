@@ -14,10 +14,15 @@ pub fn main() anyerror!void {
     });
     defer SDL.quit();
 
-    // TODO: catch errors, don't print a stack trace for
-    // ControlledExit variants
+    // FIXME: catch errors, return appropriate exit codes
     var gameboy = try GameBoy.new(args);
-    try gameboy.run();
+    gameboy.run() catch |err| {
+        if(err == errors.ControlledExit.UnitTestPassed) {
+            std.debug.print("Unit Test Passed\n", .{});
+            std.os.exit(0);
+        }
+    };
+    std.os.exit(1);
 }
 
 test "basic test" {
