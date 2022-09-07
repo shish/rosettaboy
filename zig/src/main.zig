@@ -17,9 +17,32 @@ pub fn main() anyerror!void {
     // FIXME: catch errors, return appropriate exit codes
     var gameboy = try GameBoy.new(args);
     gameboy.run() catch |err| {
-        if(err == errors.ControlledExit.UnitTestPassed) {
-            std.debug.print("Unit Test Passed\n", .{});
-            std.os.exit(0);
+        switch(err) {
+            errors.ControlledExit.UnitTestPassed => {
+                std.debug.print("Unit Test Passed\n", .{});
+                std.os.exit(0);
+            },
+            errors.ControlledExit.UnitTestFailed => {
+                std.debug.print("Unit Test Failed\n", .{});
+                std.os.exit(2);
+            },
+            errors.ControlledExit.Timeout => {
+                // the place that we raise this prints the output
+                std.os.exit(2);
+            },
+            // FIXME: match by error group?
+            // errors.GameException => {
+            //     std.debug.print("Game error\n", .{});
+            //     std.os.exit(3);
+            // },
+            // errors.UserException => {
+            //     std.debug.print("User error\n", .{});
+            //     std.os.exit(4);
+            // },
+            else => {
+                std.debug.print("Unknown error\n", .{});
+                std.os.exit(5);
+            },
         }
     };
     std.os.exit(1);

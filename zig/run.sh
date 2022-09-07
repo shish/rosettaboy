@@ -1,2 +1,2 @@
 #!/bin/sh
-zig build && exec ./zig-out/bin/rosettaboy $*
+zig build -Drelease-fast=false && exec ./zig-out/bin/rosettaboy $*

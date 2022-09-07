@@ -22,7 +22,6 @@ pub const Clock = struct {
             .start = try std.time.Timer.start(),
             .cycle = 0,
             .frame = 0,
-            // FIXME
         };
     }
 
@@ -41,9 +40,16 @@ pub const Clock = struct {
 
             // Exit if we've hit the frame limit
             if ((self.profile != 0) and (self.frame > self.profile)) {
-                var duration = self.start.read();
-                _ = duration;
-                return errors.ControlledExit.Timeout; // self.profile, duration
+                var duration: f64 = @intToFloat(f64, self.start.read());
+                std.debug.print(
+                    "Emulated {d} frames in {d:5.2}s ({d:.0}fps)\n",
+                    .{
+                        self.frame,
+                        duration / 1_000_000_000.0,
+                        @intToFloat(f64, self.frame) / (duration / 1_000_000_000.0),
+                    }
+                );
+                return errors.ControlledExit.Timeout;
             }
 
             self.frame += 1;
