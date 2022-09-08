@@ -17,7 +17,7 @@ pub fn main() anyerror!void {
     // FIXME: catch errors, return appropriate exit codes
     var gameboy = try GameBoy.new(args);
     gameboy.run() catch |err| {
-        switch(err) {
+        switch (err) {
             errors.ControlledExit.UnitTestPassed => {
                 std.debug.print("Unit Test Passed\n", .{});
                 std.os.exit(0);
