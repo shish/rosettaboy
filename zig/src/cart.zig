@@ -39,8 +39,6 @@ pub const Cart = struct {
     checksum: u16,
 
     pub fn new(fname: []const u8) !Cart {
-        _ = fname;
-
         var f = try fs.cwd().openFile(fname, fs.File.OpenFlags{ .mode = .read_only });
         defer f.close();
 
@@ -86,6 +84,9 @@ pub const Cart = struct {
 
         // FIXME: ram should be synced with .sav file
         var ram = try allocator.alloc(u8, ram_size);
+
+        // FIXME: ram.get(address within cart range) crashes without this
+        std.debug.print("cart data {*}\n", .{data});
 
         return Cart{
             .data = data,

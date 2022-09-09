@@ -156,7 +156,7 @@ fn flag(ien: u8, ifl: u8, i: u8, c: u8) u8 {
     }
 }
 
-pub const CPU = packed struct {
+pub const CPU = struct {
     regs: packed union {
         r16: packed struct {
             af: u16,
