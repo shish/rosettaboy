@@ -16,8 +16,6 @@ pub const GameBoy = struct {
     clock: Clock,
 
     pub fn new(args: Args) !GameBoy {
-        // let sdl = sdl2.init().map_err(anyhow.Error.msg)?;
-
         var cart = try Cart.new(args.rom);
         var ram = try RAM.new(&cart);
         var cpu = try CPU.new(&ram, args.debug_cpu);

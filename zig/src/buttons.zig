@@ -87,7 +87,6 @@ pub const Buttons = struct {
     }
 
     pub fn handle_inputs(self: *Buttons) !void {
-        _ = self;
         while (SDL.pollEvent()) |ev| {
             switch (ev) {
                 .quit => return errors.ControlledExit.Quit,

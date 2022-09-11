@@ -86,7 +86,7 @@ pub const Cart = struct {
         var ram = try allocator.alloc(u8, ram_size);
 
         // FIXME: ram.get(address within cart range) crashes without this
-        std.debug.print("cart data {*}\n", .{data});
+        //std.debug.print("cart data {*}\n", .{data});
 
         return Cart{
             .data = data,
