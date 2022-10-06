@@ -39,8 +39,12 @@ pub fn main() anyerror!void {
             //     std.debug.print("User error\n", .{});
             //     std.os.exit(4);
             // },
+            SDL.Error.SdlError => {
+                std.debug.print("SDL error {any}\n", .{err});
+                std.os.exit(99);
+            },
             else => {
-                std.debug.print("Unknown error\n", .{});
+                std.debug.print("Unknown error {any}\n", .{err});
                 std.os.exit(5);
             },
         }
