@@ -44,7 +44,6 @@ pub const GPU = struct {
     cycle: u32,
 
     hw_window: ?*const SDL.Window,
-    hw_buffer: ?*const SDL.Texture,
     hw_renderer: ?*const SDL.Renderer,
     buffer: *SDL.Surface,
     renderer: *const SDL.Renderer,
@@ -64,7 +63,6 @@ pub const GPU = struct {
 
         var hw_window: ?*const SDL.Window = null;
         var hw_renderer: ?*const SDL.Renderer = null;
-        var hw_buffer: ?*const SDL.Texture = null;
         if (!headless) {
             var _hw_window = try SDL.createWindow(
                 "RosettaBoy - ??",
@@ -78,11 +76,9 @@ pub const GPU = struct {
             // FIXME
             // SDL.setHint(SDL.HINT_RENDER_SCALE_QUALITY, "nearest"); // vs "linear"
             try _hw_renderer.setLogicalSize(w, h);
-            var _hw_buffer = try SDL.createTexture(_hw_renderer, SDL.PixelFormatEnum.abgr8888, SDL.Texture.Access.streaming, @intCast(usize, w), @intCast(usize, h));
 
             hw_window = &_hw_window;
             hw_renderer = &_hw_renderer;
-            hw_buffer = &_hw_buffer;
         }
         var buffer = try SDL.createRgbSurfaceWithFormat(@intCast(u31, w), @intCast(u31, h), SDL.PixelFormatEnum.abgr8888);
         std.debug.print("buf {any}\n", .{buffer});
@@ -105,7 +101,6 @@ pub const GPU = struct {
             .debug = debug,
             .cycle = 0,
             .hw_window = hw_window,
-            .hw_buffer = hw_buffer,
             .hw_renderer = hw_renderer,
             .buffer = &buffer,
             .renderer = &renderer,
@@ -171,14 +166,10 @@ pub const GPU = struct {
                     try self.draw_debug();
                 }
                 if (self.hw_renderer) |hw_renderer| {
-                    if (self.hw_buffer) |hw_buffer| {
-                        var tex = try SDL.createTextureFromSurface(self.renderer.*, self.buffer.*);
-                        var pixelData = try tex.lock(null);
-                        try hw_buffer.update(pixelData.pixels[0..10], pixelData.stride, null);
-                        try hw_renderer.clear();
-                        try hw_renderer.copy(hw_buffer.*, null, null);
-                        hw_renderer.present();
-                    }
+                    var tex = try SDL.createTextureFromSurface(hw_renderer.*, self.buffer.*);
+                    try hw_renderer.clear();
+                    try hw_renderer.copy(tex, null, null);
+                    hw_renderer.present();
                 }
             }
         } else if (lx == 63 and ly < 144) {
@@ -403,8 +394,8 @@ pub const GPU = struct {
                 try self.renderer.setColor(palette[px]);
                 try self.renderer.drawPoint(xy.x, xy.y);
             }
-            x += 1;
             if (x == 7) break;
+            x += 1;
         }
     }
 };

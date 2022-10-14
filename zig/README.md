@@ -68,3 +68,10 @@ number of parameter mismatch" errors - and Rust actually has the same
 thing. The same workaround applies though, `op_names = [..., "LD A,u16", ...]` +
 `print(op_names[op].replace("u16", op_param));` (after I eventually found
 the `replace` function in the `mem` library)
+
+Log-levels per module are set by... defining a global variable in the
+main module??
+
+Log-levels are set at compile-time, to avoid the release binary even
+containing the code for debug logs. I guess that's great if you never
+want to implement a `--verbose` flag?

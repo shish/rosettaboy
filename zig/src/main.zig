@@ -4,6 +4,12 @@ const GameBoy = @import("gameboy.zig").GameBoy;
 const errors = @import("errors.zig");
 const SDL = @import("sdl2");
 
+//pub const log_level: std.log.Level = .debug;
+pub const scope_levels = [_]std.log.ScopeLevel{
+    .{ .scope = .sdl2, .level = .debug },
+    //.{ .scope = .library_b, .level = .crit },
+};
+
 pub fn main() anyerror!void {
     var args = try Args.parse_args();
 
@@ -40,11 +46,11 @@ pub fn main() anyerror!void {
             //     std.os.exit(4);
             // },
             SDL.Error.SdlError => {
-                std.debug.print("SDL error {any}\n", .{err});
+                std.log.err("SDL error {any}\n", .{err});
                 std.os.exit(99);
             },
             else => {
-                std.debug.print("Unknown error {any}\n", .{err});
+                std.log.err("Unknown error {any}\n", .{err});
                 std.os.exit(5);
             },
         }
