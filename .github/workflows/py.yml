@@ -10,7 +10,7 @@ on:
 jobs:
   format:
     name: Format
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -20,7 +20,7 @@ jobs:
         black_args: "--check py/src"
   test:
     name: Test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Install Deps
       run: (python3 -m venv --help >/dev/null) || (sudo apt-get update && sudo apt-get install -y python3-venv)

@@ -10,7 +10,7 @@ on:
 jobs:
   format:
     name: Format
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Set Up Toolchain
       uses: goto-bus-stop/setup-zig@v1
@@ -27,7 +27,7 @@ jobs:
         cmp --silent /tmp/a /tmp/b || exit 1
   build:
     name: Build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Install Deps
       run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
