@@ -15,7 +15,7 @@ jobs:
     - name: Install Deps
       run: which clang-format-14 || (sudo apt-get update && sudo apt-get install -y clang-format-14)
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Check
       working-directory: cpp
       run: clang-format-14 $(find src -type f | grep -v args.h) --dry-run --ferror-limit 10 -Werror
@@ -26,7 +26,7 @@ jobs:
     - name: Install Deps
       run: sudo apt-get update && sudo apt-get install -y gcc cmake libsdl2-dev
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: CMake
       working-directory: cpp
       run: cmake -DCMAKE_BUILD_TYPE=Release .

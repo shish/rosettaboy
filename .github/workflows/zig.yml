@@ -17,7 +17,7 @@ jobs:
       with:
         version: master
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Check
       run: |
         cd zig
@@ -36,7 +36,7 @@ jobs:
       with:
         version: master
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         submodules: recursive
     - name: Build

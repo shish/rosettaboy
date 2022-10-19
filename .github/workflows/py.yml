@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Check
       uses: rickstaa/action-black@v1
       with:
@@ -25,7 +25,7 @@ jobs:
     - name: Install Deps
       run: (python3 -m venv --help >/dev/null) || (sudo apt-get update && sudo apt-get install -y python3-venv)
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Set Up Build Cache
       uses: actions/cache@v2
       with:
