@@ -155,7 +155,7 @@ pub const GPU = struct {
             if (ly == 0) {
                 // TODO: how often should we update palettes?
                 // Should every pixel reference them directly?
-        //std.debug.print("ren2 {any}\n", .{self.renderer});
+                //std.debug.print("ren2 {any}\n", .{self.renderer});
                 self.update_palettes();
                 try self.renderer.setColor(self.bgp[0]);
                 try self.renderer.clear();
