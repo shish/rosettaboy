@@ -19,7 +19,7 @@ pub fn build(b: *std.build.Builder) void {
     sdk.link(exe, .dynamic);
     exe.addPackage(sdk.getWrapperPackage("sdl2"));
     exe.install();
-    exe.addLibPath("/Users/shish2k/homebrew/lib/");
+    exe.addLibraryPath("/Users/shish2k/homebrew/lib/");
     exe.addPackagePath("clap", "lib/clap/clap.zig");
 
     const run_cmd = exe.run();

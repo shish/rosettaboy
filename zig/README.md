@@ -75,3 +75,6 @@ main module??
 Log-levels are set at compile-time, to avoid the release binary even
 containing the code for debug logs. I guess that's great if you never
 want to implement a `--verbose` flag?
+
+Functions which work fine in 0.10.0.X cause a fatal deprecation error
+in 0.10.0.Y x__x
