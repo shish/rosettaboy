@@ -34,7 +34,10 @@ pub fn main() anyerror!void {
             },
             errors.ControlledExit.Timeout => {
                 // the place that we raise this prints the output
-                std.os.exit(2);
+                std.os.exit(0);
+            },
+            errors.ControlledExit.Quit => {
+                std.os.exit(0);
             },
             // FIXME: match by error group?
             // errors.GameException => {
