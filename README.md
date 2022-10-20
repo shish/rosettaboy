@@ -41,28 +41,6 @@ I wrote one copy of the documentation for all the implementations:
 Pull requests to translate into new languages, or fleshing out existing
 languages, are very welcome :)
 
-Completeness
-------------
-| Feature                       | Python  | C++     | Rust    | Go      | PHP     |
-| -------                       | ------- | ---     | ----    | --      | ---     |
-| *CPU*                         |         |         |         |         |         |
-| blargg's test suite           | &check; | &check; | &check; | &check; | &check; |
-| interrupts                    | &check; | &check; | &check; | &check; | &check; |
-| logging                       | &check; | &check; | &check; | &check; | &check; |
-| *Graphics*                    |         |         |         |         |         |
-| scaled output                 | &check; | &check; | &check; | &check; | &cross; |
-| scanline rendering            | &check; | &check; | &check; | &check; | &cross; |
-| GPU interrupts                | &check; | &check; | &check; | &check; | &cross; |
-| *Audio*                       |         |         |         |         |         |
-| audio                         | &cross; | off-key | glitchy | &cross; | &cross; |
-| *Inputs*                      |         |         |         |         |         |
-| keyboard input                | &check; | &check; | &check; | &check; | &cross; |
-| gamepad input                 | &cross; | &cross; | &check; | &cross; | &cross; |
-| turbo button                  | &check; | &check; | &check; | &check; | &cross; |
-| *Memory*                      |         |         |         |         |         |
-| memory mapping                | &check; | &check; | &check; | &check; | &check; |
-| bank swapping                 | &cross; | &cross; | &cross; | &cross; | &cross; |
-
 Benchmarks
 ----------
 **Warning**: These implementations aren't fully in-sync, so take numbers with
@@ -79,9 +57,9 @@ Running on an M1 Macbook Pro:
 
 ```
 $ ./bench.sh
+ zig: Emulated 600 frames in  0.23s (2880fps)
   rs: Emulated 600 frames in  0.35s (1691fps)
  cpp: Emulated 600 frames in  0.40s (1519fps)
- zig: Emulated 600 frames in  1.53s (393fps)  # no-gpu, release-safe (release-fast crashes)
  nim: Emulated 600 frames in  1.60s (374fps)
   go: Emulated 600 frames in  1.78s (338fps)
  php: Emulated 600 frames in 23.80s (25fps)

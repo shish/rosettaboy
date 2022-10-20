@@ -52,6 +52,25 @@ other languages could copy from Zig, I think this would be my choice.
 
 No way to iterate over a range? Again: u wot m8?
 
+Also iterating over the full range of a data type is hella ugly - like
+say you want to call `fn(x: u2)` with all possible values of x (0, 1,
+2, 3). There's no range, so `for(x in 0..3) fn(x)` is out.
+`while (x<4) fn(x++)` doesn't work since x will overflow instead of
+reaching 4. There's no `do {...} while();` because the language designers
+feel like that's redundant... I've ended up doing
+
+```
+var x: u2 = 0;
+while (true) {
+    fn(x);
+    if (x == 3) break;
+    x += 1;
+}
+```
+
+For bonus fun, the `while (x<4) fn(x++)` approach panics with an overflow
+error in safe mode but just infinite-loops in release mode.
+
 No nested functions? :(
 
 I really like `zig format`'s way of formatting long lists of short strings
@@ -78,3 +97,9 @@ want to implement a `--verbose` flag?
 
 Functions which work fine in 0.10.0.X cause a fatal deprecation error
 in 0.10.0.Y x__x
+
+When it's not randomly segfaulting due to compiler bugs, Zig is _really_
+fast, almost twice as fast as C++ and Rust for this use-case; I have no
+idea how it manages that. The zig implementation is still missing a
+couple of bits, like the audio processor implementation - but I can't
+think of anything that would have any significant effect on performance.

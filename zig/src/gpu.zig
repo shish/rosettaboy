@@ -351,8 +351,9 @@ pub const GPU = struct {
 
     fn paint_tile(self: *GPU, tile_id: i16, offset: *SDL.Point, palette: [4]SDL.Color, flip_x: bool, flip_y: bool) !void {
         var y: u3 = 0;
-        while (y < 8) {
+        while (true) {
             try self.paint_tile_line(tile_id, offset, palette, flip_x, flip_y, y);
+            if (y == 7) break;
             y += 1;
         }
 
