@@ -70,4 +70,8 @@ Also if you spot some bit of code that is weirdly slow and making your favourite
 language look bad, pull requests to fix that _might_ be welcome too, but "simplicity
 and consistency" are going to take priority (eg an "add an `inline` flag to this
 function" would be great but "replace python's CPU interpreter with a JIT compiler
-written as a C extension module" would probably be rejected)
+written as a C extension module" would probably be rejected[0])
+
+[0] That said if somebody wanted to come up with a separate "python but all the slow
+parts are replaced with C modules like they would be in a real app" implementation,
+that could be interesting...
