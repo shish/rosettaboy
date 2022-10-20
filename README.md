@@ -65,3 +65,9 @@ $ ./bench.sh
  php: Emulated 600 frames in 23.80s (25fps)
   py: Emulated 600 frames in 68.44s (9fps)
 ```
+
+Also if you spot some bit of code that is weirdly slow and making your favourite
+language look bad, pull requests to fix that _might_ be welcome too, but "simplicity
+and consistency" are going to take priority (eg an "add an `inline` flag to this
+function" would be great but "replace python's CPU interpreter with a JIT compiler
+written as a C extension module" would probably be rejected)
