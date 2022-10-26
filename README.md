@@ -60,10 +60,11 @@ $ ./bench.sh
  zig: Emulated 600 frames in  0.23s (2880fps)
   rs: Emulated 600 frames in  0.35s (1691fps)
  cpp: Emulated 600 frames in  0.40s (1519fps)
- nim: Emulated 600 frames in  1.60s (374fps)
+ nim: Emulated 600 frames in  0.44s (1367fps)
   go: Emulated 600 frames in  1.78s (338fps)
  php: Emulated 600 frames in 23.80s (25fps)
-  py: Emulated 600 frames in 68.44s (9fps)
+  py: Emulated 600 frames in 33.10s (18fps)
+
 ```
 
 Also if you spot some bit of code that is weirdly slow and making your favourite

@@ -1,3 +1,3 @@
 #!/bin/bash
-nimble build
+nimble build -d:release --opt:speed
 ./rosettaboy $*

@@ -5,7 +5,7 @@ Main
 ------------
 - Parse arguments
   - [Args](args.md)
-- Create the gamebody object and start it running
+- Create the gameboy object and start it running
   - [GameBoy](gameboy.md)
 - Handle any errors that get thrown
   - [Errors](errors.md)
