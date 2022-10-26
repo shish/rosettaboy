@@ -62,9 +62,8 @@ $ ./bench.sh
  cpp: Emulated 600 frames in  0.40s (1519fps)
  nim: Emulated 600 frames in  0.44s (1367fps)
   go: Emulated 600 frames in  1.78s (338fps)
- php: Emulated 600 frames in 23.80s (25fps)
+ php: Emulated 600 frames in  9.28s (65fps)
   py: Emulated 600 frames in 33.10s (18fps)
-
 ```
 
 Also if you spot some bit of code that is weirdly slow and making your favourite
