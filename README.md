@@ -58,7 +58,7 @@ Running on an M1 Macbook Pro:
 ```
 $ ./bench.sh
  zig: Emulated 600 frames in  0.23s (2880fps)
-  rs: Emulated 600 frames in  0.35s (1691fps)
+  rs: Emulated 600 frames in  0.29s (2083fps)
  cpp: Emulated 600 frames in  0.40s (1519fps)
  nim: Emulated 600 frames in  0.44s (1367fps)
   go: Emulated 600 frames in  1.78s (338fps)
