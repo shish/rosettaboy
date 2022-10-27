@@ -43,17 +43,18 @@ languages, are very welcome :)
 
 Benchmarks
 ----------
-**Warning**: These implementations aren't fully in-sync, so take numbers with
-a large grain of salt. For example: the Python implementation uses native code
-to blit whole 8x8 sprites in one go, while the other languages do one pixel at
-a time (which is more correct, and necessary for things like parallax effects),
-which means that the python version is unfairly fast.
+**Warning**: These implementations aren't 100% in-sync, so take numbers with
+a large grain of salt. For example, as of this writing, the PHP version is
+using a stub SDL mock instead of calling the real C library, because I couldn't
+find an SDL library that worked.
 
 If somebody knows how to measure CPU instructions instead of clock time, that
 seems fairer; especially if we can get the measurement included automatically
 via github actions. Pull requests welcome :)
 
-Running on an M1 Macbook Pro:
+Running on an M1 Macbook Pro, using (to my knowledge) the latest version of
+each compiler, with standard "release mode" flags (see each language's run.sh
+for exactly which flags are used):
 
 ```
 $ ./bench.sh
