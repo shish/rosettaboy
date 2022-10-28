@@ -27,12 +27,8 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Check
-      run: |
-        cd rs
-        git diff >/tmp/a
-        cargo fmt
-        git diff >/tmp/b
-        cmp --silent /tmp/a /tmp/b || exit 1
+      working-directory: rs
+      run: ./format.sh && git diff --exit-code
   build:
     name: Build
     runs-on: ubuntu-22.04

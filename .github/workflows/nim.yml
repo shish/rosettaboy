@@ -17,7 +17,8 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Check
-      run: if [ "$(./format.sh && git diff)" -gt 0 ]; then exit 1; fi
+      working-directory: nim
+      run: ./format.sh && git diff --exit-code
   build:
     name: Build
     runs-on: ubuntu-22.04

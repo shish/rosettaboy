@@ -26,7 +26,7 @@ jobs:
       run: ../composer.phar require friendsofphp/php-cs-fixer
     - name: Check
       working-directory: php
-      run: vendor/bin/php-cs-fixer fix --dry-run
+      run: ./format.sh && git diff --exit-code
   build:
     name: Build
     runs-on: ubuntu-22.04
