@@ -21,7 +21,8 @@ pub fn main() anyerror!void {
     defer SDL.quit();
 
     // FIXME: catch errors, return appropriate exit codes
-    var gameboy = try GameBoy.new(args);
+    var gameboy: GameBoy = undefined;
+    try gameboy.init(args);
     gameboy.run() catch |err| {
         switch (err) {
             errors.ControlledExit.UnitTestPassed => {

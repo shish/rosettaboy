@@ -14,24 +14,16 @@ pub const GameBoy = struct {
     apu: APU,
     buttons: Buttons,
     clock: Clock,
+    cart: Cart,
 
-    pub fn new(args: Args) !GameBoy {
-        var cart = try Cart.new(args.rom);
-        var ram = try RAM.new(&cart);
-        var cpu = try CPU.new(&ram, args.debug_cpu);
-        var gpu = try GPU.new(&cpu, cart.name, args.headless, args.debug_gpu);
-        var apu = try APU.new(args.silent, args.debug_apu);
-        var buttons = try Buttons.new(&cpu, &ram, args.headless);
-        var clock = try Clock.new(&buttons, args.profile, args.turbo);
-
-        return GameBoy{
-            .ram = ram,
-            .cpu = cpu,
-            .gpu = gpu,
-            .apu = apu,
-            .buttons = buttons,
-            .clock = clock,
-        };
+    pub fn init(gb: *GameBoy, args: Args) !void {
+        gb.cart = try Cart.new(args.rom);
+        gb.ram = try RAM.new(&gb.cart);
+        gb.cpu = try CPU.new(&gb.ram, args.debug_cpu);
+        gb.gpu = try GPU.new(&gb.cpu, gb.cart.name, args.headless, args.debug_gpu);
+        gb.apu = try APU.new(args.silent, args.debug_apu);
+        gb.buttons = try Buttons.new(&gb.cpu, &gb.ram, args.headless);
+        gb.clock = try Clock.new(&gb.buttons, args.profile, args.turbo);
     }
 
     pub fn run(self: *GameBoy) !void {
