@@ -44,9 +44,9 @@ pub const GPU = struct {
     cycle: u32,
 
     hw_window: ?*const SDL.Window,
-    hw_renderer: ?*const SDL.Renderer,
+    hw_renderer: ?SDL.Renderer,
     buffer: *SDL.Surface,
-    renderer: *const SDL.Renderer,
+    renderer: SDL.Renderer,
     colors: [4]SDL.Color,
     bgp: [4]SDL.Color,
     obp0: [4]SDL.Color,
@@ -62,7 +62,7 @@ pub const GPU = struct {
         }
 
         var hw_window: ?*const SDL.Window = null;
-        var hw_renderer: ?*const SDL.Renderer = null;
+        var hw_renderer: ?SDL.Renderer = null;
         if (!headless) {
             var _hw_window = try SDL.createWindow(
                 "RosettaBoy - ??",
@@ -72,17 +72,17 @@ pub const GPU = struct {
                 @intCast(usize, h * SCALE),
                 .{ .vis = .shown }, // FIXME: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE
             );
-            var _hw_renderer = try SDL.createRenderer(_hw_window, null, .{ .accelerated = true });
+            const _hw_renderer = try SDL.createRenderer(_hw_window, null, .{ .accelerated = true });
             // FIXME
             // SDL.setHint(SDL.HINT_RENDER_SCALE_QUALITY, "nearest"); // vs "linear"
             try _hw_renderer.setLogicalSize(w, h);
 
             hw_window = &_hw_window;
-            hw_renderer = &_hw_renderer;
+            hw_renderer = _hw_renderer;
         }
         var buffer = try SDL.createRgbSurfaceWithFormat(@intCast(u31, w), @intCast(u31, h), SDL.PixelFormatEnum.abgr8888);
         std.debug.print("buf {any}\n", .{buffer});
-        var renderer = try SDL.createSoftwareRenderer(buffer);
+        const renderer = try SDL.createSoftwareRenderer(buffer);
         std.debug.print("ren {any}\n", .{renderer});
 
         // Colors
@@ -103,7 +103,7 @@ pub const GPU = struct {
             .hw_window = hw_window,
             .hw_renderer = hw_renderer,
             .buffer = &buffer,
-            .renderer = &renderer,
+            .renderer = renderer,
             .colors = colors,
             .bgp = colors,
             .obp0 = colors,
@@ -166,7 +166,7 @@ pub const GPU = struct {
                     try self.draw_debug();
                 }
                 if (self.hw_renderer) |hw_renderer| {
-                    var tex = try SDL.createTextureFromSurface(hw_renderer.*, self.buffer.*);
+                    var tex = try SDL.createTextureFromSurface(hw_renderer, self.buffer.*);
                     try hw_renderer.clear();
                     try hw_renderer.copy(tex, null, null);
                     hw_renderer.present();
@@ -326,21 +326,21 @@ pub const GPU = struct {
                     .y = self.cpu.ram.get(consts.Mem.OamBase + 4 * n + 0),
                     .x = self.cpu.ram.get(consts.Mem.OamBase + 4 * n + 1),
                     .tile_id = self.cpu.ram.get(consts.Mem.OamBase + 4 * n + 2),
-                    .flags = .{ .byte = self.cpu.ram.get(consts.Mem.OamBase + 4 * n + 3) },
+                    .flags = @bitCast(Sprite.Flags, self.cpu.ram.get(consts.Mem.OamBase + 4 * n + 3)),
                 };
 
                 if (sprite.is_live()) {
-                    var palette = if (sprite.flags.bits.palette) self.obp1 else self.obp0;
+                    var palette = if (sprite.flags.palette) self.obp1 else self.obp0;
                     // printf("Drawing sprite %d (from %04X) at %d,%d\n", tile_id, OamBase + (sprite_id * 4) + 0, x, y);
                     var xy = SDL.Point{
                         .x = sprite.x - 8,
                         .y = sprite.y - 16,
                     };
-                    try self.paint_tile(sprite.tile_id, &xy, palette, sprite.flags.bits.x_flip, sprite.flags.bits.y_flip);
+                    try self.paint_tile(sprite.tile_id, &xy, palette, sprite.flags.x_flip, sprite.flags.y_flip);
 
                     if (dbl) {
                         xy.y = sprite.y - 8;
-                        try self.paint_tile(sprite.tile_id + 1, &xy, palette, sprite.flags.bits.x_flip, sprite.flags.bits.y_flip);
+                        try self.paint_tile(sprite.tile_id + 1, &xy, palette, sprite.flags.x_flip, sprite.flags.y_flip);
                     }
                 }
 
@@ -405,16 +405,15 @@ pub const Sprite = packed struct {
     y: u8,
     x: u8,
     tile_id: u8,
-    flags: packed union {
-        byte: u8,
-        bits: packed struct {
-            _empty: u4,
-            palette: bool,
-            x_flip: bool,
-            y_flip: bool,
-            behind: bool,
-        },
-    },
+    flags: Flags,
+
+    pub const Flags = packed struct {
+        _empty: u4,
+        palette: bool,
+        x_flip: bool,
+        y_flip: bool,
+        behind: bool,
+    };
 
     fn is_live(self: *Sprite) bool {
         return self.x > 0 and self.x < 168 and self.y > 0 and self.y < 160;
