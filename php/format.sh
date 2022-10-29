@@ -1,2 +1,2 @@
 #!/bin/sh
-php-cs-fixer fix
+./vendor/bin/php-cs-fixer fix
