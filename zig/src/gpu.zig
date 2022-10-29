@@ -81,9 +81,7 @@ pub const GPU = struct {
             hw_renderer = _hw_renderer;
         }
         var buffer = try SDL.createRgbSurfaceWithFormat(@intCast(u31, w), @intCast(u31, h), SDL.PixelFormatEnum.abgr8888);
-        std.debug.print("buf {any}\n", .{buffer});
         const renderer = try SDL.createSoftwareRenderer(buffer);
-        std.debug.print("ren {any}\n", .{renderer});
 
         // Colors
         var colors: [4]SDL.Color = .{
