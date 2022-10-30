@@ -2,6 +2,8 @@ name: C++
 
 on:
   push:
+    branches:
+    - master
     paths:
     - 'cpp/**'
     - '.github/workflows/cpp.yml'

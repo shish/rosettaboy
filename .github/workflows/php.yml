@@ -2,6 +2,8 @@ name: PHP
 
 on:
   push:
+    branches:
+    - master
     paths:
     - 'php/**'
     - '.github/workflows/php.yml'
