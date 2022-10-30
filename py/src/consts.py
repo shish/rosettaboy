@@ -2,6 +2,7 @@ u8 = int
 u16 = int
 i8 = int
 
+
 class Mem:
     VBLANK_HANDLER = 0x40
     LCD_HANDLER = 0x48

@@ -88,10 +88,13 @@ class GPU:
                 sdl2.SDL_WINDOWPOS_UNDEFINED,  # initial y position
                 size[0] * SCALE,  # width, in pixels
                 size[1] * SCALE,  # height, in pixels
-                sdl2.SDL_WINDOW_ALLOW_HIGHDPI | sdl2.SDL_WINDOW_RESIZABLE,  # flags - see below
+                sdl2.SDL_WINDOW_ALLOW_HIGHDPI
+                | sdl2.SDL_WINDOW_RESIZABLE,  # flags - see below
             )
             self.hw_renderer = sdl2.SDL_CreateRenderer(self.hw_window, -1, 0)
-            sdl2.SDL_SetHint(sdl2.SDL_HINT_RENDER_SCALE_QUALITY, b"nearest")  # vs "linear"
+            sdl2.SDL_SetHint(
+                sdl2.SDL_HINT_RENDER_SCALE_QUALITY, b"nearest"
+            )  # vs "linear"
             sdl2.SDL_RenderSetLogicalSize(self.hw_renderer, size[0], size[1])
             self.hw_buffer = sdl2.SDL_CreateTexture(
                 self.hw_renderer,
