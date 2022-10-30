@@ -88,7 +88,7 @@ proc create*(cart: Cart): RAM =
     )
 
 
-proc get*(self: RAM, address: uint16): uint8 =
+func get*(self: RAM, address: uint16): uint8 =
     case address:
         of 0x0000..0x3FFF:
             # ROM bank 0

@@ -337,7 +337,7 @@ proc cpu_sbc(self: var CPU, val: uint8) =
     self.flag_n = true;
 
 
-proc get_reg(self: var CPU, n: uint8): uint8 =
+func get_reg(self: CPU, n: uint8): uint8 =
     return case bitand(n, 0x07):
         of 0: self.regs.r8.b
         of 1: self.regs.r8.c
