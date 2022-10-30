@@ -5,6 +5,10 @@ on:
     paths:
     - 'zig/**'
     - '.github/workflows/zig.yml'
+  pull_request:
+    paths:
+    - 'zig/**'
+    - '.github/workflows/zig.yml'
   workflow_dispatch:
 
 jobs:

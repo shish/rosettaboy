@@ -5,6 +5,10 @@ on:
     paths:
     - 'php/**'
     - '.github/workflows/php.yml'
+  pull_request:
+    paths:
+    - 'php/**'
+    - '.github/workflows/php.yml'
   workflow_dispatch:
 
 jobs:

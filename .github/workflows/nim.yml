@@ -5,6 +5,10 @@ on:
     paths:
     - 'nim/**'
     - '.github/workflows/nim.yml'
+  pull_request:
+    paths:
+    - 'nim/**'
+    - '.github/workflows/nim.yml'
   workflow_dispatch:
 
 jobs:
