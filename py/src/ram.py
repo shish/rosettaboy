@@ -151,7 +151,7 @@ class RAM:
         assert len(BOOT) == 0x100, f"Bootloader must be 256 bytes ({len(BOOT)})"
         return BOOT
 
-    def __getitem__(self, addr: int) -> int:
+    def __getitem__(self, addr: u16) -> u8:
         if addr < 0x4000:
             # ROM bank 0
             if self.data[Mem.BOOT] == 0 and addr < 0x100:
@@ -211,7 +211,7 @@ class RAM:
 
         return self.data[addr]
 
-    def __setitem__(self, addr: int, val: int) -> None:
+    def __setitem__(self, addr: u16, val: u8) -> None:
         if addr < 0x2000:
             self.ram_enable = val != 0
         elif addr < 0x4000:
