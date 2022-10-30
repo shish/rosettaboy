@@ -1,4 +1,5 @@
-from sdl2 import *
+import sdl2
+
 from typing import NamedTuple
 from .consts import *
 from .cpu import CPU
@@ -42,19 +43,19 @@ class Sprite(NamedTuple):
 
     @property
     def palette(self) -> bool:
-        return self.flags & (1 << 3)
+        return self.flags & (1 << 3) != 0
 
     @property
     def x_flip(self) -> bool:
-        return self.flags & (1 << 3)
+        return self.flags & (1 << 3) != 0
 
     @property
     def y_flip(self) -> bool:
-        return self.flags & (1 << 3)
+        return self.flags & (1 << 3) != 0
 
     @property
     def behind(self) -> bool:
-        return self.flags & (1 << 3)
+        return self.flags & (1 << 3) != 0
 
 
 rmask = 0x000000FF
@@ -80,22 +81,22 @@ class GPU:
             )
 
         if not headless:
-            SDL_InitSubSystem(SDL_INIT_VIDEO)
-            self.hw_window = SDL_CreateWindow(
+            sdl2.SDL_InitSubSystem(sdl2.SDL_INIT_VIDEO)
+            self.hw_window = sdl2.SDL_CreateWindow(
                 self.title.encode("utf8"),  # window title
-                SDL_WINDOWPOS_UNDEFINED,  # initial x position
-                SDL_WINDOWPOS_UNDEFINED,  # initial y position
+                sdl2.SDL_WINDOWPOS_UNDEFINED,  # initial x position
+                sdl2.SDL_WINDOWPOS_UNDEFINED,  # initial y position
                 size[0] * SCALE,  # width, in pixels
                 size[1] * SCALE,  # height, in pixels
-                SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE,  # flags - see below
+                sdl2.SDL_WINDOW_ALLOW_HIGHDPI | sdl2.SDL_WINDOW_RESIZABLE,  # flags - see below
             )
-            self.hw_renderer = SDL_CreateRenderer(self.hw_window, -1, 0)
-            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, b"nearest")  # vs "linear"
-            SDL_RenderSetLogicalSize(self.hw_renderer, size[0], size[1])
-            self.hw_buffer = SDL_CreateTexture(
+            self.hw_renderer = sdl2.SDL_CreateRenderer(self.hw_window, -1, 0)
+            sdl2.SDL_SetHint(sdl2.SDL_HINT_RENDER_SCALE_QUALITY, b"nearest")  # vs "linear"
+            sdl2.SDL_RenderSetLogicalSize(self.hw_renderer, size[0], size[1])
+            self.hw_buffer = sdl2.SDL_CreateTexture(
                 self.hw_renderer,
-                SDL_PIXELFORMAT_ABGR8888,
-                SDL_TEXTUREACCESS_STREAMING,
+                sdl2.SDL_PIXELFORMAT_ABGR8888,
+                sdl2.SDL_TEXTUREACCESS_STREAMING,
                 size[0],
                 size[1],
             )
@@ -104,24 +105,24 @@ class GPU:
             self.hw_renderer = None
             self.hw_buffer = None
 
-        self.buffer: SDL_Surface = SDL_CreateRGBSurface(
+        self.buffer: sdl2.SDL_Surface = sdl2.SDL_CreateRGBSurface(
             0, size[0], size[1], 32, rmask, gmask, bmask, amask
         )
-        self.renderer: SDL_Renderer = SDL_CreateSoftwareRenderer(self.buffer)
+        self.renderer: sdl2.SDL_Renderer = sdl2.SDL_CreateSoftwareRenderer(self.buffer)
 
         # Colors
         self.colors = [
-            SDL_Color(r=0x9B, g=0xBC, b=0x0F, a=0xFF),
-            SDL_Color(r=0x8B, g=0xAC, b=0x0F, a=0xFF),
-            SDL_Color(r=0x30, g=0x62, b=0x30, a=0xFF),
-            SDL_Color(r=0x0F, g=0x38, b=0x0F, a=0xFF),
+            sdl2.SDL_Color(r=0x9B, g=0xBC, b=0x0F, a=0xFF),
+            sdl2.SDL_Color(r=0x8B, g=0xAC, b=0x0F, a=0xFF),
+            sdl2.SDL_Color(r=0x30, g=0x62, b=0x30, a=0xFF),
+            sdl2.SDL_Color(r=0x0F, g=0x38, b=0x0F, a=0xFF),
         ]
-        # printf("SDL_Init failed: %s\n", SDL_GetError())
+        # printf("SDL_Init failed: %s\n", sdl2.SDL_GetError())
 
     #    GPU.~GPU():
-    #        SDL_FreeSurface(self.buffer)
-    #        if(self.hw_window) SDL_DestroyWindow(self.hw_window)
-    #        SDL_Quit()
+    #        sdl2.SDL_FreeSurface(self.buffer)
+    #        if(self.hw_window) sdl2.SDL_DestroyWindow(self.hw_window)
+    #        sdl2.SDL_Quit()
 
     def tick(self) -> None:
         self.cycle += 1
@@ -171,8 +172,8 @@ class GPU:
                 # Should every pixel reference them directly?
                 self.update_palettes()
                 c = self.bgp[0]
-                SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
-                SDL_RenderClear(self.renderer)
+                sdl2.SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
+                sdl2.SDL_RenderClear(self.renderer)
 
             self.draw_line(ly)
             if ly == 143:
@@ -180,15 +181,15 @@ class GPU:
                     self.draw_debug()
 
                 if self.hw_renderer:
-                    SDL_UpdateTexture(
+                    sdl2.SDL_UpdateTexture(
                         self.hw_buffer,
                         None,
                         self.buffer.contents.pixels,
                         self.buffer.contents.pitch,
                     )
-                    SDL_RenderClear(self.hw_renderer)
-                    SDL_RenderCopy(self.hw_renderer, self.hw_buffer, None, None)
-                    SDL_RenderPresent(self.hw_renderer)
+                    sdl2.SDL_RenderClear(self.hw_renderer)
+                    sdl2.SDL_RenderCopy(self.hw_renderer, self.hw_buffer, None, None)
+                    sdl2.SDL_RenderPresent(self.hw_renderer)
 
         elif lx == 63 and ly < 144:
             self.cpu.ram[Mem.STAT] = (
@@ -239,7 +240,7 @@ class GPU:
         # Tile data
         tile_display_width = 32
         for tile_id in range(0, 384):
-            xy = SDL_Point(
+            xy = sdl2.SDL_Point(
                 x=160 + (tile_id % tile_display_width) * 8,
                 y=(tile_id // tile_display_width) * 8,
             )
@@ -248,17 +249,17 @@ class GPU:
 
         # Background scroll border
         if lcdc & LCDC.BG_WIN_ENABLED:
-            rect = SDL_Rect(x=0, y=0, w=160, h=144)
-            SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 0xFF)
-            SDL_RenderDrawRect(self.renderer, rect)
+            rect = sdl2.SDL_Rect(x=0, y=0, w=160, h=144)
+            sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 0xFF)
+            sdl2.SDL_RenderDrawRect(self.renderer, rect)
 
         # Window tiles
         if lcdc & LCDC.WINDOW_ENABLED:
             wnd_y = self.cpu.ram[Mem.WY]
             wnd_x = self.cpu.ram[Mem.WX]
-            rect = SDL_Rect(x=wnd_x - 7, y=wnd_y, w=160, h=144)
-            SDL_SetRenderDrawColor(self.renderer, 0, 0, 255, 0xFF)
-            SDL_RenderDrawRect(self.renderer, rect)
+            rect = sdl2.SDL_Rect(x=wnd_x - 7, y=wnd_y, w=160, h=144)
+            sdl2.SDL_SetRenderDrawColor(self.renderer, 0, 0, 255, 0xFF)
+            sdl2.SDL_RenderDrawRect(self.renderer, rect)
 
     def draw_line(self, ly: int) -> None:
         lcdc = self.cpu.ram[Mem.LCDC]
@@ -271,9 +272,9 @@ class GPU:
             tile_map = Mem.MAP_1 if (lcdc & LCDC.BG_MAP) else Mem.MAP_0
 
             if self.debug:
-                xy = SDL_Point(x=256 - scroll_x, y=ly)
-                SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 0xFF)
-                SDL_RenderDrawPoint(self.renderer, xy.x, xy.y)
+                xy = sdl2.SDL_Point(x=256 - scroll_x, y=ly)
+                sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 0xFF)
+                sdl2.SDL_RenderDrawPoint(self.renderer, xy.x, xy.y)
 
             y_in_bgmap = (ly + scroll_y) % 256
             tile_y = y_in_bgmap // 8
@@ -288,7 +289,7 @@ class GPU:
                 if tile_offset and tile_id < 0x80:
                     tile_id += 0x100
 
-                xy = SDL_Point(
+                xy = sdl2.SDL_Point(
                     x=lx - tile_sub_x,
                     y=ly - tile_sub_y,
                 )
@@ -303,7 +304,7 @@ class GPU:
             tile_map = Mem.MAP_1 if (lcdc & LCDC.WINDOW_MAP) else Mem.MAP_0
 
             # blank out the background
-            rect = SDL_Rect(
+            rect = sdl2.SDL_Rect(
                 x=wnd_x - 7,
                 y=wnd_y,
                 w=160,
@@ -311,8 +312,8 @@ class GPU:
             )
 
             c = self.bgp[0]
-            SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
-            SDL_RenderFillRect(self.renderer, rect)
+            sdl2.SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
+            sdl2.SDL_RenderFillRect(self.renderer, rect)
 
             y_in_bgmap = ly - wnd_y
             tile_y = y_in_bgmap // 8
@@ -323,7 +324,7 @@ class GPU:
                 if tile_offset and tile_id < 0x80:
                     tile_id += 0x100
 
-                xy = SDL_Point(
+                xy = sdl2.SDL_Point(
                     x=tile_x * 8 + wnd_x - 7,
                     y=tile_y * 8 + wnd_y,
                 )
@@ -349,7 +350,7 @@ class GPU:
                 if sprite.is_live():
                     palette = self.obp1 if sprite.palette else self.obp0
                     # printf("Drawing sprite %d (from %04X) at %d,%d\n", tile_id, OAM_BASE + (sprite_id * 4) + 0, x, y)
-                    xy = SDL_Point(
+                    xy = sdl2.SDL_Point(
                         x=sprite.x - 8,
                         y=sprite.y - 16,
                     )
@@ -371,8 +372,8 @@ class GPU:
     def paint_tile(
         self,
         tile_id: int,
-        offset: SDL_Point,
-        palette: SDL_Color,
+        offset: sdl2.SDL_Point,
+        palette: sdl2.SDL_Color,
         flip_x: bool,
         flip_y: bool,
     ) -> None:
@@ -380,7 +381,7 @@ class GPU:
             self.paint_tile_line(tile_id, offset, palette, flip_x, flip_y, y)
 
         if self.debug:
-            rect = SDL_Rect(
+            rect = sdl2.SDL_Rect(
                 x=offset.x,
                 y=offset.y,
                 w=8,
@@ -388,14 +389,14 @@ class GPU:
             )
 
             c = gen_hue(tile_id)
-            SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
-            SDL_RenderDrawRect(self.renderer, rect)
+            sdl2.SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
+            sdl2.SDL_RenderDrawRect(self.renderer, rect)
 
     def paint_tile_line(
         self,
         tile_id: int,
-        offset: SDL_Point,
-        palette: SDL_Color,
+        offset: sdl2.SDL_Point,
+        palette: sdl2.SDL_Color,
         flip_x: bool,
         flip_y: bool,
         y: int,
@@ -409,17 +410,17 @@ class GPU:
             px = (high_bit << 1) | low_bit
             # pallette #0 = transparent, so don't draw anything
             if px > 0:
-                xy = SDL_Point(
+                xy = sdl2.SDL_Point(
                     x=offset.x + (7 - x if flip_x else x),
                     y=offset.y + (7 - y if flip_y else y),
                 )
 
                 c = palette[px]
-                SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
-                SDL_RenderDrawPoint(self.renderer, xy.x, xy.y)
+                sdl2.SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
+                sdl2.SDL_RenderDrawPoint(self.renderer, xy.x, xy.y)
 
 
-def gen_hue(n: int) -> SDL_Color:
+def gen_hue(n: int) -> sdl2.SDL_Color:
     region = n // 43
     remainder = (n - (region * 43)) * 6
 
@@ -427,13 +428,13 @@ def gen_hue(n: int) -> SDL_Color:
     t = remainder
 
     if region == 0:
-        return SDL_Color(r=255, g=t, b=0, a=0xFF)
+        return sdl2.SDL_Color(r=255, g=t, b=0, a=0xFF)
     if region == 1:
-        return SDL_Color(r=q, g=255, b=0, a=0xFF)
+        return sdl2.SDL_Color(r=q, g=255, b=0, a=0xFF)
     if region == 2:
-        return SDL_Color(r=0, g=255, b=t, a=0xFF)
+        return sdl2.SDL_Color(r=0, g=255, b=t, a=0xFF)
     if region == 3:
-        return SDL_Color(r=0, g=q, b=255, a=0xFF)
+        return sdl2.SDL_Color(r=0, g=q, b=255, a=0xFF)
     if region == 4:
-        return SDL_Color(r=t, g=0, b=255, a=0xFF)
-    return SDL_Color(r=255, g=0, b=q, a=0xFF)
+        return sdl2.SDL_Color(r=t, g=0, b=255, a=0xFF)
+    return sdl2.SDL_Color(r=255, g=0, b=q, a=0xFF)

@@ -103,6 +103,8 @@ class Cart:
                 val = mod(val)
             setattr(self, name, val)
 
+        self.ram = [0] * self.ram_size
+
         logo_checksum = sum(list(self.logo))
         if logo_checksum != 5446:
             raise LogoChecksumFailed(logo_checksum)

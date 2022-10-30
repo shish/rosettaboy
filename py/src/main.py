@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from sdl2 import SDL_Quit
+import sdl2
 import sys
 from typing import List
 
@@ -23,7 +23,7 @@ def main(argv: List[str]) -> int:
     except Exception as e:
         print(str(e))
     finally:
-        SDL_Quit()
+        sdl2.SDL_Quit()
 
     return 0
 
