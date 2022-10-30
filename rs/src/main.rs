@@ -41,7 +41,7 @@ fn configure_logging(args: &args::Args) {
     }
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| levels.into()),
+            std::env::var("RUST_LOG").unwrap_or(levels),
         ))
         .with(tracing_subscriber::fmt::layer())
         .init();
