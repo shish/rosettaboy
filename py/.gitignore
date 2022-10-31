@@ -8,6 +8,7 @@ Makefile
 *.gb
 *.asm
 *.o
+*.so
 
 *.swp
 *.txt

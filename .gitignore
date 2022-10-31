@@ -6,3 +6,4 @@ gb-autotest-roms
 0*.txt
 .vscode/
 venv/
+build/
