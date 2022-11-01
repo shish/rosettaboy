@@ -9,9 +9,9 @@ RUSTFLAGS="-Cprofile-generate=/tmp/pgo-data" \
     cargo build --release --target=$TARGET
 
 # STEP 2: Run the instrumented binaries with some typical data
-./target/$TARGET/release/rosettaboy-rs --profile 600 --silent --headless --turbo ../test_roms/games/opus5.gb
-./target/$TARGET/release/rosettaboy-rs --profile 600 --silent --headless --turbo ../test_roms/games/opus5.gb
-./target/$TARGET/release/rosettaboy-rs --profile 600 --silent --headless --turbo ../test_roms/games/opus5.gb
+./target/$TARGET/release/rosettaboy-rs --profile 600 --silent --headless --turbo ../test_roms/games/opus5.gb >/dev/null
+./target/$TARGET/release/rosettaboy-rs --profile 600 --silent --headless --turbo ../test_roms/games/opus5.gb >/dev/null
+./target/$TARGET/release/rosettaboy-rs --profile 600 --silent --headless --turbo ../test_roms/games/opus5.gb >/dev/null
 
 # STEP 3: Merge the `.profraw` files into a `.profdata` file
 xcrun llvm-profdata merge -o /tmp/pgo-data/merged.profdata /tmp/pgo-data
@@ -20,3 +20,4 @@ xcrun llvm-profdata merge -o /tmp/pgo-data/merged.profdata /tmp/pgo-data
 RUSTFLAGS="-Cprofile-use=/tmp/pgo-data/merged.profdata" \
     cargo build --release --target=$TARGET
 
+exec ./target/$TARGET/release/rosettaboy-rs $*
