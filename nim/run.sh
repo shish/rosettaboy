@@ -1,2 +1,2 @@
 #!/bin/sh
-nimble build -d:release --opt:speed && ./rosettaboy $*
+nimble --accept build -d:release --opt:speed && ./rosettaboy $*

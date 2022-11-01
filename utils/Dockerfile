@@ -8,6 +8,10 @@ RUN apt install -y \
     php-cli \
     rust-all \
     nim
+RUN apt install -y wget
+RUN wget https://ziglang.org/download/0.10.0/zig-linux-$(uname -m)-0.10.0.tar.xz -O /tmp/zig.tar.xz && \
+    tar -C /tmp -xf /tmp/zig.tar.xz && \
+    ln -s /tmp/zig*/zig /usr/local/bin/zig
 
 ARG USER_ID
 ARG GROUP_ID
