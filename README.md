@@ -41,6 +41,18 @@ I wrote one copy of the documentation for all the implementations:
 Pull requests to translate into new languages, or fleshing out existing
 languages, are very welcome :)
 
+
+Dev Guide
+---------
+I want to keep the build processes as simple as possible - it should be
+possible to `cd` into the directory for any implementation and then `./run.sh`
+should build (if necessary) and run the code. Ideally the run script should
+also fetch-if-needed any dependencies, the only assumption I want to make is
+that the user has the standard language dev kits installed (eg we assume
+anyone who wants to work on the Rust version will have Cargo installed;
+anyone who wants to work on Python will have virtualenv + pip; etc)
+
+
 Benchmarks
 ----------
 **Warning**: These implementations aren't 100% in-sync, so take numbers with
