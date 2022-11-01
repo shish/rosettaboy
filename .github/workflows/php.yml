@@ -42,7 +42,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: CPU Integration Tests
-      run: ./blargg.py php
+      run: ./utils/blargg.py php
     - name: Benchmark
       working-directory: php
       run: |

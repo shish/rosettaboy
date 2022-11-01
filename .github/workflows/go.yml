@@ -55,7 +55,7 @@ jobs:
       working-directory: go
       run: go build -o rosettaboy-go src/*.go
     - name: CPU Integration Tests
-      run: ./blargg.py go
+      run: ./utils/blargg.py go
     - name: Benchmark
       working-directory: go
       run: |

@@ -57,7 +57,7 @@ each compiler, with standard "release mode" flags (see each language's run.sh
 for exactly which flags are used):
 
 ```
-$ ./bench.sh
+$ ./utils/bench.py
  zig: Emulated 600 frames in  0.23s (2880fps)
   rs: Emulated 600 frames in  0.29s (2083fps)
  cpp: Emulated 600 frames in  0.40s (1519fps)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Usage: ./bench.py zig rs cpp
+Usage: ./utils/bench.py zig rs cpp
 
 Will find any run*.sh scripts in the named directories
 (eg run.sh, run_pgo.sh, run_pypy.sh) and run them with

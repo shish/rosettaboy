@@ -41,6 +41,8 @@ jobs:
 #    - name: Test
 #      working-directory: nim
 #      run: nimble test -Y
+    - name: CPU Integration Tests
+      run: ./utils/blargg.py nim
     - name: Benchmark
       working-directory: nim
       run: |

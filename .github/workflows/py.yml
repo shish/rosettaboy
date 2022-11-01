@@ -41,7 +41,7 @@ jobs:
     - name: Setup Virtualenv
       run: python3 -m venv venv && ./venv/bin/pip install pysdl2 pysdl2-dll
     - name: CPU Integration Tests
-      run: ./blargg.py py
+      run: ./utils/blargg.py py
     - name: Benchmark
       working-directory: py
       run: |
