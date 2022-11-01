@@ -25,4 +25,4 @@ of command line options
 
 cpudiff.py
 ----------
-Spot the different between two `--debug-cpu` log files
+Spot the difference between two `--debug-cpu` log files
