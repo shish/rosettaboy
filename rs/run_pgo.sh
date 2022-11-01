@@ -1,5 +1,5 @@
 #!/bin/sh -eu
-TARGET=aarch64-apple-darwin
+TARGET=$(rustc -vV | grep host: | sed 's/host: //')
 
 # STEP 0: Make sure there is no left-over profiling data from previous runs
 rm -rf /tmp/pgo-data
