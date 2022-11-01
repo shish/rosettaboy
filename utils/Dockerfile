@@ -6,7 +6,8 @@ RUN apt install -y \
     golang \
     python3 python3-venv black \
     php-cli \
-    rust-all
+    rust-all \
+    nim
 
 ARG USER_ID
 ARG GROUP_ID
