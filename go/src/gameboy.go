@@ -25,7 +25,6 @@ func NewGameBoy(args *Args) (*GameBoy, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer gpu.Destroy()
 	buttons, err := NewButtons(&cpu, args.Headless)
 	if err != nil {
 		return nil, err

@@ -96,11 +96,17 @@ func NewGPU(cpu *CPU, title string, debug bool, headless bool) (*GPU, error) {
 			return nil, err
 		}
 		sdl.SetHint(sdl.HINT_RENDER_SCALE_QUALITY, "nearest") // vs "linear"
-		hw_renderer.SetLogicalSize(w, h)
-		hw_renderer.CreateTexture(
+		err = hw_renderer.SetLogicalSize(w, h)
+		if err != nil {
+			return nil, err
+		}
+		hw_buffer, err = hw_renderer.CreateTexture(
 			sdl.PIXELFORMAT_ABGR8888,
 			sdl.TEXTUREACCESS_STREAMING,
 			w, h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	buffer, err := sdl.CreateRGBSurface(0, w, h, 32, rmask, gmask, bmask, amask)
@@ -123,11 +129,6 @@ func NewGPU(cpu *CPU, title string, debug bool, headless bool) (*GPU, error) {
 	obp0 := make([]sdl.Color, 4)
 	obp1 := make([]sdl.Color, 4)
 
-	// FIXME: draw to buffer then blit to screen doesn't work??
-	// Drawing directly to screen works though
-	if !headless {
-		renderer = hw_renderer
-	}
 	return &GPU{
 		debug, cpu, headless, 0,
 		hw_window, hw_buffer, hw_renderer, buffer, renderer,
@@ -201,9 +202,9 @@ func (gpu *GPU) tick() {
 			}
 			if gpu.hw_renderer != nil {
 				// FIXME: drawing to a buffer then blit to screen doesn't work??
-				//gpu.hw_buffer.Update(nil, gpu.buffer.Pixels(), int(gpu.buffer.Pitch))
-				//gpu.hw_renderer.Clear()
-				//gpu.hw_renderer.Copy(gpu.hw_buffer, nil, nil)
+				gpu.hw_buffer.Update(nil, gpu.buffer.Pixels(), int(gpu.buffer.Pitch))
+				gpu.hw_renderer.Clear()
+				gpu.hw_renderer.Copy(gpu.hw_buffer, nil, nil)
 				gpu.hw_renderer.Present()
 			}
 		}
