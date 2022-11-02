@@ -25,7 +25,7 @@ clang-format $(find src -type f | grep -v args.h) -i
 
 Thoughts on C++
 ---------------
-String formating is SUCH PAIN.
+- String formating is SUCH PAIN.
 
 I want to do:
 ```
@@ -44,3 +44,5 @@ std::string int_to_hex( T i )
 and that doesn't even work right -_-
 
 For now I'm just using the plain C formatting functions...
+
+- GCC and Clang can't agree on what a char is (#41)
