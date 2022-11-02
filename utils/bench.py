@@ -67,10 +67,10 @@ def main() -> int:
         help="Only run the default run.sh, not variants",
     )
     parser.add_argument(
-        "--parallel",
-        default=False,
-        action="store_true",
-        help="Run all tests in parallel (gives inaccurate results, quickly)",
+        "--threads",
+        type=int,
+        default=1,
+        help="How many tests to run in parallel",
     )
     parser.add_argument(
         "--frames", type=int, default=0, help="Run for this many frames"
@@ -78,7 +78,7 @@ def main() -> int:
     parser.add_argument(
         "--profile", type=int, default=0, help="Run for this many seconds"
     )
-    parser.add_argument("langs", default=[], nargs="*")
+    parser.add_argument("langs", default=[], nargs="*", help="Which languages to test")
     args = parser.parse_args()
     if args.frames == 0 and args.profile == 0:
         args.profile = 10
@@ -97,7 +97,7 @@ def main() -> int:
             continue
         tests_to_run.append((lang, runner, sub, args.frames, args.profile))
 
-    p = ThreadPool(8 if args.parallel else 1)
+    p = ThreadPool(args.threads)
     results = p.starmap(test, tests_to_run)
     return 0 if all(results) else 1
 
