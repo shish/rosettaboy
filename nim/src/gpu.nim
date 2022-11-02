@@ -108,13 +108,13 @@ proc create*(cpu: cpu.CPU, ram: ram.RAM, cart_name: string, headless: bool, debu
         colors: colors,
     )
 
-proc palette(self: Sprite): bool =
+func palette(self: Sprite): bool =
     false # FIXME
 
-proc x_flip(self: Sprite): bool =
+func x_flip(self: Sprite): bool =
     false # FIXME
 
-proc y_flip(self: Sprite): bool =
+func y_flip(self: Sprite): bool =
     false # FIXME
 
 proc update_palettes(self: var GPU) =
@@ -212,7 +212,7 @@ proc draw_debug(self: GPU) =
         self.renderer.setDrawColor(0, 0, 255, 0xFF)
         self.renderer.drawRect(rect)
 
-proc is_live(self: Sprite): bool =
+func is_live(self: Sprite): bool =
     return self.x > 0 and self.x < 168 and self.y > 0 and self.y < 160
 
 proc draw_line(self: GPU, ly: uint32) =

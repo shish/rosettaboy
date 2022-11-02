@@ -51,12 +51,12 @@ const RAM_BANK_SIZE: uint16 = 0x2000
 type
     RAM* = object
         cart: cart.Cart
-        ram_enable: bool
-        ram_bank_mode: bool
-        rom_bank_low: uint8
-        rom_bank_high: uint8
-        rom_bank: uint8
-        ram_bank: uint8
+        ramEnable: bool
+        ramBankMode: bool
+        romBankLow: uint8
+        romBankHigh: uint8
+        romBank: uint8
+        ramBank: uint8
         boot: array[0x100, uint8]
         data*: array[0xFFFF+1, uint8]
 
@@ -81,9 +81,9 @@ proc create*(cart: Cart): RAM =
 
     return RAM(
       cart: cart,
-      ram_enable: true,
-      rom_bank_low: 1,
-      rom_bank: 1,
+      ramEnable: true,
+      romBank_low: 1,
+      romBank: 1,
       boot: boot,
     )
 
@@ -100,7 +100,7 @@ func get*(self: RAM, address: uint16): uint8 =
         of 0x4000..0x7FFF:
             # Switchable ROM bank
             # TODO: array bounds check
-            let bank = self.rom_bank.int * ROM_BANK_SIZE.int
+            let bank = self.romBank.int * ROM_BANK_SIZE.int
             let offset = address.int - 0x4000
             return self.cart.data[offset + bank].uint8
 
@@ -109,20 +109,20 @@ func get*(self: RAM, address: uint16): uint8 =
 
         of 0xA000..0xBFFF:
             # 8KB Switchable RAM bank
-            if not self.ram_enable:
+            if not self.ramEnable:
                 # panic!("Reading from external ram while disabled:::04X}", address);
                 raise errors.InvalidRamRead.newException("FIXME ahrte")
 
-            let bank = self.ram_bank.int * RAM_BANK_SIZE.int;
+            let bank = self.ramBank.int * RAM_BANK_SIZE.int;
             let offset = address.int - 0xA000;
             if bank + offset > self.cart.ram_size.int:
-                # this should never happen because we die on ram_bank being
+                # this should never happen because we die on ramBank being
                 # set to a too-large value
                 raise errors.InvalidRamRead.newException("FIXME brgbsd")
                 #panic!(
                 #    "Reading from external ram beyond limit:::04x} ({:02x}:{:04x})",
                 #    bank + offset,
-                #    self.ram_bank,
+                #    self.ramBank,
                 #    (address - 0xA000)
                 #);
 
@@ -160,48 +160,48 @@ func get*(self: RAM, address: uint16): uint8 =
 proc set*(self: var RAM, address: uint16, val: uint8) =
     case address:
         of 0x0000..0x1FFF:
-            self.ram_enable = val != 0;
+            self.ramEnable = val != 0;
 
         of 0x2000..0x3FFF:
-            self.rom_bank_low = val
-            self.rom_bank = bitops.bitor((self.rom_bank_high shl 5), self.rom_bank_low)
+            self.romBank_low = val
+            self.romBank = bitops.bitor((self.romBank_high shl 5), self.romBank_low)
             #tracing::debug!(
-            #    "rom_bank set to:}/{}",
-            #    self.rom_bank,
+            #    "romBank set to:}/{}",
+            #    self.romBank,
             #    self.cart.rom_size / ROM_BANK_SIZE as u32
             #);
-            if self.rom_bank * ROM_BANK_SIZE > self.cart.rom_size:
-                # panic!("Set rom_bank beyond the size of ROM");
+            if self.romBank * ROM_BANK_SIZE > self.cart.rom_size:
+                # panic!("Set romBank beyond the size of ROM");
                 raise errors.InvalidRamWrite.newException("FIXME rom bank")
 
 
         of 0x4000..0x5FFF:
-            if self.ram_bank_mode:
-                self.ram_bank = val
+            if self.ramBank_mode:
+                self.ramBank = val
                 #tracing::debug!(
-                #    "ram_bank set to:}/{}",
-                #    self.ram_bank,
+                #    "ramBank set to:}/{}",
+                #    self.ramBank,
                 #    self.cart.ram_size / RAM_BANK_SIZE as u32
                 #);
-                if self.ram_bank * RAM_BANK_SIZE > self.cart.ram_size:
-                    # panic!("Set ram_bank beyond the size of RAM");
+                if self.ramBank * RAM_BANK_SIZE > self.cart.ram_size:
+                    # panic!("Set ramBank beyond the size of RAM");
                     raise errors.InvalidRamWrite.newException("FIXME ram bank")
 
             else:
-                self.rom_bank_high = val;
-                self.rom_bank = bitops.bitor((self.rom_bank_high shl 5), self.rom_bank_low);
+                self.romBank_high = val;
+                self.romBank = bitops.bitor((self.romBank_high shl 5), self.romBank_low);
                 #tracing::debug!(
-                #    "rom_bank set to:}/{}",
-                #    self.rom_bank,
+                #    "romBank set to:}/{}",
+                #    self.romBank,
                 #    self.cart.rom_size / ROM_BANK_SIZE as u32
                 #);
-                if self.rom_bank * ROM_BANK_SIZE > self.cart.rom_size:
-                    # panic!("Set rom_bank beyond the size of ROM");
+                if self.romBank * ROM_BANK_SIZE > self.cart.rom_size:
+                    # panic!("Set romBank beyond the size of ROM");
                     raise errors.InvalidRamWrite.newException("FIXME rom bank")
 
         of 0x6000..0x7FFF:
-            self.ram_bank_mode = val != 0;
-            # tracing::debug!("ram_bank_mode set to:}", self.ram_bank_mode);
+            self.ramBank_mode = val != 0;
+            # tracing::debug!("ramBank_mode set to:}", self.ramBank_mode);
 
         #of 0x8000..0x9FFF:
             # VRAM
@@ -209,20 +209,20 @@ proc set*(self: var RAM, address: uint16, val: uint8) =
 
         of 0xA000..0xBFFF:
             # external RAM, bankable
-            if not self.ram_enable:
+            if not self.ramEnable:
                 raise errors.InvalidRamWrite.newException("FIXME hwthwt")
                 #panic!(
                 #    "Writing to external ram while disabled:::04x}={:02x}",
                 #    address, val
                 #);
 
-            let bank = self.ram_bank * RAM_BANK_SIZE
+            let bank = self.ramBank * RAM_BANK_SIZE
             let offset = address - 0xA000;
             #tracing::debug!(
             #    "Writing external RAM:::04x}={:02x} ({:02x}:{:04x})",
             #    bank + offset,
             #    val,
-            #    self.ram_bank,
+            #    self.ramBank,
             #    (address - 0xA000)
             #);
             if bank + offset >= self.cart.ram_size:
@@ -262,11 +262,11 @@ proc set*(self: var RAM, address: uint16, val: uint8) =
         else:
             self.data[address.int] = val;
 
-proc mem_and*(self: var RAM, address: uint16, val: uint8) =
+proc memAnd*(self: var RAM, address: uint16, val: uint8) =
     self.set(address, bitops.bitand(self.get(address), val));
 
-proc mem_or*(self: var RAM, address: uint16, val: uint8) =
+proc memOr*(self: var RAM, address: uint16, val: uint8) =
     self.set(address, bitops.bitor(self.get(address), val));
 
-proc mem_inc*(self: var RAM, address: uint16) =
+proc memInc*(self: var RAM, address: uint16) =
     self.set(address, self.get(address) + 1);

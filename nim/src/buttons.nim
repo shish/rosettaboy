@@ -14,7 +14,7 @@ type
         headless: bool
         turbo*: bool
         cycle: int
-        need_interrupt: bool
+        needInterrupt: bool
         up: bool
         down: bool
         left: bool
@@ -24,17 +24,17 @@ type
         start: bool
         select: bool
 
-const Joypad_MODE_BUTTONS = 1 shl 5
-const Joypad_MODE_DPAD = 1 shl 4
-const Joypad_DOWN = 1 shl 3
-const Joypad_START = 1 shl 3
-const Joypad_UP = 1 shl 2
-const Joypad_SELECT = 1 shl 2
-const Joypad_LEFT = 1 shl 1
-const Joypad_B = 1 shl 1
-const Joypad_RIGHT = 1 shl 0
-const Joypad_A = 1 shl 0
-const Joypad_BUTTON_BITS = 0b00001111
+const JOYPAD_MODE_BUTTONS = 1 shl 5
+const JOYPAD_MODE_DPAD = 1 shl 4
+const JOYPAD_DOWN = 1 shl 3
+const JOYPAD_START = 1 shl 3
+const JOYPAD_UP = 1 shl 2
+const JOYPAD_SELECT = 1 shl 2
+const JOYPAD_LEFT = 1 shl 1
+const JOYPAD_B = 1 shl 1
+const JOYPAD_RIGHT = 1 shl 0
+const JOYPAD_A = 1 shl 0
+# const JOYPAD_BUTTON_BITS = 0b00001111
 
 proc create*(cpu: cpu.CPU, ram: ram.RAM, headless: bool): Buttons =
     return Buttons(
@@ -51,27 +51,27 @@ Note that in memory, 0=pressed and 1=released - since this makes things
 incredibly confusing, we invert the bits when reading the byte and invert
 them back when writing.
 ]#
-proc update_buttons(self: var Buttons) =
+proc updateButtons(self: var Buttons) =
     var joyp = bitops.bitnot(self.ram.get(consts.Mem_JOYP))
     joyp = bitops.bitand(joyp, 0xF0)
-    if bitops.bitand(joyp, Joypad_MODE_DPAD) != 0:
+    if bitops.bitand(joyp, JOYPAD_MODE_DPAD) != 0:
         if self.up:
-            joyp = bitops.bitor(joyp, Joypad_UP)
+            joyp = bitops.bitor(joyp, JOYPAD_UP)
         if self.down:
-            joyp = bitops.bitor(joyp, Joypad_DOWN)
+            joyp = bitops.bitor(joyp, JOYPAD_DOWN)
         if self.left:
-            joyp = bitops.bitor(joyp, Joypad_LEFT)
+            joyp = bitops.bitor(joyp, JOYPAD_LEFT)
         if self.right:
-            joyp = bitops.bitor(joyp, Joypad_RIGHT)
-    if bitops.bitand(joyp, Joypad_MODE_BUTTONS) != 0:
+            joyp = bitops.bitor(joyp, JOYPAD_RIGHT)
+    if bitops.bitand(joyp, JOYPAD_MODE_BUTTONS) != 0:
         if self.b:
-            joyp = bitops.bitor(joyp, Joypad_B)
+            joyp = bitops.bitor(joyp, JOYPAD_B)
         if self.a:
-            joyp = bitops.bitor(joyp, Joypad_A)
+            joyp = bitops.bitor(joyp, JOYPAD_A)
         if self.start:
-            joyp = bitops.bitor(joyp, Joypad_START)
+            joyp = bitops.bitor(joyp, JOYPAD_START)
         if self.select:
-            joyp = bitops.bitor(joyp, Joypad_SELECT)
+            joyp = bitops.bitor(joyp, JOYPAD_SELECT)
     self.ram.set(consts.Mem_JOYP, bitops.bitnot(joyp))
 
 
@@ -79,7 +79,7 @@ proc update_buttons(self: var Buttons) =
 Once per frame, check the queue of input events from the OS,
 store which buttons are pressed or not
 ]#
-proc handle_inputs(self: var Buttons) =
+proc handleInputs(self: var Buttons) =
     if self.headless:
         return
 
@@ -179,10 +179,10 @@ proc handle_inputs(self: var Buttons) =
 
 proc tick*(self: var Buttons) =
     self.cycle += 1
-    self.update_buttons()
+    self.updateButtons()
     if self.need_interrupt:
         self.cpu.stop = false
         self.cpu.interrupt(consts.Interrupt_JOYPAD)
         self.need_interrupt = false
     if self.cycle mod 17556 == 20:
-        self.handle_inputs()
+        self.handleInputs()
