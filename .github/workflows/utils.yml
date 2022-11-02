@@ -21,7 +21,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3 
     - name: Build
-      workdir: utils
+      working-directory: utils
       run: docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t rosettaboy .
     - name: Run
       run: ./utils/shell.sh ./utils/bench.py --default --frames 10
