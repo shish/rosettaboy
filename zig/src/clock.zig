@@ -41,7 +41,7 @@ pub const Clock = struct {
             // Exit if we've hit the frame limit
             if ((self.profile != 0) and (self.frame >= self.profile)) {
                 var duration: f64 = @intToFloat(f64, self.start.read());
-                std.debug.print("Emulated {d} frames in {d:5.2}s ({d:.0}fps)\n", .{
+                std.debug.print("Emulated {d:5} frames in {d:5.2}s ({d:.0}fps)\n", .{
                     self.frame,
                     duration / 1_000_000_000.0,
                     @intToFloat(f64, self.frame) / (duration / 1_000_000_000.0),

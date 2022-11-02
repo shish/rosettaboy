@@ -3,7 +3,7 @@ RUN apt update && apt install -y \
     build-essential linux-perf valgrind vim git libsdl2-dev wget \
     cmake clang-format-14 \
     golang \
-    python3 python3-venv black \
+    python3.11 python3.11-venv black \
     php-cli \
     rust-all \
     nim

@@ -19,7 +19,7 @@ class Timeout extends ControlledExit
 
     public function __toString(): string
     {
-        return sprintf("Emulated %d frames in %5.2fs (%.0ffps)\n", $this->frames, $this->duration, $this->frames / $this->duration);
+        return sprintf("Emulated %5d frames in %5.2fs (%.0ffps)\n", $this->frames, $this->duration, $this->frames / $this->duration);
     }
 }
 

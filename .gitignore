@@ -1,4 +1,4 @@
-boot.gb
+*.gb
 test_roms
 gb-test-roms
 gb-autotest-roms

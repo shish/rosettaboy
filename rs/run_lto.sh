@@ -1,2 +1,2 @@
 #!/bin/sh
-cargo -Z unstable-options run --profile release-lto -- $*
+cargo +nightly -Z unstable-options run --profile release-lto -- $*

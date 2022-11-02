@@ -11,7 +11,7 @@ impl std::fmt::Display for ControlledExit {
         match self {
             ControlledExit::Timeout(frames, duration) => write!(
                 f,
-                "Emulated {} frames in {:5.2}s ({:.0}fps)",
+                "Emulated {:5} frames in {:5.2}s ({:.0}fps)",
                 frames,
                 duration,
                 *frames as f32 / duration

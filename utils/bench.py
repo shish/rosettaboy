@@ -16,7 +16,7 @@ import argparse
 from multiprocessing.pool import ThreadPool
 
 TEST_ROM_URL = "https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true"
-TEST_ROM = "/tmp/opus5.gb"
+TEST_ROM = "opus5.gb"
 if not os.path.exists(TEST_ROM):
     subprocess.run(
         ["wget", TEST_ROM_URL, "-O", TEST_ROM],
@@ -28,6 +28,12 @@ if not os.path.exists(TEST_ROM):
 
 
 def test(lang: str, runner: str, sub: str, frames: int) -> bool:
+    # Some languages have orders-of-magnitudes of differences in speed
+    if lang in {"go"}:
+        frames = int(frames / 10)
+    elif lang in {"py", "php"} or (lang == "zig" and sub == "safe"):
+        frames = int(frames / 100)
+    frames = max(frames, 1)
     proc = subprocess.run(
         [
             f"./{runner}",
@@ -36,7 +42,7 @@ def test(lang: str, runner: str, sub: str, frames: int) -> bool:
             "--silent",
             "--headless",
             "--turbo",
-            TEST_ROM,
+            f"../{TEST_ROM}",
         ],
         cwd=lang,
         stdout=subprocess.PIPE,
@@ -70,7 +76,7 @@ def main() -> int:
         help="Run all tests in parallel (gives inaccurate results, quickly)",
     )
     parser.add_argument(
-        "--frames", type=int, default=600, help="Run for this many frames"
+        "--frames", type=int, default=6000, help="Run for this many frames"
     )
     parser.add_argument("langs", default=[], nargs="*")
     args = parser.parse_args()

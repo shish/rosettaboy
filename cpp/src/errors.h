@@ -32,7 +32,7 @@ public:
 class Timeout : public ControlledExit {
 public:
     Timeout(int frames, double duration) {
-        this->set_msg("Emulated %d frames in %5.2fs (%.0ffps)", frames, duration, frames / duration);
+        this->set_msg("Emulated %5d frames in %5.2fs (%.0ffps)", frames, duration, frames / duration);
     }
 };
 class UnitTestPassed : public ControlledExit {

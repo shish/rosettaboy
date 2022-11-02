@@ -27,7 +27,7 @@ class Timeout(ControlledExit):
         self.duration = duration
 
     def __str__(self) -> str:
-        return "Emulated %d frames in %5.2fs (%.0ffps)" % (
+        return "Emulated %5d frames in %5.2fs (%.0ffps)" % (
             self.frames,
             self.duration,
             self.frames / self.duration,

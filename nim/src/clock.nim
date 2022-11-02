@@ -43,7 +43,7 @@ proc tick*(self: var Clock) =
         if self.profile != 0 and self.frame > self.profile:
             let duration = epochTime() - self.start
             raise errors.Timeout.newException(
-              fmt"Emulated {self.profile} frames in {duration:5.2}s ({(self.profile.float/duration).int}fps)"
+              fmt"Emulated {self.profile:5} frames in {duration:5.3}s ({(self.profile.float/duration).int}fps)"
             )
 
         self.frame += 1
