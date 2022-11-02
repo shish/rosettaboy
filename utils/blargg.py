@@ -40,13 +40,18 @@ def test(cwd, rom):
         cmd,
         cwd=cwd,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        errors="replace",
     )
-    ok = p.returncode == 0
-    # ok = b"Passed" in p.stdout or b"Unit test" in p.stdout
     rom_name = rom.replace(f"{TEST_DIR}/", "")
-    print(f"{cwd} {rom_name} = {GREEN if ok else RED}{ok}{END}")
-    return ok
+    if p.returncode == 0:
+        print(f"{cwd} {rom_name} = {GREEN}Passed{END}")
+    elif p.returncode == 2:
+        print(f"{cwd} {rom_name} = {RED}Failed{END}")
+    else:
+        print(f"{cwd} {rom_name} = {RED}Crashed{END}\n{p.stdout}")
+    return p.returncode == 0
 
 
 dirs = sys.argv[1:] or [n.replace("/run.sh", "") for n in glob("*/run.sh")]
