@@ -13,7 +13,7 @@ class GameBoy:
         self.cpu = CPU(self.ram, debug=args.debug_cpu)
         self.gpu = GPU(self.cpu, debug=args.debug_gpu, headless=args.headless)
         self.buttons = Buttons(self.cpu, headless=args.headless)
-        self.clock = Clock(self.buttons, args.profile, args.turbo)
+        self.clock = Clock(self.buttons, args.frames, args.profile, args.turbo)
 
     def run(self):
         while True:

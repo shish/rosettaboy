@@ -30,7 +30,7 @@ impl<'a> GameBoy<'a> {
         let gpu = gpu::GPU::new(&sdl, cart_name, args.headless, args.debug_gpu)?;
         let apu = apu::APU::new(&sdl, args.silent, args.debug_apu)?;
         let buttons = buttons::Buttons::new(sdl, args.headless)?;
-        let clock = clock::Clock::new(args.profile, args.turbo);
+        let clock = clock::Clock::new(args.frames, args.profile, args.turbo);
 
         Ok(GameBoy {
             ram,

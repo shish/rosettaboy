@@ -10,6 +10,7 @@ type Args struct {
 	Headless bool
 	Silent   bool
 	Turbo    bool
+	Frames   int
 	Profile  int
 	Rom      string
 }
@@ -22,7 +23,8 @@ func NewArgs() *Args {
 	var headless = flag.Bool("headless", false, "No video")
 	var silent = flag.Bool("silent", false, "No audio")
 	var turbo = flag.Bool("turbo", false, "No sleep()")
-	var profile = flag.Int("profile", 0, "Exit after N frames")
+	var frames = flag.Int("frames", 0, "Exit after N frames")
+	var profile = flag.Int("profile", 0, "Exit after N seconds")
 	flag.Parse()
 	var rom = flag.Arg(0)
 
@@ -34,6 +36,7 @@ func NewArgs() *Args {
 		Headless: *headless,
 		Silent:   *silent,
 		Turbo:    *turbo,
+		Frames:   *frames,
 		Profile:  *profile,
 		Rom:      rom,
 	}

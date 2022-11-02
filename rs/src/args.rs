@@ -34,6 +34,10 @@ pub struct Args {
 
     /// Exit after N frames
     #[clap(short, long, default_value = "0")]
+    pub frames: u32,
+
+    /// Exit after N seconds
+    #[clap(short, long, default_value = "0")]
     pub profile: u32,
 
     /// No sleep()

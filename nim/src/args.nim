@@ -5,7 +5,7 @@ import argparse
 type
     Args* = object
         rom*: string
-        profile*: int
+        frames*, profile*: int
         headless*, silent*: bool
         turbo*, debug_cpu*, debug_apu*, debug_gpu*, debug_ram*: bool
 
@@ -18,7 +18,8 @@ proc parse_args*(args: seq[string]): Args =
         flag("-r", "--debug-ram")
         flag("-a", "--debug-apu")
         flag("-t", "--turbo")
-        option("-p", "--profile", default = some("0"), help = "Exit after N frames")
+        option("-f", "--frames", default = some("0"), help = "Exit after N frames")
+        option("-p", "--profile", default = some("0"), help = "Exit after N seconds")
         arg("rom")
 
     try:
@@ -31,6 +32,7 @@ proc parse_args*(args: seq[string]): Args =
             debug_gpu: opts.debug_gpu,
             debug_apu: opts.debug_apu,
             debug_ram: opts.debug_ram,
+            frames: parseInt(opts.frames),
             profile: parseInt(opts.profile),
             turbo: opts.turbo,
         )

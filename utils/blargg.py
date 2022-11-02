@@ -32,7 +32,7 @@ def test(cwd, rom):
         "--turbo",
         "--silent",
         "--headless",
-        "--profile",
+        "--frames",
         "2000",
         f"../{rom}",
     ]

@@ -27,18 +27,15 @@ if not os.path.exists(TEST_ROM):
     )
 
 
-def test(lang: str, runner: str, sub: str, frames: int) -> bool:
+def test(lang: str, runner: str, sub: str, frames: int, profile: int) -> bool:
     # Some languages have orders-of-magnitudes of differences in speed
-    if lang in {"go"}:
-        frames = int(frames / 10)
-    elif lang in {"py", "php"} or (lang == "zig" and sub == "safe"):
-        frames = int(frames / 100)
-    frames = max(frames, 1)
     proc = subprocess.run(
         [
             f"./{runner}",
-            "--profile",
+            "--frames",
             str(frames),
+            "--profile",
+            str(profile),
             "--silent",
             "--headless",
             "--turbo",
@@ -76,10 +73,15 @@ def main() -> int:
         help="Run all tests in parallel (gives inaccurate results, quickly)",
     )
     parser.add_argument(
-        "--frames", type=int, default=6000, help="Run for this many frames"
+        "--frames", type=int, default=0, help="Run for this many frames"
+    )
+    parser.add_argument(
+        "--profile", type=int, default=0, help="Run for this many seconds"
     )
     parser.add_argument("langs", default=[], nargs="*")
     args = parser.parse_args()
+    if args.frames == 0 and args.profile == 0:
+        args.profile = 10
 
     tests_to_run = []
     for lang_runner in glob("*/run*.sh"):
@@ -93,7 +95,7 @@ def main() -> int:
             continue
         if args.default and sub != "release":
             continue
-        tests_to_run.append((lang, runner, sub, args.frames))
+        tests_to_run.append((lang, runner, sub, args.frames, args.profile))
 
     p = ThreadPool(8 if args.parallel else 1)
     results = p.starmap(test, tests_to_run)

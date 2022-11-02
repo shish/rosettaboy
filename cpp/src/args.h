@@ -12,6 +12,7 @@ public:
     bool debug_cpu;
     bool debug_gpu;
     bool debug_apu;
+    int frames;
     int profile;
     bool turbo;
     std::string rom;

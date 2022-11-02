@@ -75,17 +75,17 @@ for exactly which flags are used):
 
 ```
 $ ./utils/bench.py
-  zig / release: Emulated  6000 frames in  2.32s (2589fps)
-   rs / lto    : Emulated  6000 frames in  2.62s (2289fps)
-  cpp / release: Emulated  6000 frames in  3.19s (1878fps)
-   rs / release: Emulated  6000 frames in  3.26s (1843fps)
-  nim / speed  : Emulated  6000 frames in  2.94s (2041fps)
-  nim / release: Emulated  6000 frames in  3.00s (2001fps)
-   go / release: Emulated   600 frames in  1.96s (307fps)
-  php / release: Emulated    60 frames in  1.13s (53fps)
-  zig / safe   : Emulated    60 frames in  3.40s (18fps)
-   py / release: Emulated    60 frames in  5.98s (10fps)
-   py / mypyc  : Emulated    60 frames in  5.94s (10fps)
+  zig / release: Emulated 28799 frames in 10.00s (2880fps)
+   rs / lto    : Emulated 20371 frames in 10.00s (2037fps)
+   rs / release: Emulated 16950 frames in 10.00s (1695fps)
+  cpp / release: Emulated 15397 frames in 10.00s (1540fps)
+  nim / speed  : Emulated 14241 frames in 10.00s (1424fps)
+  nim / release: Emulated 14193 frames in 10.00s (1419fps)
+   go / release: Emulated  3438 frames in 10.00s (344fps)
+  php / release: Emulated   639 frames in 10.00s (64fps)
+  zig / safe   : Emulated   228 frames in 10.00s (23fps)
+   py / release: Emulated   181 frames in 10.00s (18fps)
+   py / mypyc  : Emulated   179 frames in 10.01s (18fps)
 ```
 
 Also if you spot some bit of code that is weirdly slow and making your favourite

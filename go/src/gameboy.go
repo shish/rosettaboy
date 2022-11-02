@@ -30,7 +30,7 @@ func NewGameBoy(args *Args) (*GameBoy, error) {
 	if err != nil {
 		return nil, err
 	}
-	clock, err := NewClock(buttons, args.Profile, args.Turbo)
+	clock, err := NewClock(buttons, args.Frames, args.Profile, args.Turbo)
 	if err != nil {
 		return nil, err
 	}

@@ -23,7 +23,7 @@ pub const GameBoy = struct {
         gb.gpu = try GPU.new(&gb.cpu, gb.cart.name, args.headless, args.debug_gpu);
         gb.apu = try APU.new(args.silent, args.debug_apu);
         gb.buttons = try Buttons.new(&gb.cpu, &gb.ram, args.headless);
-        gb.clock = try Clock.new(&gb.buttons, args.profile, args.turbo);
+        gb.clock = try Clock.new(&gb.buttons, args.frames, args.profile, args.turbo);
     }
 
     pub fn run(self: *GameBoy) !void {

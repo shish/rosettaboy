@@ -9,12 +9,13 @@ pub struct Clock {
     frame: u32,
     last_frame_start: SystemTime,
     start: SystemTime,
+    frames: u32,
     profile: u32,
     turbo: bool,
 }
 
 impl Clock {
-    pub fn new(profile: u32, turbo: bool) -> Clock {
+    pub fn new(frames: u32, profile: u32, turbo: bool) -> Clock {
         let start = SystemTime::now();
         let last_frame_start = SystemTime::now();
 
@@ -23,6 +24,7 @@ impl Clock {
             frame: 0,
             last_frame_start,
             start,
+            frames,
             profile,
             turbo,
         }
@@ -42,10 +44,15 @@ impl Clock {
             }
             self.last_frame_start = SystemTime::now();
 
-            // Exit if we've hit the frame limit
-            if self.profile != 0 && self.frame > self.profile {
-                let duration = SystemTime::now().duration_since(self.start)?.as_secs_f32();
-                return Err(anyhow!(ControlledExit::Timeout(self.profile, duration)));
+            // Exit if we've hit the frame or time limit
+            let duration = self
+                .last_frame_start
+                .duration_since(self.start)?
+                .as_secs_f32();
+            if (self.frames != 0 && self.frame >= self.frames)
+                || (self.profile != 0 && duration >= self.profile as f32)
+            {
+                return Err(anyhow!(ControlledExit::Timeout(self.frame, duration)));
             }
 
             self.frame += 1;

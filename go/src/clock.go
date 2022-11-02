@@ -8,16 +8,17 @@ type Clock struct {
 	frame            int
 	last_frame_start uint32
 	start            uint32
+	frames           int
 	profile          int
 	turbo            bool
 }
 
-func NewClock(buttons *Buttons, profile int, turbo bool) (*Clock, error) {
+func NewClock(buttons *Buttons, frames int, profile int, turbo bool) (*Clock, error) {
 	if err := sdl.Init(uint32(sdl.INIT_TIMER)); err != nil {
 		return nil, err
 	}
 
-	return &Clock{buttons, 0, 0, sdl.GetTicks(), sdl.GetTicks(), profile, turbo}, nil
+	return &Clock{buttons, 0, 0, sdl.GetTicks(), sdl.GetTicks(), frames, profile, turbo}, nil
 }
 
 func (clock *Clock) tick() error {
@@ -33,10 +34,10 @@ func (clock *Clock) tick() error {
 		}
 		clock.last_frame_start = sdl.GetTicks()
 
-		// Exit if we've hit the frame limit
-		if clock.profile != 0 && clock.frame > clock.profile {
-			var duration = (float32)(sdl.GetTicks()-clock.start) / 1000.0
-			return &Timeout{Frames: clock.profile, Duration: duration}
+		// Exit if we've hit the frame or time limit
+		var duration = (float32)(clock.last_frame_start-clock.start) / 1000.0
+		if (clock.frames != 0 && clock.frame >= clock.frames) || (clock.profile != 0 && duration >= float32(clock.profile)) {
+			return &Timeout{Frames: clock.frame, Duration: duration}
 		}
 
 		clock.frame++

@@ -14,10 +14,18 @@ def parse_args(args):
     parser.add_argument("-S", "--silent", action="store_true", default=False)
     parser.add_argument("-t", "--turbo", action="store_true", default=False)
     parser.add_argument(
+        "-f",
+        "--frames",
+        type=int,
+        help="Exit after N frames",
+        default=0,
+        metavar="N",
+    )
+    parser.add_argument(
         "-p",
         "--profile",
         type=int,
-        help="Exit after N frames",
+        help="Exit after N seconds",
         default=0,
         metavar="N",
     )

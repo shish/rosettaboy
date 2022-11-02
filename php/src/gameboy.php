@@ -19,7 +19,7 @@ class GameBoy
         $this->gpu = new GPU($this->cpu, $args['debug-gpu'], $args['headless']);
         $this->apu = new APU($args['silent'], $args['debug-apu']);
         $this->buttons = new Buttons($this->cpu, $args['headless']);
-        $this->clock = new Clock($this->buttons, $args['profile'], $args['turbo']);
+        $this->clock = new Clock($this->buttons, $args['frames'], $args['profile'], $args['turbo']);
     }
 
     public function run()

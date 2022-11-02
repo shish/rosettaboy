@@ -5,11 +5,12 @@ from .errors import Timeout
 
 
 class Clock:
-    def __init__(self, buttons: Buttons, profile: int, turbo: bool):
+    def __init__(self, buttons: Buttons, frames: int, profile: int, turbo: bool):
         self.buttons = buttons
         self.cycle = 0
         self.frame = 0
-        self.start = time.time()
+        self.start = sdl2.SDL_GetTicks()
+        self.frames = frames
         self.profile = profile
         self.turbo = turbo
         self.last_frame_start = 0
@@ -26,9 +27,11 @@ class Clock:
                 sdl2.SDL_Delay(int(sleep_for))
             self.last_frame_start = sdl2.SDL_GetTicks()
 
-            # Exit if we've hit the frame limit
-            if self.profile != 0 and self.frame > self.profile:
-                duration = time.time() - self.start
-                raise Timeout(self.profile, duration)
+            # Exit if we've hit the frame or time limit
+            duration = (self.last_frame_start - self.start) / 1_000
+            if (self.frames != 0 and self.frame >= self.frames) or (
+                self.profile != 0 and duration >= self.profile
+            ):
+                raise Timeout(self.frame, duration)
 
             self.frame += 1

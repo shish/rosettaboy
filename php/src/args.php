@@ -3,7 +3,7 @@
 function parse_args($argv)
 {
     $rest_index = null;
-    $opts = getopt("cgraHStp:", ["debug-cpu", "debug-gpu", "debug-ram", "debug-apu", "headless", "silent", "turbo", "profile:"], $rest_index);
+    $opts = getopt("cgraHStf:p:", ["debug-cpu", "debug-gpu", "debug-ram", "debug-apu", "headless", "silent", "turbo", "frames:", "profile:"], $rest_index);
     $pos_args = array_slice($argv, $rest_index);
     //var_dump($opts);
     //var_dump($pos_args);
@@ -15,6 +15,7 @@ function parse_args($argv)
         "headless" => array_key_exists('H', $opts) || array_key_exists('headless', $opts),
         "silent" => array_key_exists('S', $opts) || array_key_exists('silent', $opts),
         "turbo" => array_key_exists('t', $opts) || array_key_exists('turbo', $opts),
+        "frames" => array_key_exists('f', $opts) ? $opts['f'] : (array_key_exists('frames', $opts) ? $opts['frames'] : 0),
         "profile" => array_key_exists('p', $opts) ? $opts['p'] : (array_key_exists('profile', $opts) ? $opts['profile'] : 0),
         "rom" => $pos_args[0],
     ];

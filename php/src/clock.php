@@ -10,18 +10,20 @@ class Clock
     private int $cycle;
     private int $frame;
     private bool $turbo;
+    private int $frames;
     private int $profile;
     private Buttons $buttons;
     private int $start;
     private int $last_frame_start;
 
-    public function __construct(Buttons $buttons, int $profile, bool $turbo)
+    public function __construct(Buttons $buttons, int $frames, int $profile, bool $turbo)
     {
         $this->cycle = 0;
         $this->frame = 0;
         $this->last_frame_start = ticks();
         $this->start = ticks();
         $this->buttons = $buttons;
+        $this->frames = $frames;
         $this->profile = $profile;
         $this->turbo = $turbo;
     }
@@ -40,10 +42,10 @@ class Clock
             }
             $this->last_frame_start = ticks();
 
-            // Exit if we've hit the frame limit
-            if ($this->profile != 0 && $this->frame > $this->profile) {
-                $duration = (float)(ticks() - $this->start) / 1000.0;
-                throw new Timeout($this->profile, $duration);
+            // Exit if we've hit the frame or time limit
+            $duration = (float)($this->last_frame_start - $this->start) / 1000.0;
+            if (($this->frames != 0 && $this->frame >= $this->frames) || ($this->profile != 0 && $duration >= $this->profile)) {
+                throw new Timeout($this->frame, $duration);
             }
 
             $this->frame++;

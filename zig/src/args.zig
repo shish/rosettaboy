@@ -14,6 +14,7 @@ pub const Args = struct {
     debug_gpu: bool,
     debug_apu: bool,
     debug_ram: bool,
+    frames: u32,
     profile: u32,
     turbo: bool,
 
@@ -26,7 +27,8 @@ pub const Args = struct {
             clap.parseParam("-g, --debug-gpu        Debug GPU") catch unreachable,
             clap.parseParam("-a, --debug-apu        Debug APU") catch unreachable,
             clap.parseParam("-r, --debug-ram        Debug RAM") catch unreachable,
-            clap.parseParam("-p, --profile <u32>    Exit after N frames") catch unreachable,
+            clap.parseParam("-f, --frames <u32>     Exit after N frames") catch unreachable,
+            clap.parseParam("-p, --profile <u32>    Exit after N seconds") catch unreachable,
             clap.parseParam("-t, --turbo            No sleep()") catch unreachable,
             clap.parseParam("<str>                  ROM filename") catch unreachable,
         };
@@ -46,6 +48,10 @@ pub const Args = struct {
             return errors.ControlledExit.Help;
         }
 
+        var frames: u32 = 0;
+        if (res.args.frames) |n|
+            frames = n;
+
         var profile: u32 = 0;
         if (res.args.profile) |n|
             profile = n;
@@ -62,6 +68,7 @@ pub const Args = struct {
             .debug_gpu = res.args.@"debug-gpu",
             .debug_apu = res.args.@"debug-apu",
             .debug_ram = res.args.@"debug-ram",
+            .frames = frames,
             .profile = profile,
             .turbo = res.args.turbo,
         };

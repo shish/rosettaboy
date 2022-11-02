@@ -13,11 +13,12 @@ private:
     int frame = 0;
     int last_frame_start = SDL_GetTicks();
     int start = SDL_GetTicks();
+    int frames = 0;
     int profile = 0;
     bool turbo = false;
 
 public:
-    Clock(Buttons *buttons, int profile, bool turbo);
+    Clock(Buttons *buttons, int frames, int profile, bool turbo);
     ~Clock();
     void tick();
 };

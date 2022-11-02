@@ -9,6 +9,7 @@ import errors
 type
     Clock* = object
         buttons: buttons.Buttons
+        frames: int
         profile: int
         turbo: bool
         cycle: int
@@ -16,9 +17,10 @@ type
         last_frame_start: float
         start: float
 
-proc create*(buttons: Buttons, profile: int, turbo: bool): Clock =
+proc create*(buttons: Buttons, frames: int, profile: int, turbo: bool): Clock =
     return Clock(
       buttons: buttons,
+      frames: frames,
       profile: profile,
       turbo: turbo,
       cycle: 0,
@@ -39,11 +41,11 @@ proc tick*(self: var Clock) =
             os.sleep(sleep_time.int)
         self.last_frame_start = epochTime()
 
-        # Exit if we've hit the frame limit
-        if self.profile != 0 and self.frame > self.profile:
-            let duration = epochTime() - self.start
+        # Exit if we've hit the frame or time limit
+        let duration = self.last_frame_start - self.start
+        if (self.frames != 0 and self.frame >= self.frames) or (self.profile != 0 and duration >= (float)self.profile):
             raise errors.Timeout.newException(
-              fmt"Emulated {self.profile:5} frames in {duration:5.3}s ({(self.profile.float/duration).int}fps)"
+                fmt"Emulated {self.frame:5} frames in {duration:5.2f}s ({(self.frame.float/duration).int}fps)"
             )
 
         self.frame += 1

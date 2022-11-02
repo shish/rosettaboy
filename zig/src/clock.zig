@@ -4,6 +4,7 @@ const errors = @import("errors.zig");
 const Buttons = @import("buttons.zig").Buttons;
 
 pub const Clock = struct {
+    frames: u32,
     profile: u32,
     turbo: bool,
     buttons: *Buttons,
@@ -13,8 +14,9 @@ pub const Clock = struct {
     timer: std.time.Timer,
     start: std.time.Timer,
 
-    pub fn new(buttons: *Buttons, profile: u32, turbo: bool) !Clock {
+    pub fn new(buttons: *Buttons, frames: u32, profile: u32, turbo: bool) !Clock {
         return Clock{
+            .frames = frames,
             .profile = profile,
             .turbo = turbo,
             .buttons = buttons,
@@ -38,13 +40,13 @@ pub const Clock = struct {
                 std.time.sleep(sleep_time);
             }
 
-            // Exit if we've hit the frame limit
-            if ((self.profile != 0) and (self.frame >= self.profile)) {
-                var duration: f64 = @intToFloat(f64, self.start.read());
+            // Exit if we've hit the frame or time limit
+            var duration: f64 = @intToFloat(f64, self.start.read()) / 1_000_000_000.0;
+            if ((self.frames != 0 and self.frame >= self.frames) or (self.profile != 0 and duration >= @intToFloat(f64, self.profile))) {
                 std.debug.print("Emulated {d:5} frames in {d:5.2}s ({d:.0}fps)\n", .{
                     self.frame,
-                    duration / 1_000_000_000.0,
-                    @intToFloat(f64, self.frame) / (duration / 1_000_000_000.0),
+                    duration,
+                    @intToFloat(f64, self.frame) / duration,
                 });
                 return errors.ControlledExit.Timeout;
             }

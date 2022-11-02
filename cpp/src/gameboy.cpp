@@ -7,7 +7,7 @@ GameBoy::GameBoy(Args *args) {
     gpu = new GPU(cpu, cart->name, args->headless, args->debug_gpu);
     buttons = new Buttons(cpu, args->headless);
     if(!args->silent) new APU(cpu, args->debug_apu);
-    clock = new Clock(buttons, args->profile, args->turbo);
+    clock = new Clock(buttons, args->frames, args->profile, args->turbo);
 }
 
 /**
