@@ -9,4 +9,4 @@ else
 fi
 
 docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t rosettaboy . && \
-docker run --rm --privileged $FLAGS -v $(pwd)/..:/home/dev rosettaboy $*
+docker run --rm --privileged $FLAGS -v rosettaboy_homedir:/home/dev -v $(pwd)/..:/home/dev/rosettaboy rosettaboy $*

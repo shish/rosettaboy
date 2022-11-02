@@ -18,9 +18,10 @@ RUN git clone https://github.com/shish/php-sdl /tmp/php-sdl && \
 
 ARG USER_ID
 ARG GROUP_ID
-RUN addgroup --gid $GROUP_ID user || true
-RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
-USER user
+RUN addgroup --gid $GROUP_ID dev || true
+RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID dev
+USER dev
 
-WORKDIR /home/dev
+VOLUME /home/dev
+WORKDIR /home/dev/rosettaboy
 CMD /bin/bash
