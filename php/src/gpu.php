@@ -62,11 +62,11 @@ class GPU
 
         $w = 160;
         $h = 144;
-        if($this->debug) {
+        if ($this->debug) {
             $w = 160 + 256;
             $h = 144;
         }
-        if(!$headless) {
+        if (!$headless) {
             SDL_InitSubSystem(SDL_INIT_VIDEO);
             $this->hw_window = SDL_CreateWindow(
                 sprintf("RosettaBoy - %s", "FIXME"),            // window title

@@ -2,7 +2,15 @@
 
 // Stubs until somebody makes a working SDL-PHP binding
 
-function SDL_CreateRGBSurface(...$x)
+const SDL_INIT_VIDEO = 1;
+const SDL_WINDOWPOS_UNDEFINED = 2;
+const SDL_WINDOW_ALLOW_HIGHDPI = 3;
+const SDL_WINDOW_RESIZABLE = 4;
+const SDL_HINT_RENDER_SCALE_QUALITY = "RENDER_SCALE_QUALITY";
+const SDL_PIXELFORMAT_ABGR8888 = 5;
+const SDL_TEXTUREACCESS_STREAMING = 6;
+
+function SDL_CreateRGBSurface(...$x): SDL_Surface
 {
 }
 
@@ -38,46 +46,71 @@ function SDL_RenderFillRect(...$x)
 {
 }
 
+function SDL_InitSubSystem(...$x)
+{
+}
+
+function SDL_CreateWindow(...$x)
+{
+}
+
+function SDL_CreateRenderer(...$x)
+{
+}
+
+function SDL_CreateSoftwareRenderer(...$x)
+{
+}
+
+function SDL_CreateTexture(...$x)
+{
+}
+
+function SDL_SetHint(...$x)
+{
+}
+
+function SDL_RenderSetLogicalSize(...$x)
+{
+}
+
+class SDL_Surface
+{
+    public int $pixels;
+    public int $pitch;
+
+    public function __construct()
+    {
+    }
+}
+
 class SDL_Point
 {
-    public int $x;
-    public int $y;
-
-    public function __construct(int $x, int $y)
-    {
-        $this->x = $x;
-        $this->y = $y;
+    public function __construct(
+        public int $x,
+        public int $y,
+    ) {
     }
 }
 
 class SDL_Rect
 {
-    public int $x;
-    public int $y;
-    public int $w;
-    public int $h;
-
-    public function __construct(int $x, int $y, int $w, int $h)
-    {
-        $this->x = $x;
-        $this->y = $y;
-        $this->w = $w;
-        $this->h = $h;
+    public function __construct(
+        public int $x,
+        public int $y,
+        public int $w,
+        public int $h,
+    ) {
     }
 }
 
 class SDL_Color
 {
-    public int $a;
-    public int $b;
-    public int $g;
-    public int $r;
-
-    public function __construct(int $r, int $g, int $b, int $a)
-    {
-        $this->r = $r;
-        $this->g = $g;
-        $this->b = $b;
-        $this->a = $a;
+    public function __construct(
+        public int $r,
+        public int $g,
+        public int $b,
+        public int $a,
+    ) {
     }
 }
