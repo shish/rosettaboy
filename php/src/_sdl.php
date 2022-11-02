@@ -12,6 +12,7 @@ const SDL_TEXTUREACCESS_STREAMING = 6;
 
 function SDL_CreateRGBSurface(...$x): SDL_Surface
 {
+    return new SDL_Surface();
 }
 
 function SDL_SetRenderDrawColor(...$x)
