@@ -8,5 +8,6 @@ Argument Parsing
   - debug_gpu: bool - show the full sprite map and video RAM
   - debug_apu: bool - ?
   - debug_ram: bool - log mmap I/O events, eg writing to `0x2000` to switch ROM bank
-  - profile: int - run for this many frames then exit
+  - frames: int - run for this many frames then exit
+  - profile: int - run for this many seconds then exit
   - turbo: bool - no `sleep()`, run as fast as possible

@@ -27,7 +27,8 @@ So far all the implementations follow a fairly standard layout, with each
 module teaching me how to do a new thing. In fact they're all so similar,
 I wrote one copy of the documentation for all the implementations:
 
-- [main](docs/main.md): argument parsing
+- [main](docs/main.md): exception handling
+- [args](docs/args.md): argument parsing
 - [cpu](docs/cpu.md): CPU emulation
 - [gpu](docs/gpu.md): graphical processing
 - [apu](docs/apu.md): audio processing
