@@ -17,7 +17,13 @@ import argparse
 TEST_ROM_URL = "https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true"
 TEST_ROM = "/tmp/opus5.gb"
 if not os.path.exists(TEST_ROM):
-    subprocess.run(["wget", TEST_ROM_URL, "-O", TEST_ROM])
+    subprocess.run(
+        ["wget", TEST_ROM_URL, "-O", TEST_ROM],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        check=True,
+    )
 
 
 def main() -> int:
@@ -70,6 +76,7 @@ def main() -> int:
         print(f"{lang:>5s} / {sub:7s}: {frames}")
         if proc.returncode != 0:
             all_ok = False
+            print(f"Output from failed run:\n{proc.stdout}")
 
     return 0 if all_ok else 1
 
