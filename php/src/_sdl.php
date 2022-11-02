@@ -2,6 +2,10 @@
 
 // Stubs until somebody makes a working SDL-PHP binding
 
+function SDL_CreateRGBSurface(...$x)
+{
+}
+
 function SDL_SetRenderDrawColor(...$x)
 {
 }

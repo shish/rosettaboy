@@ -1,5 +1,7 @@
 <?php
 
+const SCALE = 2;
+
 class LCDC
 {
     public static int $ENABLED = 1 << 7;
@@ -43,6 +45,11 @@ class GPU
 
     public function __construct(CPU $cpu, bool $debug, bool $headless)
     {
+        $rmask = 0x000000ff;
+        $gmask = 0x0000ff00;
+        $bmask = 0x00ff0000;
+        $amask = 0xff000000;
+
         $this->cpu = $cpu;
         $this->debug = $debug;
         $this->cycle = 0;
@@ -52,7 +59,31 @@ class GPU
         $this->hw_buffer = null;
 
         $this->renderer = null;
-        // FIXME: create a window
+
+        $w = 160;
+        $h = 144;
+        if($this->debug) {
+            $w = 160 + 256;
+            $h = 144;
+        }
+        if(!$headless) {
+            SDL_InitSubSystem(SDL_INIT_VIDEO);
+            $this->hw_window = SDL_CreateWindow(
+                sprintf("RosettaBoy - %s", "FIXME"),            // window title
+                SDL_WINDOWPOS_UNDEFINED,                        // initial x position
+                SDL_WINDOWPOS_UNDEFINED,                        // initial y position
+                $w * SCALE,                                     // width, in pixels
+                $h * SCALE,                                     // height, in pixels
+                SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE // flags - see below
+            );
+            $this->hw_renderer = SDL_CreateRenderer($this->hw_window, -1, 0);
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest"); // vs "linear"
+            SDL_RenderSetLogicalSize($this->hw_renderer, $w, $h);
+            $this->hw_buffer =
+                SDL_CreateTexture($this->hw_renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, $w, $h);
+        }
+        $this->buffer = SDL_CreateRGBSurface(0, $w, $h, 32, $rmask, $gmask, $bmask, $amask);
+        $this->renderer = SDL_CreateSoftwareRenderer($this->buffer);
 
         // Colors
         $this->colors[0] = new SDL_Color(0x9B, 0xBC, 0x0F, 0xFF);
@@ -117,7 +148,8 @@ class GPU
                     $this->draw_debug();
                 }
                 if ($this->hw_renderer) {
-                    SDL_UpdateTexture($this->hw_buffer, null, $this->buffer->pixels, $this->buffer->pitch);
+                    // FIXME: not implemented in php-sdl
+                    //SDL_UpdateTexture($this->hw_buffer, null, $this->buffer->pixels, $this->buffer->pitch);
                     SDL_RenderClear($this->hw_renderer);
                     SDL_RenderCopy($this->hw_renderer, $this->hw_buffer, null, null);
                     SDL_RenderPresent($this->hw_renderer);

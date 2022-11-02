@@ -82,7 +82,7 @@ $ ./utils/bench.py
   nim / speed  : Emulated 14241 frames in 10.00s (1424fps)
   nim / release: Emulated 14193 frames in 10.00s (1419fps)
    go / release: Emulated  5973 frames in 10.00s (597fps)
-  php / release: Emulated   639 frames in 10.00s (64fps)
+  php / release: Emulated   497 frames in 10.01s (50fps)
   zig / safe   : Emulated   228 frames in 10.00s (23fps)
    py / release: Emulated   181 frames in 10.00s (18fps)
    py / mypyc  : Emulated   179 frames in 10.01s (18fps)

@@ -7,7 +7,10 @@ function exception_error_handler($errno, $errstr, $errfile, $errline)
 }
 set_error_handler("exception_error_handler");
 
-require "_sdl.php";
+if(!function_exists("SDL_Init")) {
+    print("!!! WARNING !!!\nUsing fake SDL\n");
+    require "_sdl.php";
+}
 require "args.php";
 require "gameboy.php";
 require "errors.php";
