@@ -1,5 +1,20 @@
+RosettaBoy - Go Edition
+=======================
 
 ```
 go get -v github.com/veandco/go-sdl2/sdl
 go run src/*.go game.gb
 ```
+
+Thoughts on Go
+==============
+- The verbosity of error handling is constantly a minor annoyance,
+  `err := foo(); if err != nil { return err }` compared to eg
+  Rust's `foo()?`. It's not a _big_ issue, but it is like trying
+  to run a marathon with a grain of sand in your shoe...
+- Error handling still fails to catch errors - I spent hours trying
+  to figure out why nothing was displaying on screen, and it turns
+  out that I'd created a buffer but forgotten to assign it to the
+  `hw_buffer` variable... and everything was just silently totally
+  fine with that variable being `nil`, I could even call methods on
+  it with no NullPointerException equivalent. Argh.
