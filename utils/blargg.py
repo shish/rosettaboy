@@ -13,6 +13,18 @@ import sys
 import itertools
 from glob import glob
 from multiprocessing.pool import ThreadPool
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--threads",
+    type=int,
+    default=1,
+    help="How many tests to run in parallel",
+)
+parser.add_argument("langs", default=[], nargs="*", help="Which languages to test")
+args = parser.parse_args()
+
 
 
 RED = "\033[0;31m"
@@ -54,11 +66,11 @@ def test(cwd, rom):
     return p.returncode == 0
 
 
-dirs = sys.argv[1:] or [n.replace("/run.sh", "") for n in glob("*/run.sh")]
+dirs = args.langs or [n.replace("/run.sh", "") for n in glob("*/run.sh")]
 roms = glob("gb-autotest-roms/*/*.gb")
 tests_to_run = itertools.product(dirs, roms)
 
-p = ThreadPool(8)
+p = ThreadPool(args.threads)
 results = p.starmap(test, tests_to_run)
 if all(results):
     sys.exit(0)
