@@ -13,7 +13,8 @@ RUN apt update && apt install -y \
 RUN wget https://ziglang.org/download/0.10.0/zig-linux-$(uname -m)-0.10.0.tar.xz -O /tmp/zig.tar.xz && \
     tar -C /tmp -xf /tmp/zig.tar.xz && \
     ln -s /tmp/zig*/zig /usr/local/bin/zig
-RUN git clone https://github.com/shish/php-sdl /tmp/php-sdl && cd /tmp/php-sdl && phpize && ./configure && make && make install
+RUN git clone https://github.com/shish/php-sdl /tmp/php-sdl && \
+    cd /tmp/php-sdl && phpize && ./configure && make && make install
 
 ARG USER_ID
 ARG GROUP_ID

@@ -148,8 +148,7 @@ class GPU
                     $this->draw_debug();
                 }
                 if ($this->hw_renderer) {
-                    // FIXME: not implemented in php-sdl
-                    //SDL_UpdateTexture($this->hw_buffer, null, $this->buffer->pixels, $this->buffer->pitch);
+                    SDL_UpdateTexture($this->hw_buffer, null, $this->buffer->pixels, $this->buffer->pitch);
                     SDL_RenderClear($this->hw_renderer);
                     SDL_RenderCopy($this->hw_renderer, $this->hw_buffer, null, null);
                     SDL_RenderPresent($this->hw_renderer);
