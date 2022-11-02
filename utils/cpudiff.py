@@ -4,19 +4,25 @@ a script to compare CPU traces - when one implementation is failing
 tests, it can be useful to compare results against a known-good one
 
 Usage:
-  cd nim && ./run.sh -HSt --debug-cpu ../gb-autotest-roms/blargg-cpu-instructions/02-interrupts.gb > ../nim.cpu && cd ..
-  cd rs && ./run.sh -HSt --debug-cpu ../gb-autotest-roms/blargg-cpu-instructions/02-interrupts.gb > ../rs.cpu && cd ..
-  python3 cpudiff.py nim.cpu rs.cpu
+  cd cpp && ./run.sh -SHtp30 ../test_roms/games/opus5.gb --debug-cpu > ../cpp-linux.cpu
+  cd rs && ./run.sh -SHtp30 ../test_roms/games/opus5.gb --debug-cpu > ../rs-linux.cpu
+  ./utils/cpudiff.py *.cpu
 """
 
+import typing as t
 import sys
+import re
+
+pattern = re.compile("([0-9A-F]{4} ){4}")
+
+def find_valid_lines(fn: str) -> t.Iterable[str]:
+    for line in open(fn):
+        if pattern.match(line):
+            yield line.strip()
 
 last = []
 
-f1 = open(sys.argv[1])
-f2 = open(sys.argv[2])
-
-for l1, l2 in zip(f1, f2):
+for l1, l2 in zip(find_valid_lines(sys.argv[1]), find_valid_lines(sys.argv[2])):
     if l1 == l2:
         last.append(l1)
         if len(last) > 5:
@@ -24,6 +30,6 @@ for l1, l2 in zip(f1, f2):
     else:
         for l in last:
             print("R:", l.strip())
-        print("X:", l1.strip())
-        print("Y:", l2.strip())
+        print("X:", l1)
+        print("Y:", l2)
         break
