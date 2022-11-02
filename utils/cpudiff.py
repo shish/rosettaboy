@@ -15,10 +15,12 @@ import re
 
 pattern = re.compile("([0-9A-F]{4} ){4}")
 
+
 def find_valid_lines(fn: str) -> t.Iterable[str]:
     for line in open(fn):
         if pattern.match(line):
             yield line.strip()
+
 
 last = []
 

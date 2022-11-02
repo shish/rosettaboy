@@ -14,10 +14,23 @@ import re
 import sys
 import argparse
 
+TEST_ROM_URL = "https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true"
+TEST_ROM = "/tmp/opus5.gb"
+if not os.path.exists(TEST_ROM):
+    subprocess.run(["wget", TEST_ROM_URL, "-O", TEST_ROM])
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--default", default=False, action="store_true", help="Only run the default run.sh, not variants")
-    parser.add_argument("--frames", type=int, default=600, help="Run for this many frames")
+    parser.add_argument(
+        "--default",
+        default=False,
+        action="store_true",
+        help="Only run the default run.sh, not variants",
+    )
+    parser.add_argument(
+        "--frames", type=int, default=600, help="Run for this many frames"
+    )
     parser.add_argument("langs", default=[], nargs="*")
     args = parser.parse_args()
 
@@ -43,7 +56,7 @@ def main() -> int:
                 "--silent",
                 "--headless",
                 "--turbo",
-                "../test_roms/games/opus5.gb",
+                TEST_ROM,
             ],
             cwd=lang,
             stdout=subprocess.PIPE,

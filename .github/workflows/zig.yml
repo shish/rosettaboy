@@ -47,7 +47,4 @@ jobs:
     - name: CPU Integration Tests
       run: ./utils/blargg.py zig
     - name: Benchmark
-      working-directory: zig
-      run: |
-        wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
-        ./run.sh --silent --headless --profile 600 --turbo opus5.gb
+      run: ./utils/bench.py zig --default --frames 10

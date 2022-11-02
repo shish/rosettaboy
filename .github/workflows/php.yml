@@ -44,7 +44,4 @@ jobs:
     - name: CPU Integration Tests
       run: ./utils/blargg.py php
     - name: Benchmark
-      working-directory: php
-      run: |
-        wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
-        ./run.sh -S -H -p 600 -t opus5.gb
+      run: ./utils/bench.py php --default --frames 10

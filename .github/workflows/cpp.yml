@@ -42,7 +42,4 @@ jobs:
     - name: CPU Integration Tests
       run: ./utils/blargg.py cpp
     - name: Benchmark
-      working-directory: cpp
-      run: |
-        wget https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true -O opus5.gb
-        ./run.sh --silent --headless --profile 600 --turbo opus5.gb
+      run: ./utils/bench.py cpp --default --frames 10
