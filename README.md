@@ -52,6 +52,11 @@ that the user has the standard language dev kits installed (eg we assume
 anyone who wants to work on the Rust version will have Cargo installed;
 anyone who wants to work on Python will have virtualenv + pip; etc)
 
+If you have a shell with docker installed, you can run `./utils/shell.sh`
+to create and run a docker container with all the necessary dev tools
+pre-installed -- `./run.sh --headless --silent` should be able to pass
+tests for all languages.
+
 
 Benchmarks
 ----------
