@@ -1,0 +1,24 @@
+name: Utils
+
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'utils/**'
+    - '.github/workflows/utils.yml'
+  pull_request:
+    paths:
+    - 'utils/**'
+    - '.github/workflows/utils.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Build & Run
+      run: ./utils/shell.sh ./utils/bench.py --default --frames 10
