@@ -20,6 +20,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3 
+    - name: Initialise docker cache
+      uses: satackey/action-docker-layer-caching@v0.0.11
+      continue-on-error: true
     - name: Build
       working-directory: utils
       run: docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t rosettaboy .
