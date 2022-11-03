@@ -22,6 +22,7 @@ def main(argv: List[str]) -> int:
         pass
     except Exception as e:
         print(str(e))
+        return 1
     finally:
         sdl2.SDL_Quit()
 
