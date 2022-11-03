@@ -39,11 +39,15 @@ fn configure_logging(args: &args::Args) {
     if args.debug_ram {
         levels.push_str(",rosettaboy_rs::ram=debug");
     }
+    let filter_layer =
+        tracing_subscriber::EnvFilter::new(std::env::var("RUST_LOG").unwrap_or(levels));
+    let format_layer = tracing_subscriber::fmt::layer()
+        .without_time()
+        .with_level(false)
+        .with_target(false);
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or(levels),
-        ))
-        .with(tracing_subscriber::fmt::layer())
+        .with(filter_layer)
+        .with(format_layer)
         .init();
 }
 
