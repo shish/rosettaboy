@@ -48,14 +48,15 @@ RUN apt update && apt install -y python${PYTHON_VERSION} python${PYTHON_VERSION}
 ARG RUST_VERSION
 USER dev
 RUN wget -qO - https://sh.rustup.rs | sh -s -- --default-toolchain ${RUST_VERSION} -y
-RUN . ~/.cargo/env && cargo search foo
+ENV PATH="/home/dev/.cargo/bin:$PATH"
+RUN cargo search foo
 
 # Install Zig tools
 ARG ZIG_VERSION
-USER root
+USER dev
 RUN wget https://ziglang.org/download/${ZIG_VERSION}/zig-linux-$(uname -m)-${ZIG_VERSION}.tar.xz -O /tmp/zig.tar.xz && \
-    tar -C /tmp -xf /tmp/zig.tar.xz && \
-    ln -s /tmp/zig*/zig /usr/local/bin/zig
+    mkdir ~/.zig && tar --strip-components=1 -C ~/.zig -xf /tmp/zig.tar.xz && rm -f /tmp/zig.tar.gz
+ENV PATH="/home/dev/.zig:$PATH"
 
 # Get ready to go
 USER dev
