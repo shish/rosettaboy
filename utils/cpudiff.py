@@ -25,16 +25,16 @@ def find_valid_lines(fn: str) -> t.Iterable[str]:
 last = []
 skipped = 0
 
-for l1, l2 in zip(find_valid_lines(sys.argv[1]), find_valid_lines(sys.argv[2])):
-    if l1 == l2:
-        last.append(l1)
+for lines in zip(*[find_valid_lines(fn) for fn in sys.argv[1:]]):
+    if len(set(lines)) == 1:
+        last.append(lines[0])
         if len(last) > 5:
             skipped += 1
             last.pop(0)
     else:
         print(f"Skipped {skipped} common lines")
         for l in last:
-            print("R:", l.strip())
-        print("X:", l1)
-        print("Y:", l2)
+            print(l)
+        for n, l in enumerate(lines):
+            print(f"{l}   # {sys.argv[n+1]}")
         break
