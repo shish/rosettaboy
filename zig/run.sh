@@ -1,2 +1,3 @@
-#!/bin/sh
+#!/bin/bash
+cd $(dirname $0)
 zig build -Drelease-fast=true && exec ./zig-out/bin/rosettaboy $*

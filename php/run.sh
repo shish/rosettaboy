@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+cd $(dirname $0)
 if [ -f /tmp/php-sdl/modules/sdl.so ] ; then
     FLAGS=-dextension=/tmp/php-sdl/modules/sdl.so
 else
