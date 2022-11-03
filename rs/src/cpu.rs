@@ -255,8 +255,8 @@ impl CPU {
             let arg = self.load_op(ram, self.pc + 1, OP_TYPES[op as usize]);
             match OP_TYPES[op as usize] {
                 0 => base,
-                1 => base.replace("u8", format!("${:02X}", arg.u8).as_str()),
-                2 => base.replace("u16", format!("${:04X}", arg.u16).as_str()),
+                1 => base.replace("u8", format!("{:02X}", arg.u8).as_str()),
+                2 => base.replace("u16", format!("{:04X}", arg.u16).as_str()),
                 3 => base.replace("i8", format!("{:+}", arg.i8).as_str()),
                 _ => "Invalid arg_type".to_string(),
             }
