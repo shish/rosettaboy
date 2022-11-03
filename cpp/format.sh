@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash -eu
+cd $(dirname $0)
 if command -v clang-format-14 &> /dev/null ; then
     CMD=clang-format-14
 else
