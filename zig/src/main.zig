@@ -13,11 +13,6 @@ pub const scope_levels = [_]std.log.ScopeLevel{
 pub fn main() anyerror!void {
     var args = try Args.parse_args();
 
-    try SDL.init(.{
-        .video = !args.headless,
-        .audio = !args.silent,
-        .events = true,
-    });
     defer SDL.quit();
 
     // FIXME: catch errors, return appropriate exit codes

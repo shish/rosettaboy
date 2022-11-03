@@ -2,22 +2,19 @@
 #include "errors.h"
 
 Buttons::Buttons(CPU *cpu, bool headless) {
-    SDL_InitSubSystem(SDL_INIT_EVENTS);
+    if(!headless) SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
     this->cpu = cpu;
     this->cycle = 0;
-    this->headless = headless;
 }
 
 void Buttons::tick() {
     this->cycle++;
     this->update_buttons();
-    if(this->need_interrupt) {
-        this->cpu->stop = false;
-        this->cpu->interrupt(Interrupt::JOYPAD);
-        this->need_interrupt = false;
-    }
     if(this->cycle % 17556 == 20) {
-        this->handle_inputs();
+        if(this->handle_inputs()) {
+            this->cpu->stop = false;
+            this->cpu->interrupt(Interrupt::JOYPAD);
+        }
     }
 }
 
@@ -39,10 +36,8 @@ void Buttons::update_buttons() {
     this->cpu->ram->set(Mem::JOYP, ~JOYP);
 }
 
-void Buttons::handle_inputs() {
-    if(this->headless) {
-        return;
-    }
+bool Buttons::handle_inputs() {
+    bool need_interrupt = false;
 
     SDL_Event event;
 
@@ -51,12 +46,12 @@ void Buttons::handle_inputs() {
             throw new Quit();
         }
         if(event.type == SDL_KEYDOWN) {
-            this->need_interrupt = true;
+            need_interrupt = true;
             switch(event.key.keysym.sym) {
                 case SDLK_ESCAPE: throw new Quit();
                 case SDLK_LSHIFT:
                     this->turbo = true;
-                    this->need_interrupt = false;
+                    need_interrupt = false;
                     break;
                 case SDLK_UP: this->up = true; break;
                 case SDLK_DOWN: this->down = true; break;
@@ -66,7 +61,7 @@ void Buttons::handle_inputs() {
                 case SDLK_x: this->a = true; break;
                 case SDLK_RETURN: this->start = true; break;
                 case SDLK_SPACE: this->select = true; break;
-                default: this->need_interrupt = false; break;
+                default: need_interrupt = false; break;
             }
         }
         if(event.type == SDL_KEYUP) {
@@ -83,4 +78,6 @@ void Buttons::handle_inputs() {
             }
         }
     }
+
+    return need_interrupt;
 }

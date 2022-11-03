@@ -64,6 +64,7 @@ pub const GPU = struct {
         var hw_window: ?*const SDL.Window = null;
         var hw_renderer: ?SDL.Renderer = null;
         if (!headless) {
+            try SDL.init(.{ .video = true });
             var _hw_window = try SDL.createWindow(
                 "RosettaBoy - ??",
                 .{ .centered = {} },

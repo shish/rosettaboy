@@ -21,8 +21,6 @@ class Buttons
     public bool $turbo;
     private CPU $cpu;
     private int $cycle;
-    private bool $headless;
-    private bool $need_interrupt;
     private bool $up;
     private bool $down;
     private bool $left;
@@ -34,12 +32,12 @@ class Buttons
 
     public function __construct(CPU $cpu, bool $headless)
     {
-        // FIXME: SDL_InitSubSystem(SDL_INIT_EVENTS);
+        if (!$headless) {
+            SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
+        }
         $this->turbo = false;
         $this->cpu = $cpu;
         $this->cycle = 0;
-        $this->headless = $headless;
-        $this->need_interrupt = false;
 
         $this->up = false;
         $this->down = false;
@@ -55,13 +53,12 @@ class Buttons
     {
         $this->cycle++;
         $this->update_buttons();
-        if ($this->need_interrupt) {
-            $this->cpu->stop = false;
-            $this->cpu->interrupt(Interrupt::$JOYPAD);
-            $this->need_interrupt = false;
-        }
         if ($this->cycle % 17556 == 20) {
-            $this->handle_inputs();
+            if ($this->handle_inputs()) {
+                $this->cpu->stop = false;
+                $this->cpu->interrupt(Interrupt::$JOYPAD);
+                $this->need_interrupt = false;
+            }
         }
     }
 
@@ -100,11 +97,9 @@ class Buttons
         $this->cpu->ram->set(Mem::$JOYP, ~$JOYP);
     }
 
-    public function handle_inputs(): void
+    public function handle_inputs(): bool
     {
-        if ($this->headless) {
-            return;
-        }
+        $need_interrupt = false;
 
         /*
         // FIXME
@@ -146,5 +141,7 @@ class Buttons
             }
         }
         */
+
+        return $need_interrupt;
     }
 }

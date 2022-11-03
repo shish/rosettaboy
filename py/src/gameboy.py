@@ -12,7 +12,7 @@ class GameBoy:
         self.ram = RAM(self.cart, debug=args.debug_ram)
         self.cpu = CPU(self.ram, debug=args.debug_cpu)
         self.gpu = GPU(self.cpu, debug=args.debug_gpu, headless=args.headless)
-        self.buttons = Buttons(self.cpu, headless=args.headless)
+        self.buttons = Buttons(self.cpu)
         self.clock = Clock(self.buttons, args.frames, args.profile, args.turbo)
 
     def run(self):

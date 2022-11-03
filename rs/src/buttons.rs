@@ -27,9 +27,7 @@ bitflags! {
 
 pub struct Buttons {
     _controller: Option<GameController>, // need to keep a reference to avoid deconstructor
-    headless: bool,
     cycle: u32,
-    need_interrupt: bool,
     pub turbo: bool,
     up: bool,
     down: bool,
@@ -43,29 +41,31 @@ pub struct Buttons {
 
 impl Buttons {
     pub fn new(sdl: &sdl2::Sdl, headless: bool) -> Result<Buttons> {
-        let game_controller_subsystem = sdl.game_controller().map_err(anyhow::Error::msg)?;
+        let mut _controller = if !headless {
+            let game_controller_subsystem = sdl.game_controller().map_err(anyhow::Error::msg)?;
 
-        let available = game_controller_subsystem
-            .num_joysticks()
-            .map_err(anyhow::Error::msg)?;
+            let available = game_controller_subsystem
+                .num_joysticks()
+                .map_err(anyhow::Error::msg)?;
 
-        // Iterate over all available joysticks and look for game controllers.
-        let mut _controller = (0..available).find_map(|id| {
-            if !game_controller_subsystem.is_game_controller(id) {
-                return None;
-            }
+            // Iterate over all available joysticks and look for game controllers.
+            (0..available).find_map(|id| {
+                if !game_controller_subsystem.is_game_controller(id) {
+                    return None;
+                }
 
-            match game_controller_subsystem.open(id) {
-                Ok(c) => Some(c),
-                Err(_) => None,
-            }
-        });
+                match game_controller_subsystem.open(id) {
+                    Ok(c) => Some(c),
+                    Err(_) => None,
+                }
+            })
+        } else {
+            None
+        };
 
         Ok(Buttons {
             _controller,
-            headless,
             cycle: 0,
-            need_interrupt: false,
             turbo: false,
             up: false,
             down: false,
@@ -86,16 +86,13 @@ impl Buttons {
     pub fn tick(&mut self, sdl: &sdl2::Sdl, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> Result<()> {
         self.cycle += 1;
         self.update_buttons(ram);
-        if self.need_interrupt {
-            cpu.stop = false;
-            cpu.interrupt(ram, Interrupt::JOYPAD);
-            self.need_interrupt = false;
-        }
         if self.cycle % 17556 == 20 {
-            Ok(self.handle_inputs(sdl)?)
-        } else {
-            Ok(())
+            if self.handle_inputs(sdl)? {
+                cpu.stop = false;
+                cpu.interrupt(ram, Interrupt::JOYPAD);
+            }
         }
+        Ok(())
     }
 
     /**
@@ -145,16 +142,10 @@ impl Buttons {
      * Once per frame, check the queue of input events from the OS,
      * store which buttons are pressed or not
      */
-    fn handle_inputs(&mut self, sdl: &sdl2::Sdl) -> Result<()> {
-        if self.headless {
-            return Ok(());
-        }
+    fn handle_inputs(&mut self, sdl: &sdl2::Sdl) -> Result<bool> {
+        let mut need_interrupt = false;
 
-        for event in sdl
-            .event_pump()
-            .map_err(anyhow::Error::msg)?
-            .poll_iter()
-        {
+        for event in sdl.event_pump().map_err(anyhow::Error::msg)?.poll_iter() {
             tracing::debug!("Event: {:?}", event);
             match event {
                 Event::Quit { .. } => return Err(anyhow!(ControlledExit::Quit)),
@@ -163,12 +154,12 @@ impl Buttons {
                     keycode: Some(keycode),
                     ..
                 } => {
-                    self.need_interrupt = true;
+                    need_interrupt = true;
                     match keycode {
                         Keycode::Escape => return Err(anyhow!(ControlledExit::Quit)),
                         Keycode::LShift => {
                             self.turbo = true;
-                            self.need_interrupt = false
+                            need_interrupt = false
                         }
                         Keycode::Up => self.up = true,
                         Keycode::Down => self.down = true,
@@ -178,7 +169,7 @@ impl Buttons {
                         Keycode::X => self.a = true,
                         Keycode::Return => self.start = true,
                         Keycode::Space => self.select = true,
-                        _ => self.need_interrupt = false,
+                        _ => need_interrupt = false,
                     }
                 }
                 Event::KeyUp {
@@ -198,7 +189,7 @@ impl Buttons {
                 },
 
                 Event::ControllerButtonDown { button, .. } => {
-                    self.need_interrupt = true;
+                    need_interrupt = true;
                     match button {
                         Button::DPadUp => self.up = true,
                         Button::DPadDown => self.down = true,
@@ -208,7 +199,7 @@ impl Buttons {
                         Button::B => self.a = true,
                         Button::Start => self.start = true,
                         Button::Back => self.select = true,
-                        _ => self.need_interrupt = false,
+                        _ => need_interrupt = false,
                     }
                 }
                 Event::ControllerButtonUp { button, .. } => match button {
@@ -226,6 +217,6 @@ impl Buttons {
             }
         }
 
-        Ok(())
+        Ok(need_interrupt)
     }
 }

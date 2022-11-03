@@ -22,9 +22,7 @@ namespace Joypad {
 class Buttons {
 private:
     u32 cycle = 0;
-    bool need_interrupt = false;
     CPU *cpu = nullptr;
-    bool headless = false;
     bool up = false;
     bool down = false;
     bool left = false;
@@ -40,7 +38,7 @@ public:
     bool turbo = false;
 
 private:
-    void handle_inputs();
+    bool handle_inputs();
     void update_buttons();
 };
 

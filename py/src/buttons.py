@@ -19,10 +19,11 @@ class Joypad:
 
 
 class Buttons:
-    def __init__(self, cpu: CPU, headless=False) -> None:
+    def __init__(self, cpu: CPU, headless: bool) -> None:
+        if not headless:
+            sdl2.SDL_InitSubSystem(sdl2.SDL_INIT_GAMECONTROLLER)
+
         self.cpu = cpu
-        self.headless = headless
-        self.need_interrupt = False
 
         self.cycle = 0
         self.turbo = False
@@ -39,12 +40,10 @@ class Buttons:
     def tick(self) -> None:
         self.cycle += 1
         self.update_buttons()
-        if self.need_interrupt:
-            self.cpu.stop = False
-            self.cpu.interrupt(Interrupt.JOYPAD)
-            self.need_interrupt = False
         if self.cycle % 17556 == 20:
-            self.handle_inputs()
+            if self.handle_inputs():
+                self.cpu.stop = False
+                self.cpu.interrupt(Interrupt.JOYPAD)
 
     def update_buttons(self) -> None:
         JOYP = ~self.cpu.ram[Mem.JOYP]
@@ -69,9 +68,8 @@ class Buttons:
                 JOYP |= Joypad.SELECT
         self.cpu.ram[Mem.JOYP] = ~JOYP
 
-    def handle_inputs(self) -> None:
-        if self.headless:
-            return
+    def handle_inputs(self) -> bool:
+        need_interrupt = False
 
         event = sdl2.SDL_Event()
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
@@ -79,12 +77,12 @@ class Buttons:
                 raise Quit()
             elif event.type == sdl2.SDL_KEYDOWN:
                 key = event.key.keysym.sym
-                self.need_interrupt = True
+                need_interrupt = True
                 if key == sdl2.SDLK_ESCAPE:
                     raise Quit()
                 elif key == sdl2.SDLK_LSHIFT:
                     self.turbo = True
-                    self.need_interrupt = False
+                    need_interrupt = False
                 elif key == sdl2.SDLK_z:
                     self.b = True
                 elif key == sdl2.SDLK_x:
@@ -102,7 +100,7 @@ class Buttons:
                 elif key == sdl2.SDLK_RIGHT:
                     self.right = True
                 else:
-                    self.need_interrupt = False
+                    need_interrupt = False
             elif event.type == sdl2.SDL_KEYUP:
                 key = event.key.keysym.sym
                 if key == sdl2.SDLK_LSHIFT:
@@ -123,3 +121,5 @@ class Buttons:
                     self.left = False
                 elif key == sdl2.SDLK_RIGHT:
                     self.right = False
+
+        return need_interrupt

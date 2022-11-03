@@ -18,8 +18,6 @@ const (
 
 type Buttons struct {
 	cpu                   *CPU
-	headless              bool
-	need_interrupt        bool
 	cycle                 int
 	up, down, left, right bool
 	a, b, start, select_  bool
@@ -28,15 +26,14 @@ type Buttons struct {
 
 func NewButtons(cpu *CPU, headless bool) (*Buttons, error) {
 	if !headless {
-		if err := sdl.Init(uint32(sdl.INIT_EVENTS | sdl.INIT_GAMECONTROLLER | sdl.INIT_JOYSTICK)); err != nil {
+		if err := sdl.Init(uint32(sdl.INIT_GAMECONTROLLER)); err != nil {
 			return nil, err
 		}
 	}
 
 	return &Buttons{
 		cpu,
-		headless,
-		false, 0,
+		0,
 		false, false, false, false,
 		false, false, false, false,
 		false,
@@ -46,13 +43,15 @@ func NewButtons(cpu *CPU, headless bool) (*Buttons, error) {
 func (buttons *Buttons) tick() error {
 	buttons.cycle += 1
 	buttons.update_buttons()
-	if buttons.need_interrupt {
-		buttons.cpu.stop = false
-		buttons.cpu.interrupt(INT_JOYPAD)
-		buttons.need_interrupt = false
-	}
 	if buttons.cycle%17556 == 20 {
-		return buttons.handle_inputs()
+		need_interrupt, err := buttons.handle_inputs()
+		if err != nil {
+			return err
+		}
+		if need_interrupt {
+			buttons.cpu.stop = false
+			buttons.cpu.interrupt(INT_JOYPAD)
+		}
 	}
 	return nil
 }
@@ -91,25 +90,23 @@ func (buttons *Buttons) update_buttons() {
 	buttons.cpu.ram.data[IO_JOYP] = ^JOYP
 }
 
-func (buttons *Buttons) handle_inputs() error {
-	if buttons.headless {
-		return nil
-	}
+func (buttons *Buttons) handle_inputs() (bool, error) {
+	var need_interrupt = false
 
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) {
 		case *sdl.QuitEvent:
-			return &Quit{}
+			return false, &Quit{}
 		case *sdl.KeyboardEvent:
 			switch t.Type {
 			case sdl.KEYDOWN:
-				buttons.need_interrupt = true
+				need_interrupt = true
 				switch t.Keysym.Sym {
 				case sdl.K_ESCAPE:
-					return &Quit{}
+					return false, &Quit{}
 				case sdl.K_LSHIFT:
 					buttons.turbo = true
-					buttons.need_interrupt = false
+					need_interrupt = false
 				case sdl.K_UP:
 					buttons.up = true
 				case sdl.K_DOWN:
@@ -127,7 +124,7 @@ func (buttons *Buttons) handle_inputs() error {
 				case sdl.K_SPACE:
 					buttons.select_ = true
 				default:
-					buttons.need_interrupt = false
+					need_interrupt = false
 				}
 			case sdl.KEYUP:
 				switch t.Keysym.Sym {
@@ -154,5 +151,5 @@ func (buttons *Buttons) handle_inputs() error {
 		}
 	}
 
-	return nil
+	return need_interrupt, nil
 }

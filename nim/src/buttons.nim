@@ -11,10 +11,8 @@ type
     Buttons* = object
         cpu: cpu.CPU
         ram: ram.RAM
-        headless: bool
         turbo*: bool
         cycle: int
-        needInterrupt: bool
         up: bool
         down: bool
         left: bool
@@ -37,10 +35,11 @@ const JOYPAD_A = 1 shl 0
 # const JOYPAD_BUTTON_BITS = 0b00001111
 
 proc create*(cpu: cpu.CPU, ram: ram.RAM, headless: bool): Buttons =
+    if not headless:
+        discard sdl2.init(sdl2.INIT_GAMECONTROLLER)
     return Buttons(
         cpu: cpu,
         ram: ram,
-        headless: headless,
     )
 
 #[
@@ -79,9 +78,8 @@ proc updateButtons(self: var Buttons) =
 Once per frame, check the queue of input events from the OS,
 store which buttons are pressed or not
 ]#
-proc handleInputs(self: var Buttons) =
-    if self.headless:
-        return
+proc handleInputs(self: var Buttons): bool =
+    var needInterrupt = false;
 
     var event = sdl2.defaultEvent
     while pollEvent(event):
@@ -90,13 +88,13 @@ proc handleInputs(self: var Buttons) =
                 raise errors.Quit.newException("FIXME quit")
             of KeyDown:
                 let key = event.key()
-                self.need_interrupt = true;
+                needInterrupt = true;
                 case key.keysym.sym:
                     of K_ESCAPE:
                         raise errors.Quit.newException("FIXME quit")
                     of K_LSHIFT:
                         self.turbo = true
-                        self.need_interrupt = false
+                        needInterrupt = false
                         break
                     of K_UP:
                         self.up = true
@@ -123,7 +121,7 @@ proc handleInputs(self: var Buttons) =
                         self.select = true
                         break
                     else:
-                        self.need_interrupt = false
+                        needInterrupt = false
                         break
             of KeyUp:
                 let key = event.key()
@@ -153,7 +151,7 @@ proc handleInputs(self: var Buttons) =
             # FIXME: controller support
             #[
             of ControllerButtonDown:
-                self.need_interrupt = true;
+                need_interrupt = true;
                 case event.button:
                     Button::DPadUp: self.up = true,
                     Button::DPadDown: self.down = true,
@@ -163,7 +161,7 @@ proc handleInputs(self: var Buttons) =
                     Button::B: self.a = true,
                     Button::Start: self.start = true,
                     Button::Back: self.select = true,
-                    else: self.need_interrupt = false,
+                    else: need_interrupt = false,
                 of ControllerButtonUp:
                     case event.button:
                         Button::DPadUp: self.up = false,
@@ -176,13 +174,13 @@ proc handleInputs(self: var Buttons) =
                         Button::Back: self.select = false,
                     ]#
 
+    return needInterrupt
+
 
 proc tick*(self: var Buttons) =
     self.cycle += 1
     self.updateButtons()
-    if self.need_interrupt:
-        self.cpu.stop = false
-        self.cpu.interrupt(consts.Interrupt_JOYPAD)
-        self.need_interrupt = false
     if self.cycle mod 17556 == 20:
-        self.handleInputs()
+        if self.handleInputs():
+            self.cpu.stop = false
+            self.cpu.interrupt(consts.Interrupt_JOYPAD)

@@ -22,11 +22,9 @@ const Joypad = struct {
 pub const Buttons = struct {
     cpu: *CPU,
     ram: *RAM,
-    headless: bool,
     turbo: bool,
 
     cycle: u32,
-    need_interrupt: bool,
     up: bool,
     down: bool,
     left: bool,
@@ -37,13 +35,14 @@ pub const Buttons = struct {
     select: bool,
 
     pub fn new(cpu: *CPU, ram: *RAM, headless: bool) !Buttons {
+        if (!headless) {
+            try SDL.init(.{ .game_controller = true });
+        }
         return Buttons{
             .cpu = cpu,
             .ram = ram,
-            .headless = headless,
             .turbo = false,
             .cycle = 0,
-            .need_interrupt = false,
             .up = false,
             .down = false,
             .left = false,
@@ -58,13 +57,11 @@ pub const Buttons = struct {
     pub fn tick(self: *Buttons) !void {
         self.cycle += 1;
         self.update_buttons();
-        if (self.need_interrupt) {
-            self.cpu.stop = false;
-            self.cpu.interrupt(consts.Interrupt.JOYPAD);
-            self.need_interrupt = false;
-        }
         if (self.cycle % 17556 == 20) {
-            try self.handle_inputs();
+            if (try self.handle_inputs()) {
+                self.cpu.stop = false;
+                self.cpu.interrupt(consts.Interrupt.JOYPAD);
+            }
         }
     }
 
@@ -86,17 +83,19 @@ pub const Buttons = struct {
         self.ram.set(consts.Mem.JOYP, ~joyp);
     }
 
-    pub fn handle_inputs(self: *Buttons) !void {
+    pub fn handle_inputs(self: *Buttons) !bool {
+        var need_interrupt = false;
+
         while (SDL.pollEvent()) |ev| {
             switch (ev) {
                 .quit => return errors.ControlledExit.Quit,
                 .key_down => {
-                    self.need_interrupt = true;
+                    need_interrupt = true;
                     switch (ev.key_down.keycode) {
                         SDL.Keycode.escape => return errors.ControlledExit.Quit,
                         SDL.Keycode.left_shift => {
                             self.turbo = true;
-                            self.need_interrupt = false;
+                            need_interrupt = false;
                         },
                         SDL.Keycode.up => self.up = true,
                         SDL.Keycode.down => self.down = true,
@@ -107,12 +106,12 @@ pub const Buttons = struct {
                         SDL.Keycode.@"return" => self.start = true,
                         SDL.Keycode.space => self.select = true,
                         else => {
-                            self.need_interrupt = false;
+                            need_interrupt = false;
                         },
                     }
                 },
                 .key_up => {
-                    self.need_interrupt = true;
+                    need_interrupt = true;
                     switch (ev.key_up.keycode) {
                         SDL.Keycode.left_shift => self.turbo = false,
                         SDL.Keycode.up => self.up = false,
@@ -129,5 +128,7 @@ pub const Buttons = struct {
                 else => {},
             }
         }
+
+        return need_interrupt;
     }
 };
