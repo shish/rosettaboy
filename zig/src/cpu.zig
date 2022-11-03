@@ -259,10 +259,9 @@ pub const CPU = struct {
                 },
                 3 => {
                     var param = "    ".*;
-                    if(arg.i8 > 0) {
+                    if (arg.i8 > 0) {
                         _ = try std.fmt.bufPrint(&param, "+{d}", .{arg.i8});
-                    }
-                    else {
+                    } else {
                         _ = try std.fmt.bufPrint(&param, "{d}", .{arg.i8});
                     }
                     _ = std.mem.replace(u8, base, "i8", &param, &op_str);
@@ -337,11 +336,9 @@ pub const CPU = struct {
     fn tick_interrupts(self: *CPU) void {
         var queued_interrupts = self.ram.get(consts.Mem.IE) & self.ram.get(consts.Mem.IF);
         if (self.interrupts and queued_interrupts != 0) {
-            //tracing::debug!(
-            //    "Handling interrupts: {:02X} & {:02X}",
-            //    self.ram.get(consts.Mem.IE),
-            //    self.ram.get(consts.Mem.IF)
-            //);
+            if (self.debug) {
+                std.debug.print("Handling interrupts: {X:0>2} & {X:0>2}\n", .{ self.ram.get(consts.Mem.IE), self.ram.get(consts.Mem.IF) });
+            }
 
             // no nested interrupts, RETI will re-enable
             self.interrupts = false;
