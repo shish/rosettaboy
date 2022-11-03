@@ -3,8 +3,12 @@
 function parse_args($argv)
 {
     $rest_index = null;
-    $opts = getopt("cgraHStf:p:", ["debug-cpu", "debug-gpu", "debug-ram", "debug-apu", "headless", "silent", "turbo", "frames:", "profile:"], $rest_index);
+    $opts = getopt("cgraHStf:p:h", ["debug-cpu", "debug-gpu", "debug-ram", "debug-apu", "headless", "silent", "turbo", "frames:", "profile:", "help"], $rest_index);
     $pos_args = array_slice($argv, $rest_index);
+    if (array_key_exists('h', $opts) || array_key_exists('help', $opts) || count($pos_args) == 0) {
+        print("PHP is awful. Getopt is awful. Read the docs to see flags.\n");
+        exit(0);
+    }
     //var_dump($opts);
     //var_dump($pos_args);
     return [
