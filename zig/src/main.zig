@@ -11,7 +11,17 @@ pub const scope_levels = [_]std.log.ScopeLevel{
 };
 
 pub fn main() anyerror!void {
-    var args = try Args.parse_args();
+    var args = Args.parse_args() catch |err| {
+        switch (err) {
+            errors.ControlledExit.Help => {
+                std.os.exit(0);
+            },
+            else => {
+                std.log.err("Unknown error {any}\n", .{err});
+                std.os.exit(5);
+            },
+        }
+    };
 
     defer SDL.quit();
 
@@ -33,6 +43,9 @@ pub fn main() anyerror!void {
                 std.os.exit(0);
             },
             errors.ControlledExit.Quit => {
+                std.os.exit(0);
+            },
+            errors.ControlledExit.Help => {
                 std.os.exit(0);
             },
             // FIXME: match by error group?
