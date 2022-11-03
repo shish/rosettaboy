@@ -9,7 +9,7 @@ type
         headless*, silent*: bool
         turbo*, debug_cpu*, debug_apu*, debug_gpu*, debug_ram*: bool
 
-proc parse_args*(args: seq[string]): Args =
+proc parseArgs*(args: seq[string]): Args =
     var p = newParser("rosettaboy-nim"):
         flag("-H", "--headless")
         flag("-S", "--silent")
@@ -39,4 +39,4 @@ proc parse_args*(args: seq[string]): Args =
     except ShortCircuit as e:
         if e.flag == "argparse_help":
             echo p.help
-            quit(1)
+            quit(0)

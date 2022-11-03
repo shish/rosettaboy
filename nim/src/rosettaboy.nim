@@ -7,9 +7,9 @@ import errors
 
 when isMainModule:
     try:
-        let args_obj = args.parse_args(commandLineParams())
-        var gameboy_obj = gameboy.create(args_obj)
-        gameboy_obj.run()
+        let argsObj = args.parseArgs(commandLineParams())
+        var gameboyObj = gameboy.create(argsObj)
+        gameboyObj.run()
     except errors.UnitTestFailed as e:
         echo e.msg
         system.quit(2)
