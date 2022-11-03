@@ -26,7 +26,6 @@ bitflags! {
 }
 
 pub struct Buttons {
-    sdl: sdl2::Sdl,
     _controller: Option<GameController>, // need to keep a reference to avoid deconstructor
     headless: bool,
     cycle: u32,
@@ -43,7 +42,7 @@ pub struct Buttons {
 }
 
 impl Buttons {
-    pub fn new(sdl: sdl2::Sdl, headless: bool) -> Result<Buttons> {
+    pub fn new(sdl: &sdl2::Sdl, headless: bool) -> Result<Buttons> {
         let game_controller_subsystem = sdl.game_controller().map_err(anyhow::Error::msg)?;
 
         let available = game_controller_subsystem
@@ -63,7 +62,6 @@ impl Buttons {
         });
 
         Ok(Buttons {
-            sdl,
             _controller,
             headless,
             cycle: 0,
@@ -85,7 +83,7 @@ impl Buttons {
      * Handle SDL inputs every frame, but handle button
      * register every CPU instruction
      */
-    pub fn tick(&mut self, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> Result<()> {
+    pub fn tick(&mut self, sdl: &sdl2::Sdl, ram: &mut ram::RAM, cpu: &mut cpu::CPU) -> Result<()> {
         self.cycle += 1;
         self.update_buttons(ram);
         if self.need_interrupt {
@@ -94,7 +92,7 @@ impl Buttons {
             self.need_interrupt = false;
         }
         if self.cycle % 17556 == 20 {
-            Ok(self.handle_inputs()?)
+            Ok(self.handle_inputs(sdl)?)
         } else {
             Ok(())
         }
@@ -147,13 +145,12 @@ impl Buttons {
      * Once per frame, check the queue of input events from the OS,
      * store which buttons are pressed or not
      */
-    fn handle_inputs(&mut self) -> Result<()> {
+    fn handle_inputs(&mut self, sdl: &sdl2::Sdl) -> Result<()> {
         if self.headless {
             return Ok(());
         }
 
-        for event in self
-            .sdl
+        for event in sdl
             .event_pump()
             .map_err(anyhow::Error::msg)?
             .poll_iter()

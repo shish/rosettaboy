@@ -10,6 +10,7 @@ use crate::gpu;
 use crate::ram;
 
 pub struct GameBoy<'a> {
+    sdl: sdl2::Sdl,
     ram: ram::RAM,
     cpu: cpu::CPU,
     gpu: gpu::GPU<'a>,
@@ -29,10 +30,11 @@ impl<'a> GameBoy<'a> {
         let cpu = cpu::CPU::new(args.debug_cpu);
         let gpu = gpu::GPU::new(&sdl, cart_name, args.headless, args.debug_gpu)?;
         let apu = apu::APU::new(&sdl, args.silent, args.debug_apu)?;
-        let buttons = buttons::Buttons::new(sdl, args.headless)?;
+        let buttons = buttons::Buttons::new(&sdl, args.headless)?;
         let clock = clock::Clock::new(args.frames, args.profile, args.turbo);
 
         Ok(GameBoy {
+            sdl,
             ram,
             cpu,
             gpu,
@@ -53,7 +55,7 @@ impl<'a> GameBoy<'a> {
     pub fn tick(&mut self) -> Result<()> {
         self.cpu.tick(&mut self.ram)?;
         self.gpu.tick(&mut self.ram, &mut self.cpu)?;
-        self.buttons.tick(&mut self.ram, &mut self.cpu)?;
+        self.buttons.tick(&self.sdl, &mut self.ram, &mut self.cpu)?;
         self.clock.tick(&self.buttons)?;
         self.apu.tick(&mut self.ram);
 
