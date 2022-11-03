@@ -23,6 +23,8 @@ try {
 } catch (UnitTestFailed $e) {
     print($e);
     exit(2);
+} catch (Quit $e) {
+    exit(0);
 } catch (ControlledExit $e) {
     print($e);
     exit(0);

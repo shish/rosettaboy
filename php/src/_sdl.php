@@ -11,6 +11,21 @@ const SDL_PIXELFORMAT_ABGR8888 = 5;
 const SDL_TEXTUREACCESS_STREAMING = 6;
 const SDL_INIT_GAMECONTROLLER = 7;
 
+const SDL_QUIT = 100;
+const SDL_KEYUP = 101;
+const SDL_KEYDOWN = 102;
+
+const SDLK_ESCAPE = 202;
+const SDLK_LSHIFT = 203;
+const SDLK_UP = 204;
+const SDLK_DOWN = 205;
+const SDLK_LEFT = 206;
+const SDLK_RIGHT = 207;
+const SDLK_z = 208;
+const SDLK_x = 209;
+const SDLK_RETURN = 210;
+const SDLK_SPACE = 211;
+
 function SDL_CreateRGBSurface(...$x): SDL_Surface
 {
     return new SDL_Surface();
@@ -74,6 +89,19 @@ function SDL_SetHint(...$x)
 
 function SDL_RenderSetLogicalSize(...$x)
 {
+}
+
+function SDL_PollEvent(...$x)
+{
+}
+
+class SDL_Event
+{
+    public int $type;
+
+    public function __construct()
+    {
+    }
 }
 
 class SDL_Surface
