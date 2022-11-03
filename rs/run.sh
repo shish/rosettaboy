@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/bin/bash -eu
 cd $(dirname $0)
-cargo run --release -- $*
+exec cargo run --release -- $*

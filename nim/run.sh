@@ -1,3 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 cd $(dirname $0)
-nimble --accept build -d:release && ./rosettaboy $*
+nimble --accept build -d:release
+exec ./rosettaboy $*

@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/bin/bash -eu
 cd $(dirname $0)
-cargo +nightly -Z unstable-options run --profile release-lto -- $*
+exec cargo run --profile release-lto -- $*

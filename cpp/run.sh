@@ -1,3 +1,6 @@
-#!/bin/bash
+#!/bin/bash -eu
 cd $(dirname $0)
-cmake -DCMAKE_BUILD_TYPE=Release . && make -j && ./rosettaboy-cpp $*
+BUILDDIR=build/$(hostname)
+cmake -DCMAKE_BUILD_TYPE=Release -B $BUILDDIR .
+cmake --build $BUILDDIR -j
+exec $BUILDDIR/rosettaboy-cpp $*

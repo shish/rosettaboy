@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/bin/bash -eu
 cd $(dirname $0)
-go run src/*.go $*
+exec go run src/*.go $*
