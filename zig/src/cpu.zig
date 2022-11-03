@@ -248,18 +248,23 @@ pub const CPU = struct {
                     std.mem.copy(u8, op_str[0..], base);
                 },
                 1 => {
-                    var param = "xx".*;
+                    var param = "  ".*;
                     _ = try std.fmt.bufPrint(&param, "{X:0>2}", .{arg.u8});
                     _ = std.mem.replace(u8, base, "u8", &param, &op_str);
                 },
                 2 => {
-                    var param = "xxxx".*;
+                    var param = "    ".*;
                     _ = try std.fmt.bufPrint(&param, "{X:0>4}", .{arg.u16});
                     _ = std.mem.replace(u8, base, "u16", &param, &op_str);
                 },
                 3 => {
-                    var param = "xxxx".*;
-                    _ = try std.fmt.bufPrint(&param, "{d}", .{arg.i8});
+                    var param = "    ".*;
+                    if(arg.i8 > 0) {
+                        _ = try std.fmt.bufPrint(&param, "+{d}", .{arg.i8});
+                    }
+                    else {
+                        _ = try std.fmt.bufPrint(&param, "{d}", .{arg.i8});
+                    }
                     _ = std.mem.replace(u8, base, "i8", &param, &op_str);
                 },
             }
