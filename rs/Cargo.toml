@@ -1,5 +1,3 @@
-cargo-features = ["named-profiles"]
-
 [package]
 name = "rosettaboy-rs"
 version = "0.1.0"
