@@ -34,8 +34,10 @@ pattern = re.compile("([0-9A-F]{4} ){4}")
 
 
 def find_valid_lines(fn: str) -> t.Iterable[str]:
+    log_started = False
     for line in open(fn):
-        if pattern.match(line):
+        if log_started or pattern.match(line):
+            log_started = True
             yield line.strip()
 
 
