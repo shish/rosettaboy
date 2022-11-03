@@ -52,8 +52,7 @@ jobs:
           ~/.gocode
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
     - name: Build
-      working-directory: go
-      run: go build -o rosettaboy-go src/*.go
+      run: ./go/run.sh --help
     - name: CPU Integration Tests
       run: ./utils/blargg.py go
     - name: Benchmark

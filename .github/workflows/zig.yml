@@ -42,8 +42,7 @@ jobs:
       with:
         submodules: recursive
     - name: Build
-      working-directory: zig
-      run: zig build
+      run: ./zig/run.sh --help
     - name: CPU Integration Tests
       run: ./utils/blargg.py zig
     - name: Benchmark

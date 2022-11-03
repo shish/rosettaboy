@@ -18,28 +18,29 @@ jobs:
     name: Format
     runs-on: ubuntu-22.04
     steps:
+    - name: Install Deps
+      run: sudo apt-get update && sudo apt-get install -y black
     - name: Checkout
       uses: actions/checkout@v3
     - name: Check
-      uses: rickstaa/action-black@v1
-      with:
-        black_args: "--check py/src"
+      working-directory: py
+      run: ./format.sh && git diff --exit-code
   test:
     name: Test
     runs-on: ubuntu-22.04
     steps:
     - name: Install Deps
-      run: (python3 -m venv --help >/dev/null) || (sudo apt-get update && sudo apt-get install -y python3-venv)
+      run: sudo apt-get update && sudo apt-get install -y python3.11-venv
     - name: Checkout
       uses: actions/checkout@v3
     - name: Set Up Build Cache
       uses: actions/cache@v2
       with:
         path: |
-          venv
-        key: ${{ runner.os }}-python
-    - name: Setup Virtualenv
-      run: python3 -m venv venv && ./venv/bin/pip install pysdl2 pysdl2-dll
+          py/venv
+        key: ${{ runner.os }}-py-venv
+    - name: Build
+      run: ./py/run.sh --help
     - name: CPU Integration Tests
       run: ./utils/blargg.py py
     - name: Benchmark

@@ -52,8 +52,7 @@ jobs:
           rs/target
         key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
     - name: Build
-      working-directory: rs
-      run: cargo build --release
+      run: ./rs/run.sh --help
     - name: CPU Integration Tests
       run: ./utils/blargg.py rs
     - name: Benchmark

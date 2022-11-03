@@ -36,11 +36,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Build
-      working-directory: nim
-      run: nimble build -Y
-#    - name: Test
-#      working-directory: nim
-#      run: nimble test -Y
+      run: ./nim/run.sh --help
     - name: CPU Integration Tests
       run: ./utils/blargg.py nim
     - name: Benchmark

@@ -33,12 +33,8 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y gcc cmake libsdl2-dev
     - name: Checkout
       uses: actions/checkout@v3
-    - name: CMake
-      working-directory: cpp
-      run: cmake -DCMAKE_BUILD_TYPE=Release .
     - name: Build
-      working-directory: cpp
-      run: make
+      run: ./cpp/run.sh --help
     - name: CPU Integration Tests
       run: ./utils/blargg.py cpp
     - name: Benchmark

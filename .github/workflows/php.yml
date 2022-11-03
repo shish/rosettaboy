@@ -41,6 +41,8 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y php-cli
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Build
+      run: ./php/run.sh --help
     - name: CPU Integration Tests
       run: ./utils/blargg.py php
     - name: Benchmark
