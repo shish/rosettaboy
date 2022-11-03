@@ -26,7 +26,6 @@ parser.add_argument("langs", default=[], nargs="*", help="Which languages to tes
 args = parser.parse_args()
 
 
-
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
 END = "\033[0m"
