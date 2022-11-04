@@ -102,39 +102,79 @@ class Buttons
         $need_interrupt = false;
 
         $event = new SDL_Event();
-        while(SDL_PollEvent($event)) {
-            if($event->type == SDL_QUIT) {
+        while (SDL_PollEvent($event)) {
+            if ($event->type == SDL_QUIT) {
                 throw new Quit();
             }
-            if($event->type == SDL_KEYDOWN) {
-                if($event->key->keysym->sym == SDLK_ESCAPE) throw new Quit();
-                if($event->key->keysym->sym == SDLK_LSHIFT) $this->turbo = true;
+            if ($event->type == SDL_KEYDOWN) {
+                if ($event->key->keysym->sym == SDLK_ESCAPE) {
+                    throw new Quit();
+                }
+                if ($event->key->keysym->sym == SDLK_LSHIFT) {
+                    $this->turbo = true;
+                }
 
                 $need_interrupt = true;
                 switch($event->key->keysym->sym) {
-                    case SDLK_UP: $this->up = true; break;
-                    case SDLK_DOWN: $this->down = true; break;
-                    case SDLK_LEFT: $this->left = true; break;
-                    case SDLK_RIGHT: $this->right = true; break;
-                    case SDLK_z: $this->b = true; break;
-                    case SDLK_x: $this->a = true; break;
-                    case SDLK_RETURN: $this->start = true; break;
-                    case SDLK_SPACE: $this->select = true; break;
-                    default: $need_interrupt = false; break;
+                    case SDLK_UP:
+                        $this->up = true;
+                        break;
+                    case SDLK_DOWN:
+                        $this->down = true;
+                        break;
+                    case SDLK_LEFT:
+                        $this->left = true;
+                        break;
+                    case SDLK_RIGHT:
+                        $this->right = true;
+                        break;
+                    case SDLK_z:
+                        $this->b = true;
+                        break;
+                    case SDLK_x:
+                        $this->a = true;
+                        break;
+                    case SDLK_RETURN:
+                        $this->start = true;
+                        break;
+                    case SDLK_SPACE:
+                        $this->select = true;
+                        break;
+                    default:
+                        $need_interrupt = false;
+                        break;
                 }
             }
-            if($event->type == SDL_KEYUP) {
-                if($event->key->keysym->sym == SDLK_LSHIFT) $this->turbo = false;
+            if ($event->type == SDL_KEYUP) {
+                if ($event->key->keysym->sym == SDLK_LSHIFT) {
+                    $this->turbo = false;
+                }
 
                 switch($event->key->keysym->sym) {
-                    case SDLK_UP: $this->up = false; break;
-                    case SDLK_DOWN: $this->down = false; break;
-                    case SDLK_LEFT: $this->left = false; break;
-                    case SDLK_RIGHT: $this->right = false; break;
-                    case SDLK_z: $this->b = false; break;
-                    case SDLK_x: $this->a = false; break;
-                    case SDLK_RETURN: $this->start = false; break;
-                    case SDLK_SPACE: $this->select = false; break;
+                    case SDLK_UP:
+                        $this->up = false;
+                        break;
+                    case SDLK_DOWN:
+                        $this->down = false;
+                        break;
+                    case SDLK_LEFT:
+                        $this->left = false;
+                        break;
+                    case SDLK_RIGHT:
+                        $this->right = false;
+                        break;
+                    case SDLK_z:
+                        $this->b = false;
+                        break;
+                    case SDLK_x:
+                        $this->a = false;
+                        break;
+                    case SDLK_RETURN:
+                        $this->start = false;
+                        break;
+                    case SDLK_SPACE:
+                        $this->select = false;
+                        break;
                 }
             }
         }
