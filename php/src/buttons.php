@@ -56,7 +56,7 @@ class Buttons
         if ($this->cycle % 17556 == 20) {
             if ($this->handle_inputs()) {
                 $this->cpu->stop = false;
-                $this->cpu->interrupt(Interrupt::$JOYPAD);
+                $this->cpu->interrupt(Interrupt::JOYPAD);
                 $this->need_interrupt = false;
             }
         }
