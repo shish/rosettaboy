@@ -344,14 +344,32 @@ impl CPU {
         }
     }
 
+    fn check_interrupt(
+        &mut self,
+        ram: &mut ram::RAM,
+        queue: Interrupt,
+        i: Interrupt,
+        handler: Mem,
+    ) -> bool {
+        if queue.contains(i) {
+            // TODO: wait two cycles
+            // TODO: push16(PC) should also take two cycles
+            // TODO: one more cycle to store new PC
+            self.push(self.pc, ram);
+            self.pc = handler as u16;
+            ram._and(Mem::IF, !i.bits());
+            return true;
+        }
+        return false;
+    }
     /**
      * Compare Interrupt Enabled and Interrupt Flag registers - if
      * there are any interrupts which are both enabled and flagged,
      * clear the flag and call the handler for the first of them.
      */
     fn tick_interrupts(&mut self, ram: &mut ram::RAM) {
-        let queued_interrupts = Interrupt::from_bits(ram.get(Mem::IE) & ram.get(Mem::IF)).unwrap();
-        if self.interrupts && !queued_interrupts.is_empty() {
+        let queue = Interrupt::from_bits(ram.get(Mem::IE) & ram.get(Mem::IF)).unwrap();
+        if self.interrupts && !queue.is_empty() {
             tracing::debug!(
                 "Handling interrupts: {:02X} & {:02X}",
                 ram.get(Mem::IE),
@@ -361,30 +379,11 @@ impl CPU {
             // no nested interrupts, RETI will re-enable
             self.interrupts = false;
 
-            // TODO: wait two cycles
-            // TODO: push16(PC) should also take two cycles
-            // TODO: one more cycle to store new PC
-            if queued_interrupts.contains(Interrupt::VBLANK) {
-                self.push(self.pc, ram);
-                self.pc = Mem::VBlankHandler as u16;
-                ram._and(Mem::IF, !Interrupt::VBLANK.bits());
-            } else if queued_interrupts.contains(Interrupt::STAT) {
-                self.push(self.pc, ram);
-                self.pc = Mem::LcdHandler as u16;
-                ram._and(Mem::IF, !Interrupt::STAT.bits());
-            } else if queued_interrupts.contains(Interrupt::TIMER) {
-                self.push(self.pc, ram);
-                self.pc = Mem::TimerHandler as u16;
-                ram._and(Mem::IF, !Interrupt::TIMER.bits());
-            } else if queued_interrupts.contains(Interrupt::SERIAL) {
-                self.push(self.pc, ram);
-                self.pc = Mem::SerialHandler as u16;
-                ram._and(Mem::IF, !Interrupt::SERIAL.bits());
-            } else if queued_interrupts.contains(Interrupt::JOYPAD) {
-                self.push(self.pc, ram);
-                self.pc = Mem::JoypadHandler as u16;
-                ram._and(Mem::IF, !Interrupt::JOYPAD.bits());
-            }
+            self.check_interrupt(ram, queue, Interrupt::VBLANK, Mem::VBlankHandler)
+                || self.check_interrupt(ram, queue, Interrupt::STAT, Mem::LcdHandler)
+                || self.check_interrupt(ram, queue, Interrupt::TIMER, Mem::TimerHandler)
+                || self.check_interrupt(ram, queue, Interrupt::SERIAL, Mem::SerialHandler)
+                || self.check_interrupt(ram, queue, Interrupt::JOYPAD, Mem::JoypadHandler);
         }
     }
 

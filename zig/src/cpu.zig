@@ -333,40 +333,33 @@ pub const CPU = struct {
         }
     }
 
+    fn check_interrupts(self: *CPU, queue: u8, i: u8, handler: u16) bool {
+        if (queue & i != 0) {
+            // TODO: wait two cycles
+            // TODO: push16(PC) should also take two cycles
+            // TODO: one more cycle to store new PC
+            self.push(self.pc);
+            self.pc = handler;
+            self.ram._and(consts.Mem.IF, ~i);
+            return true;
+        }
+        return false;
+    }
+
     fn tick_interrupts(self: *CPU) void {
-        var queued_interrupts = self.ram.get(consts.Mem.IE) & self.ram.get(consts.Mem.IF);
-        if (self.interrupts and queued_interrupts != 0) {
+        var queue = self.ram.get(consts.Mem.IE) & self.ram.get(consts.Mem.IF);
+        if (self.interrupts and queue != 0) {
             if (self.debug) {
                 std.debug.print("Handling interrupts: {X:0>2} & {X:0>2}\n", .{ self.ram.get(consts.Mem.IE), self.ram.get(consts.Mem.IF) });
             }
 
             // no nested interrupts, RETI will re-enable
             self.interrupts = false;
-
-            // TODO: wait two cycles
-            // TODO: push16(PC) should also take two cycles
-            // TODO: one more cycle to store new PC
-            if (queued_interrupts & (consts.Interrupt.VBLANK) != 0) {
-                self.push(self.pc);
-                self.pc = consts.Mem.VBlankHandler;
-                self.ram._and(consts.Mem.IF, ~consts.Interrupt.VBLANK);
-            } else if (queued_interrupts & (consts.Interrupt.STAT) != 0) {
-                self.push(self.pc);
-                self.pc = consts.Mem.LcdHandler;
-                self.ram._and(consts.Mem.IF, ~consts.Interrupt.STAT);
-            } else if (queued_interrupts & (consts.Interrupt.TIMER) != 0) {
-                self.push(self.pc);
-                self.pc = consts.Mem.TimerHandler;
-                self.ram._and(consts.Mem.IF, ~consts.Interrupt.TIMER);
-            } else if (queued_interrupts & (consts.Interrupt.SERIAL) != 0) {
-                self.push(self.pc);
-                self.pc = consts.Mem.SerialHandler;
-                self.ram._and(consts.Mem.IF, ~consts.Interrupt.SERIAL);
-            } else if (queued_interrupts & (consts.Interrupt.JOYPAD) != 0) {
-                self.push(self.pc);
-                self.pc = consts.Mem.JoypadHandler;
-                self.ram._and(consts.Mem.IF, ~consts.Interrupt.JOYPAD);
-            }
+            _ = self.check_interrupts(queue, consts.Interrupt.VBLANK, consts.Mem.VBlankHandler) or
+                self.check_interrupts(queue, consts.Interrupt.STAT, consts.Mem.LcdHandler) or
+                self.check_interrupts(queue, consts.Interrupt.TIMER, consts.Mem.TimerHandler) or
+                self.check_interrupts(queue, consts.Interrupt.SERIAL, consts.Mem.SerialHandler) or
+                self.check_interrupts(queue, consts.Interrupt.JOYPAD, consts.Mem.JoypadHandler);
         }
     }
 

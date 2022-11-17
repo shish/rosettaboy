@@ -14,20 +14,14 @@ function parse_rom_size(int $val): int
 
 function parse_ram_size(int $val): int
 {
-    switch ($val) {
-        case 0:
-            return 0;
-        case 2:
-            return 8 * KB;
-        case 3:
-            return 32 * KB;
-        case 4:
-            return 128 * KB;
-        case 5:
-            return 64 * KB;
-        default:
-            return -1;
-    }
+    return match ($val) {
+        0 => 0,
+        2 => 8 * KB,
+        3 => 32 * KB,
+        4 => 128 * KB,
+        5 => 64 * KB,
+        default => -1,
+    };
 }
 
 class Cart

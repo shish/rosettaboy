@@ -180,14 +180,25 @@ class CPU:
                     self.interrupt(Interrupt.TIMER)
                 self.ram[Mem.TIMA] += 1
 
+    def check_interrupt(self, queue: u8, i: u8, handler: u16) -> bool:
+        if queue & i:
+            # TODO: wait two cycles
+            # TODO: push16(PC) should also take two cycles
+            # TODO: one more cycle to store new PC
+            self._push16(Reg.PC)
+            self.PC = handler
+            self.ram[Mem.IF] &= ~i
+            return True
+        return False
+
     def tick_interrupts(self) -> None:
         """
         Compare Interrupt Enabled and Interrupt Flag registers - if
         there are any interrupts which are both enabled and flagged,
         clear the flag and call the handler for the first of them.
         """
-        queued_interrupts = self.ram[Mem.IE] & self.ram[Mem.IF]
-        if self.interrupts and queued_interrupts:
+        queue = self.ram[Mem.IE] & self.ram[Mem.IF]
+        if self.interrupts and queue:
             if self._debug:
                 print(
                     f"Handling interrupts: {self.ram[Mem.IE]:02X} & {self.ram[Mem.IF]:02X}"
@@ -196,29 +207,13 @@ class CPU:
             # no nested interrupts, RETI will re-enable
             self.interrupts = False
 
-            # TODO: wait two cycles
-            # TODO: push16(PC) should also take two cycles
-            # TODO: one more cycle to store new PC
-            if queued_interrupts & Interrupt.VBLANK:
-                self._push16(Reg.PC)
-                self.PC = Mem.VBLANK_HANDLER
-                self.ram[Mem.IF] &= ~Interrupt.VBLANK
-            elif queued_interrupts & Interrupt.STAT:
-                self._push16(Reg.PC)
-                self.PC = Mem.LCD_HANDLER
-                self.ram[Mem.IF] &= ~Interrupt.STAT
-            elif queued_interrupts & Interrupt.TIMER:
-                self._push16(Reg.PC)
-                self.PC = Mem.TIMER_HANDLER
-                self.ram[Mem.IF] &= ~Interrupt.TIMER
-            elif queued_interrupts & Interrupt.SERIAL:
-                self._push16(Reg.PC)
-                self.PC = Mem.SERIAL_HANDLER
-                self.ram[Mem.IF] &= ~Interrupt.SERIAL
-            elif queued_interrupts & Interrupt.JOYPAD:
-                self._push16(Reg.PC)
-                self.PC = Mem.JOYPAD_HANDLER
-                self.ram[Mem.IF] &= ~Interrupt.JOYPAD
+            (
+                self.check_interrupt(queue, Interrupt.VBLANK, Mem.VBLANK_HANDLER)
+                or self.check_interrupt(queue, Interrupt.STAT, Mem.LCD_HANDLER)
+                or self.check_interrupt(queue, Interrupt.TIMER, Mem.TIMER_HANDLER)
+                or self.check_interrupt(queue, Interrupt.SERIAL, Mem.SERIAL_HANDLER)
+                or self.check_interrupt(queue, Interrupt.JOYPAD, Mem.JOYPAD_HANDLER)
+            )
 
     def tick_instructions(self) -> None:
         # TODO: extra cycles when conditional jumps are taken

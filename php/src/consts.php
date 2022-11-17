@@ -71,11 +71,11 @@ class Mem
     public static int $IE = 0xFFFF;
 }
 
-class Interrupt
+enum Interrupt: int
 {
-    public static int $VBLANK = 1 << 0;
-    public static int $STAT = 1 << 1;
-    public static int $TIMER = 1 << 2;
-    public static int $SERIAL = 1 << 3;
-    public static int $JOYPAD = 1 << 4;
+    case VBLANK = 1 << 0;
+    case STAT = 1 << 1;
+    case TIMER = 1 << 2;
+    case SERIAL = 1 << 3;
+    case JOYPAD = 1 << 4;
 }

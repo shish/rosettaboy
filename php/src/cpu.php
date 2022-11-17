@@ -234,12 +234,12 @@ class CPU
         $this->tick_instructions();
     }
 
-    public function interrupt(int $i)
+    public function interrupt(Interrupt $i)
     {
         // Set a given interrupt bit - on the next tick, if the interrupt
         // handler for self interrupt is enabled (and interrupts in general
         // are enabled), then the interrupt handler will be called.
-        $this->ram->data[Mem::$IF] |= $i;
+        $this->ram->data[Mem::$IF] |= $i->value;
         $this->halt = false; // interrupts interrupt HALT state
     }
 
@@ -335,45 +335,40 @@ class CPU
             if ($this->cycle % $speed == 0) {
                 if ($this->ram->get(Mem::$TIMA) == 0xFF) {
                     $this->ram->set(Mem::$TIMA, $this->ram->get(Mem::$TMA)); // if timer overflows, load base
-                    $this->interrupt(Interrupt::$TIMER);
+                    $this->interrupt(Interrupt::TIMER);
                 }
                 $this->ram->_inc(Mem::$TIMA);
             }
         }
     }
 
+    private function check_interrupt(int $queue, Interrupt $i, int $handler): bool
+    {
+        if (($queue & $i->value) > 0) {
+            // TODO: wait two cycles
+            // TODO: push16(PC) should also take two cycles
+            // TODO: one more cycle to store new PC
+            $this->push($this->PC);
+            $this->PC = $handler;
+            $this->ram->_and(Mem::$IF, ~$i->value);
+            return true;
+        }
+        return false;
+    }
+
     public function tick_interrupts(): void
     {
-        $queued_interrupts = $this->ram->get(Mem::$IE) & $this->ram->get(Mem::$IF);
-        if ($this->interrupts && ($queued_interrupts != 0x00)) {
+        $queue = $this->ram->get(Mem::$IE) & $this->ram->get(Mem::$IF);
+        if ($this->interrupts && ($queue != 0x00)) {
             if ($this->debug) {
                 printf("Handling interrupts: %02X & %02X\n", $this->ram->get(Mem::$IE), $this->ram->get(Mem::$IF));
             }
             $this->interrupts = false; // no nested interrupts, RETI will re-enable
-            // TODO: wait two cycles
-            // TODO: push16(PC) should also take two cycles
-            // TODO: one more cycle to store new PC
-            if (($queued_interrupts & Interrupt::$VBLANK) > 0) {
-                $this->push($this->PC);
-                $this->PC = Mem::$VBLANK_HANDLER;
-                $this->ram->_and(Mem::$IF, ~Interrupt::$VBLANK);
-            } elseif (($queued_interrupts & Interrupt::$STAT) > 0) {
-                $this->push($this->PC);
-                $this->PC = Mem::$LCD_HANDLER;
-                $this->ram->_and(Mem::$IF, ~Interrupt::$STAT);
-            } elseif (($queued_interrupts & Interrupt::$TIMER) > 0) {
-                $this->push($this->PC);
-                $this->PC = Mem::$TIMER_HANDLER;
-                $this->ram->_and(Mem::$IF, ~Interrupt::$TIMER);
-            } elseif (($queued_interrupts & Interrupt::$SERIAL) > 0) {
-                $this->push($this->PC);
-                $this->PC = Mem::$SERIAL_HANDLER;
-                $this->ram->_and(Mem::$IF, ~Interrupt::$SERIAL);
-            } elseif (($queued_interrupts & Interrupt::$JOYPAD) > 0) {
-                $this->push($this->PC);
-                $this->PC = Mem::$JOYPAD_HANDLER;
-                $this->ram->_and(Mem::$IF, ~Interrupt::$JOYPAD);
-            }
+            $this->check_interrupt($queue, Interrupt::VBLANK, Mem::$VBLANK_HANDLER) ||
+            $this->check_interrupt($queue, Interrupt::STAT, Mem::$LCD_HANDLER) ||
+            $this->check_interrupt($queue, Interrupt::TIMER, Mem::$TIMER_HANDLER) ||
+            $this->check_interrupt($queue, Interrupt::SERIAL, Mem::$SERIAL_HANDLER) ||
+            $this->check_interrupt($queue, Interrupt::JOYPAD, Mem::$JOYPAD_HANDLER);
         }
     }
 
