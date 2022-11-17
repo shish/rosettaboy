@@ -7,7 +7,7 @@ type
         rom*: string
         frames*, profile*: int
         headless*, silent*: bool
-        turbo*, debug_cpu*, debug_apu*, debug_gpu*, debug_ram*: bool
+        turbo*, debugCpu*, debugApu*, debugGpu*, debugRam*: bool
 
 proc parseArgs*(args: seq[string]): Args =
     var p = newParser("rosettaboy-nim"):
@@ -28,10 +28,10 @@ proc parseArgs*(args: seq[string]): Args =
             rom: opts.rom,
             headless: opts.headless,
             silent: opts.silent,
-            debug_cpu: opts.debug_cpu,
-            debug_gpu: opts.debug_gpu,
-            debug_apu: opts.debug_apu,
-            debug_ram: opts.debug_ram,
+            debugCpu: opts.debug_cpu,
+            debugGpu: opts.debug_gpu,
+            debugApu: opts.debug_apu,
+            debugRam: opts.debug_ram,
             frames: parseInt(opts.frames),
             profile: parseInt(opts.profile),
             turbo: opts.turbo,
