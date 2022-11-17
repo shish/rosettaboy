@@ -13,7 +13,7 @@ type
         x: uint8
         tile_id: uint8
         flags: uint8
-    GPU* = object
+    GPU* = ref object
         cpu: cpu.CPU
         ram: ram.RAM
         cart_name: string

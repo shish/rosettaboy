@@ -7,7 +7,7 @@ import errors
 
 # FIXME: use getTime() instead of epochTime()
 type
-    Clock* = object
+    Clock* = ref object
         buttons: buttons.Buttons
         frames: int
         profile: int

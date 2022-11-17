@@ -76,12 +76,12 @@ for exactly which flags are used):
 
 ```
 $ ./utils/bench.py
-  nim / speed  : Emulated 64213 frames in 10.00s (6421fps)
   zig / release: Emulated 28799 frames in 10.00s (2880fps)
    rs / lto    : Emulated 20371 frames in 10.00s (2037fps)
+  nim / speed  : Emulated 18971 frames in 10.00s (1897fps)
    rs / release: Emulated 16950 frames in 10.00s (1695fps)
   cpp / release: Emulated 15397 frames in 10.00s (1540fps)
-  nim / release: Emulated 14193 frames in 10.00s (1419fps)
+  nim / release: Emulated  7611 frames in 10.00s (761fps)
    go / release: Emulated  5973 frames in 10.00s (597fps)
   php / release: Emulated   497 frames in 10.01s (50fps)
   zig / safe   : Emulated   228 frames in 10.00s (23fps)

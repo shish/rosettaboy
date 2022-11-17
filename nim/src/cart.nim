@@ -4,7 +4,7 @@ import std/bitops
 import errors
 
 type
-    Cart* = object
+    Cart* = ref object
         data*: string
         ram*: string
 

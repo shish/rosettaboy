@@ -1,5 +1,5 @@
 type
-    APU* = object
+    APU* = ref object
         silent: bool
         debug: bool
         ch1_freq_timer, ch2_freq_timer, ch3_freq_timer, ch4_freq_timer: int

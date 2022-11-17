@@ -49,7 +49,7 @@ const ROM_BANK_SIZE: uint16 = 0x4000
 const RAM_BANK_SIZE: uint16 = 0x2000
 
 type
-    RAM* = object
+    RAM* = ref object
         cart: cart.Cart
         ramEnable: bool
         ramBankMode: bool

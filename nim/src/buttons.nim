@@ -8,7 +8,7 @@ import cpu
 import ram
 
 type
-    Buttons* = object
+    Buttons* = ref object
         cpu: cpu.CPU
         ram: ram.RAM
         turbo*: bool

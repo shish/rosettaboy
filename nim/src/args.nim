@@ -3,7 +3,7 @@ import std/os
 import argparse
 
 type
-    Args* = object
+    Args* = ref object
         rom*: string
         frames*, profile*: int
         headless*, silent*: bool
