@@ -18,3 +18,9 @@ Thoughts on Go
   `hw_buffer` variable... and everything was just silently totally
   fine with that variable being `nil`, I could even call methods on
   it with no NullPointerException equivalent. Argh.
+- I want to check three things, returning as soon as I find one.
+  `check(A) || check(B) || check(C)` works in most languages. Go
+  however complains that I need to use the result of this expression.
+  Like I get it, the compiler is trying to be helpful... but it's
+  being anal about things that don't matter and turning a blind
+  eye to real problems -_-

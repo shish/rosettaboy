@@ -232,9 +232,20 @@ proc pop(self: var CPU): uint16 =
     self.sp += 2
     return val
 
+proc checkInterrupt(self: var CPU, queue: uint8, i: uint8, handler: uint16): bool =
+    if bitand(queue, i) != 0:
+        # TODO: wait two cycles
+        # TODO: push16(PC) should also take two cycles
+        # TODO: one more cycle to store new PC
+        self.push(self.pc);
+        self.pc = handler
+        self.ram.memAnd(consts.MEM_IF, bitnot(i))
+        return true
+    return false
+
 proc tickInterrupts(self: var CPU) =
-    let queuedInterrupts = bitand(self.ram.get(consts.MEM_IE), self.ram.get(consts.MEM_IF))
-    if self.interrupts and queuedInterrupts != 0:
+    let queue = bitand(self.ram.get(consts.MEM_IE), self.ram.get(consts.MEM_IF))
+    if self.interrupts and queue != 0:
         #tracing::debug!(
         #    "Handling interrupts:::02X &::02X",
         #    self.ram.get(consts.MEM_IE),
@@ -244,29 +255,11 @@ proc tickInterrupts(self: var CPU) =
         # no nested interrupts, RETI will re-enable
         self.interrupts = false
 
-        # TODO: wait two cycles
-        # TODO: push16(PC) should also take two cycles
-        # TODO: one more cycle to store new PC
-        if bitand(queuedInterrupts, consts.INTERRUPT_VBLANK) != 0:
-            self.push(self.pc);
-            self.pc = consts.MEM_VBlankHandler
-            self.ram.memAnd(consts.MEM_IF, bitnot(consts.INTERRUPT_VBLANK))
-        elif bitand(queuedInterrupts, consts.INTERRUPT_STAT) != 0:
-            self.push(self.pc);
-            self.pc = consts.MEM_LcdHandler
-            self.ram.memAnd(consts.MEM_IF, bitnot(consts.INTERRUPT_STAT))
-        elif bitand(queuedInterrupts, consts.INTERRUPT_TIMER) != 0:
-            self.push(self.pc);
-            self.pc = consts.MEM_TimerHandler
-            self.ram.memAnd(consts.MEM_IF, bitnot(consts.INTERRUPT_TIMER))
-        elif bitand(queuedInterrupts, consts.INTERRUPT_SERIAL) != 0:
-            self.push(self.pc);
-            self.pc = consts.MEM_SerialHandler
-            self.ram.memAnd(consts.MEM_IF, bitnot(consts.INTERRUPT_SERIAL))
-        elif bitand(queuedInterrupts, consts.INTERRUPT_JOYPAD) != 0:
-            self.push(self.pc);
-            self.pc = consts.MEM_JoypadHandler
-            self.ram.memAnd(consts.MEM_IF, bitnot(consts.INTERRUPT_JOYPAD))
+        discard self.checkInterrupt(queue, consts.INTERRUPT_VBLANK, consts.MEM_VBlankHandler) or
+        self.checkInterrupt(queue, consts.INTERRUPT_STAT, consts.MEM_LcdHandler) or
+        self.checkInterrupt(queue, consts.INTERRUPT_TIMER, consts.MEM_TimerHandler) or
+        self.checkInterrupt(queue, consts.INTERRUPT_SERIAL, consts.MEM_SerialHandler) or
+        self.checkInterrupt(queue, consts.INTERRUPT_JOYPAD, consts.MEM_JoypadHandler);
 
 proc cpuXor(self: var CPU, val: uint8) =
     self.regs.r8.a = bitxor(self.regs.r8.a, val);

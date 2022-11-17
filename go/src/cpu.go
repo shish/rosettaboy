@@ -276,37 +276,32 @@ func (cpu *CPU) tick_clock() {
 		}
 	}
 }
+
+func (cpu *CPU) check_interrupts(queue uint8, i uint8, handler uint16) bool {
+	if queue&i > 0 {
+		// TODO: wait two cycles
+		// TODO: push16(PC) should also take two cycles
+		// TODO: one more cycle to store new PC
+		cpu.push(cpu.PC)
+		cpu.PC = handler
+		cpu.ram._and(IO_IF, ^i)
+		return true
+	}
+	return false
+}
+
 func (cpu *CPU) tick_interrupts() {
-	var queued_interrupts = cpu.ram.get(IO_IE) & cpu.ram.get(IO_IF)
-	if cpu.interrupts && (queued_interrupts != 0x00) {
+	var queue = cpu.ram.get(IO_IE) & cpu.ram.get(IO_IF)
+	if cpu.interrupts && (queue != 0x00) {
 		if cpu.debug {
 			fmt.Printf("Handling interrupts: %02X & %02X\n", cpu.ram.get(IO_IE), cpu.ram.get(IO_IF))
 		}
 		cpu.interrupts = false // no nested interrupts, RETI will re-enable
-		// TODO: wait two cycles
-		// TODO: push16(PC) should also take two cycles
-		// TODO: one more cycle to store new PC
-		if queued_interrupts&INT_VBLANK > 0 {
-			cpu.push(cpu.PC)
-			cpu.PC = VBLANK_HANDLER
-			cpu.ram._and(IO_IF, ^INT_VBLANK)
-		} else if queued_interrupts&INT_STAT > 0 {
-			cpu.push(cpu.PC)
-			cpu.PC = LCD_HANDLER
-			cpu.ram._and(IO_IF, ^INT_STAT)
-		} else if queued_interrupts&INT_TIMER > 0 {
-			cpu.push(cpu.PC)
-			cpu.PC = TIMER_HANDLER
-			cpu.ram._and(IO_IF, ^INT_TIMER)
-		} else if queued_interrupts&INT_SERIAL > 0 {
-			cpu.push(cpu.PC)
-			cpu.PC = SERIAL_HANDLER
-			cpu.ram._and(IO_IF, ^INT_SERIAL)
-		} else if queued_interrupts&INT_JOYPAD > 0 {
-			cpu.push(cpu.PC)
-			cpu.PC = JOYPAD_HANDLER
-			cpu.ram._and(IO_IF, ^INT_JOYPAD)
-		}
+		_ = cpu.check_interrupts(queue, INT_VBLANK, VBLANK_HANDLER) ||
+			cpu.check_interrupts(queue, INT_STAT, LCD_HANDLER) ||
+			cpu.check_interrupts(queue, INT_TIMER, TIMER_HANDLER) ||
+			cpu.check_interrupts(queue, INT_SERIAL, SERIAL_HANDLER) ||
+			cpu.check_interrupts(queue, INT_JOYPAD, JOYPAD_HANDLER)
 	}
 }
 func (cpu *CPU) tick_instructions() error {

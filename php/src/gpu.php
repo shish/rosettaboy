@@ -119,7 +119,7 @@ class GPU
         // LYC compare & interrupt
         if ($this->cpu->ram->get(Mem::$LY) == $this->cpu->ram->get(Mem::$LYC)) {
             if ($this->cpu->ram->get(Mem::$STAT) & Stat::$LYC_INTERRUPT) {
-                $this->cpu->interrupt(Interrupt::$STAT);
+                $this->cpu->interrupt(Interrupt::STAT);
             }
             $this->cpu->ram->_or(Mem::$STAT, Stat::$LYC_EQUAL);
         } else {
@@ -130,7 +130,7 @@ class GPU
         if ($lx == 0 && $ly < 144) {
             $this->cpu->ram->set(Mem::$STAT, ($this->cpu->ram->get(Mem::$STAT) & ~Stat::$MODE_BITS) | Stat::$OAM);
             if ($this->cpu->ram->get(Mem::$STAT) & Stat::$OAM_INTERRUPT) {
-                $this->cpu->interrupt(Interrupt::$STAT);
+                $this->cpu->interrupt(Interrupt::STAT);
             }
         } elseif ($lx == 20 && $ly < 144) {
             $this->cpu->ram->set(Mem::$STAT, ($this->cpu->ram->get(Mem::$STAT) & ~Stat::$MODE_BITS) | Stat::$DRAWING);
@@ -157,14 +157,14 @@ class GPU
         } elseif ($lx == 63 && $ly < 144) {
             $this->cpu->ram->set(Mem::$STAT, ($this->cpu->ram->get(Mem::$STAT) & ~Stat::$MODE_BITS) | Stat::$HBLANK);
             if ($this->cpu->ram->get(Mem::$STAT) & Stat::$HBLANK_INTERRUPT) {
-                $this->cpu->interrupt(Interrupt::$STAT);
+                $this->cpu->interrupt(Interrupt::STAT);
             }
         } elseif ($lx == 0 && $ly == 144) {
             $this->cpu->ram->set(Mem::$STAT, ($this->cpu->ram->get(Mem::$STAT) & ~Stat::$MODE_BITS) | Stat::$VBLANK);
             if ($this->cpu->ram->get(Mem::$STAT) & Stat::$VBLANK_INTERRUPT) {
-                $this->cpu->interrupt(Interrupt::$STAT);
+                $this->cpu->interrupt(Interrupt::STAT);
             }
-            $this->cpu->interrupt(Interrupt::$VBLANK);
+            $this->cpu->interrupt(Interrupt::VBLANK);
         }
     }
 

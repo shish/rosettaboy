@@ -117,40 +117,34 @@ void CPU::tick_clock() {
     }
 }
 
+bool CPU::check_interrupt(u8 queue, u8 i, u16 handler) {
+    if(queue & i) {
+        // TODO: wait two cycles
+        // TODO: push16(PC) should also take two cycles
+        // TODO: one more cycle to store new PC
+        this->push(this->PC);
+        this->PC = handler;
+        this->ram->_and(Mem::IF, ~i);
+        return true;
+    }
+    return false;
+}
+
 /**
  * Compare Interrupt Enabled and Interrupt Flag registers - if
  * there are any interrupts which are both enabled and flagged,
  * clear the flag and call the handler for the first of them.
  */
 void CPU::tick_interrupts() {
-    u8 queued_interrupts = this->ram->get(Mem::IE) & this->ram->get(Mem::IF);
-    if(this->interrupts && queued_interrupts) {
+    u8 queue = this->ram->get(Mem::IE) & this->ram->get(Mem::IF);
+    if(this->interrupts && queue) {
         if(debug) printf("Handling interrupts: %02X & %02X\n", this->ram->get(Mem::IE), this->ram->get(Mem::IF));
         this->interrupts = false; // no nested interrupts, RETI will re-enable
-        // TODO: wait two cycles
-        // TODO: push16(PC) should also take two cycles
-        // TODO: one more cycle to store new PC
-        if(queued_interrupts & Interrupt::VBLANK) {
-            this->push(this->PC);
-            this->PC = Mem::VBLANK_HANDLER;
-            this->ram->_and(Mem::IF, ~Interrupt::VBLANK);
-        } else if(queued_interrupts & Interrupt::STAT) {
-            this->push(this->PC);
-            this->PC = Mem::LCD_HANDLER;
-            this->ram->_and(Mem::IF, ~Interrupt::STAT);
-        } else if(queued_interrupts & Interrupt::TIMER) {
-            this->push(this->PC);
-            this->PC = Mem::TIMER_HANDLER;
-            this->ram->_and(Mem::IF, ~Interrupt::TIMER);
-        } else if(queued_interrupts & Interrupt::SERIAL) {
-            this->push(this->PC);
-            this->PC = Mem::SERIAL_HANDLER;
-            this->ram->_and(Mem::IF, ~Interrupt::SERIAL);
-        } else if(queued_interrupts & Interrupt::JOYPAD) {
-            this->push(this->PC);
-            this->PC = Mem::JOYPAD_HANDLER;
-            this->ram->_and(Mem::IF, ~Interrupt::JOYPAD);
-        }
+        this->check_interrupt(queue, Interrupt::VBLANK, Mem::VBLANK_HANDLER) ||
+            this->check_interrupt(queue, Interrupt::STAT, Mem::LCD_HANDLER) ||
+            this->check_interrupt(queue, Interrupt::TIMER, Mem::TIMER_HANDLER) ||
+            this->check_interrupt(queue, Interrupt::SERIAL, Mem::SERIAL_HANDLER) ||
+            this->check_interrupt(queue, Interrupt::JOYPAD, Mem::JOYPAD_HANDLER);
     }
 }
 
