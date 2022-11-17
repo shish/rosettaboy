@@ -379,7 +379,7 @@ impl CPU {
             // no nested interrupts, RETI will re-enable
             self.interrupts = false;
 
-            self.check_interrupt(ram, queue, Interrupt::VBLANK, Mem::VBlankHandler)
+            let _ = self.check_interrupt(ram, queue, Interrupt::VBLANK, Mem::VBlankHandler)
                 || self.check_interrupt(ram, queue, Interrupt::STAT, Mem::LcdHandler)
                 || self.check_interrupt(ram, queue, Interrupt::TIMER, Mem::TimerHandler)
                 || self.check_interrupt(ram, queue, Interrupt::SERIAL, Mem::SerialHandler)
