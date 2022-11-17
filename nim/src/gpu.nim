@@ -318,7 +318,7 @@ proc tick*(self: var GPU) =
 
     # Check if LCD enabled at all
     let lcdc = self.ram.get(consts.Mem_LCDC)
-    if bitnot(bitand(lcdc, LCDC_ENABLED)) != 0:
+    if bitand(lcdc, LCDC_ENABLED) == 0:
         # When LCD is re-enabled, LY is 0
         # Does it become 0 as soon as disabled??
         self.ram.set(consts.Mem_LY, 0)
