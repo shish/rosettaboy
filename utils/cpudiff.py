@@ -29,6 +29,7 @@ the STAT register properly.
 import typing as t
 import sys
 import re
+import argparse
 
 pattern = re.compile("([0-9A-F]{4} ){4}")
 
@@ -41,19 +42,33 @@ def find_valid_lines(fn: str) -> t.Iterable[str]:
             yield line.strip()
 
 
-last = []
-skipped = 0
+def run(files: t.List[str], before: int) -> None:
+    last = []
+    skipped = 0
 
-for lines in zip(*[find_valid_lines(fn) for fn in sys.argv[1:]]):
-    if len(set(lines)) == 1:
-        last.append(lines[0])
-        if len(last) > 5:
-            skipped += 1
-            last.pop(0)
-    else:
-        print(f"Skipped {skipped} common lines")
-        for l in last:
-            print(l)
-        for n, l in enumerate(lines):
-            print(f"{l}   # {sys.argv[n+1]}")
-        break
+    for lines in zip(*[find_valid_lines(fn) for fn in files]):
+        if len(set(lines)) == 1:
+            last.append(lines[0])
+            if len(last) > before:
+                skipped += 1
+                last.pop(0)
+        else:
+            print(f"Skipped {skipped} common lines")
+            for l in last:
+                print(l)
+            for n, l in enumerate(lines):
+                print(f"{l}   # {files[n]}")
+            break
+
+def main(argv) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-B", "--before", type=int, help="Common lines to show before diff")
+    parser.add_argument("files", nargs="+", help="CPU log files to compare")
+    args = parser.parse_args()
+
+    run(args.files, args.before)
+
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
