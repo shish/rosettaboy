@@ -44,8 +44,9 @@ pub const GPU = struct {
     cycle: u32,
 
     hw_window: ?*const SDL.Window,
+    hw_buffer: ?SDL.Texture,
     hw_renderer: ?SDL.Renderer,
-    buffer: *SDL.Surface,
+    buffer: SDL.Surface,
     renderer: SDL.Renderer,
     colors: [4]SDL.Color,
     bgp: [4]SDL.Color,
@@ -62,6 +63,7 @@ pub const GPU = struct {
         }
 
         var hw_window: ?*const SDL.Window = null;
+        var hw_buffer: ?SDL.Texture = null;
         var hw_renderer: ?SDL.Renderer = null;
         if (!headless) {
             try SDL.init(.{ .video = true });
@@ -71,17 +73,18 @@ pub const GPU = struct {
                 .{ .centered = {} },
                 @intCast(usize, w * SCALE),
                 @intCast(usize, h * SCALE),
-                .{ .vis = .shown }, // FIXME: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE
+                .{ .vis = .shown, .resizable = true, .allow_high_dpi = true },
             );
             const _hw_renderer = try SDL.createRenderer(_hw_window, null, .{ .accelerated = true });
             // FIXME
             // SDL.setHint(SDL.HINT_RENDER_SCALE_QUALITY, "nearest"); // vs "linear"
             try _hw_renderer.setLogicalSize(w, h);
+            hw_buffer = try SDL.createTexture(_hw_renderer, SDL.PixelFormatEnum.abgr8888, SDL.Texture.Access.streaming, @intCast(usize, w), @intCast(usize, h));
 
             hw_window = &_hw_window;
             hw_renderer = _hw_renderer;
         }
-        var buffer = try SDL.createRgbSurfaceWithFormat(@intCast(u31, w), @intCast(u31, h), SDL.PixelFormatEnum.abgr8888);
+        const buffer = try SDL.createRgbSurfaceWithFormat(@intCast(u31, w), @intCast(u31, h), SDL.PixelFormatEnum.abgr8888);
         const renderer = try SDL.createSoftwareRenderer(buffer);
 
         // Colors
@@ -93,15 +96,15 @@ pub const GPU = struct {
         };
 
         return GPU{
-            // FIXME
             .cpu = cpu,
             .name = name,
             .headless = headless,
             .debug = debug,
             .cycle = 0,
             .hw_window = hw_window,
+            .hw_buffer = hw_buffer,
             .hw_renderer = hw_renderer,
-            .buffer = &buffer,
+            .buffer = buffer,
             .renderer = renderer,
             .colors = colors,
             .bgp = colors,
@@ -165,10 +168,21 @@ pub const GPU = struct {
                     try self.draw_debug();
                 }
                 if (self.hw_renderer) |hw_renderer| {
-                    var tex = try SDL.createTextureFromSurface(hw_renderer, self.buffer.*);
-                    try hw_renderer.clear();
-                    try hw_renderer.copy(tex, null, null);
-                    hw_renderer.present();
+                    if (self.hw_buffer) |hw_buffer| {
+                        if (self.buffer.ptr.*.pixels) |pixels| {
+                            // update() takes []const u8 but pixels are *anyopaque...
+                            // try hw_buffer.update(pixels, @intCast(usize, self.buffer.ptr.*.pitch), null);
+                            if (SDL.c.SDL_UpdateTexture(
+                                hw_buffer.ptr,
+                                null,
+                                pixels,
+                                @intCast(c_int, self.buffer.ptr.*.pitch),
+                            ) != 0) return SDL.makeError();
+                        }
+                        try hw_renderer.clear();
+                        try hw_renderer.copy(hw_buffer, null, null);
+                        hw_renderer.present();
+                    }
                 }
             }
         } else if (lx == 63 and ly < 144) {
@@ -266,8 +280,8 @@ pub const GPU = struct {
                     tile_id += 0x100;
                 }
                 var xy = SDL.Point{
-                    .x = lx - tile_sub_x,
-                    .y = ly - tile_sub_y,
+                    .x = @intCast(i32, lx) - @intCast(i32, tile_sub_x),
+                    .y = @intCast(i32, ly) - @intCast(i32, tile_sub_y),
                 };
                 try self.paint_tile_line(tile_id, &xy, self.bgp, false, false, tile_sub_y);
 
@@ -303,8 +317,8 @@ pub const GPU = struct {
                     tile_id += 0x100;
                 }
                 var xy = SDL.Point{
-                    .x = tile_x * 8 + wnd_x - 7,
-                    .y = tile_y * 8 + wnd_y,
+                    .x = @intCast(i32, tile_x) * 8 + @intCast(i32, wnd_x) - 7,
+                    .y = @intCast(i32, tile_y) * 8 + @intCast(i32, wnd_y),
                 };
                 try self.paint_tile_line(tile_id, &xy, self.bgp, false, false, tile_sub_y);
                 tile_x += 1;
