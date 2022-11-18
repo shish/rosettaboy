@@ -302,7 +302,7 @@ func (gpu *GPU) draw_line(ly int32) {
 				tile_id += 0x100
 			}
 			var xy = sdl.Point{
-				X: int32(ly - int32(tile_sub_x)),
+				X: int32(int32(lx) - int32(tile_sub_x)),
 				Y: int32(ly - int32(tile_sub_y)),
 			}
 			gpu.paint_tile_line(tile_id, &xy, gpu.bgp, false, false, tile_sub_y)
