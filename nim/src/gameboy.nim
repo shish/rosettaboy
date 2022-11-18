@@ -18,7 +18,7 @@ type
 
 proc create*(args: args.Args): GameBoy =
     let cart = cart.create(args.rom)
-    let ram = ram.create(cart)
+    let ram = ram.create(cart, args.debugRam)
     let cpu = cpu.create(ram, args.debugCpu);
     let gpu = gpu.create(cpu, ram, cart.name, args.headless, args.debugGpu)
     let apu = apu.create(args.silent, args.debugApu)

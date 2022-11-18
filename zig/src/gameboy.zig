@@ -18,7 +18,7 @@ pub const GameBoy = struct {
 
     pub fn init(gb: *GameBoy, args: Args) !void {
         gb.cart = try Cart.new(args.rom);
-        gb.ram = try RAM.new(&gb.cart);
+        gb.ram = try RAM.new(&gb.cart, args.debug_ram);
         gb.cpu = try CPU.new(&gb.ram, args.debug_cpu);
         gb.gpu = try GPU.new(&gb.cpu, gb.cart.name, args.headless, args.debug_gpu);
         gb.apu = try APU.new(args.silent, args.debug_apu);
