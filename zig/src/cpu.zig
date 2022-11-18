@@ -302,7 +302,7 @@ pub const CPU = struct {
         if (self.ram.get(consts.Mem.DMA) != 0) {
             var dma_src: u16 = @intCast(u16, self.ram.get(consts.Mem.DMA)) << 8;
 
-            var i: u16 = 1;
+            var i: u16 = 0;
             while (i <= 0xA0) : (i += 1) {
                 self.ram.set(consts.Mem.OamBase + i, self.ram.get(dma_src + i));
             }
