@@ -40,7 +40,6 @@ const LCDC_OBJ_SIZE*: uint8 = 1 shl 2
 const LCDC_OBJ_ENABLED*: uint8 = 1 shl 1
 const LCDC_BG_WIN_ENABLED*: uint8 = 1 shl 0
 
-
 const Stat_LYC_INTERRUPT*: uint8 = 1 shl 6
 const Stat_OAM_INTERRUPT*: uint8 = 1 shl 5
 const Stat_VBLANK_INTERRUPT*: uint8 = 1 shl 4
@@ -52,6 +51,12 @@ const Stat_HBLANK*: uint8 = 0x00
 const Stat_VBLANK*: uint8 = 0x01
 const Stat_OAM*: uint8 = 0x02
 const Stat_DRAWING*: uint8 = 0x03
+
+const SPRITE_PALETTE: uint8 = 0x10
+const SPRITE_FLIP_X: uint8 = 0x20
+const SPRITE_FLIP_Y: uint8 = 0x40
+const SPRITE_BEHIND: uint8 = 0x80
+
 
 const SCALE = 2
 const rmask: uint32 = 0x000000ff
@@ -109,13 +114,13 @@ proc create*(cpu: cpu.CPU, ram: ram.RAM, cart_name: string, headless: bool, debu
     )
 
 func palette(self: Sprite): bool =
-    false # FIXME
+    bitand(self.flags, SPRITE_PALETTE) > 0
 
 func x_flip(self: Sprite): bool =
-    false # FIXME
+    bitand(self.flags, SPRITE_FLIP_X) > 0
 
 func y_flip(self: Sprite): bool =
-    false # FIXME
+    bitand(self.flags, SPRITE_FLIP_Y) > 0
 
 proc update_palettes(self: var GPU) =
     let raw_bgp = self.ram.get(consts.Mem_BGP)
