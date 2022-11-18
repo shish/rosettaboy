@@ -223,14 +223,16 @@ pub const GPU = struct {
         var lcdc = self.cpu.ram.get(consts.Mem.LCDC);
 
         // Tile data - FIXME
-        // var tile_display_width: u8 = 32;
-        // for(int tile_id = 0; tile_id < 384; tile_id++) {
-        //     SDL_Point xy = {
-        //         .x = 160 + (tile_id % tile_display_width) * 8,
-        //         .y = (tile_id / tile_display_width) * 8,
-        //     };
-        //     self.paint_tile(tile_id, &xy, self.bgp, false, false);
-        // }
+        var tile_display_width: u8 = 32;
+        var tile_id: u15=0;
+        while(tile_id < 384) {
+            var xy = SDL.Point{
+                .x = 160 + (tile_id % tile_display_width) * 8,
+                .y = (tile_id / tile_display_width) * 8,
+            };
+            try self.paint_tile(@intCast(i16, tile_id), &xy, self.bgp, false, false);
+            tile_id+=1;
+        }
 
         // Background scroll border
         if (lcdc & LCDC.BG_WIN_ENABLED != 0) {
