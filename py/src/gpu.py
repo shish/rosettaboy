@@ -43,19 +43,19 @@ class Sprite(NamedTuple):
 
     @property
     def palette(self) -> bool:
-        return self.flags & (1 << 3) != 0
+        return self.flags & (1 << 4) != 0
 
     @property
     def x_flip(self) -> bool:
-        return self.flags & (1 << 3) != 0
+        return self.flags & (1 << 5) != 0
 
     @property
     def y_flip(self) -> bool:
-        return self.flags & (1 << 3) != 0
+        return self.flags & (1 << 6) != 0
 
     @property
     def behind(self) -> bool:
-        return self.flags & (1 << 3) != 0
+        return self.flags & (1 << 7) != 0
 
 
 rmask = 0x000000FF
