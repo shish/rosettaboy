@@ -31,7 +31,8 @@ u8 BOOT[0x100] = {
     0xC3, 0xFD, 0x00, // JP 0x00FD
 };
 
-RAM::RAM(Cart *cart) {
+RAM::RAM(Cart *cart, bool debug) {
+    this->debug = debug;
     this->cart = cart;
     this->boot = BOOT;
 

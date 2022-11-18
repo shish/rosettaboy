@@ -125,6 +125,9 @@ class RAM
 
     public function set(int $addr, int $val): void
     {
+        if ($this->debug) {
+            printf("ram[%04X] <- %02X\n", $addr, $val);
+        }
         if ($addr < 0x2000) {
             $newval = ($val != 0);
             // if($this->ram_enable != newval) printf("ram_enable set to %d\n", newval);

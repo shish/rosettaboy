@@ -113,6 +113,7 @@ fn panic(s: []const u8) void {
 }
 
 pub const RAM = struct {
+    debug: bool,
     cart: *Cart,
     ram_enable: bool,
     ram_bank_mode: bool,
@@ -123,8 +124,9 @@ pub const RAM = struct {
     boot: [0x100]u8,
     data: [0xFFFF + 1]u8,
 
-    pub fn new(cart: *Cart) !RAM {
+    pub fn new(cart: *Cart, debug: bool) !RAM {
         return RAM{
+            .debug = debug,
             .cart = cart,
             .ram_enable = true, // false,
             .ram_bank_mode = false,
@@ -207,6 +209,9 @@ pub const RAM = struct {
         return self.data[addr];
     }
     pub fn set(self: *RAM, addr: u16, val: u8) void {
+        if (self.debug) {
+            std.debug.print("ram[{X:0>4}] <- {X:0>2}\n", .{ addr, val });
+        }
         switch (addr) {
             0x0000...0x1FFF => {
                 self.ram_enable = val != 0;

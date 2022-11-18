@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 )
 
@@ -217,6 +218,9 @@ func (ram *RAM) get(addr uint16) uint8 {
 }
 
 func (ram *RAM) set(addr uint16, val uint8) {
+	if ram.debug {
+		fmt.Printf("ram[%04X] <- %02X\n", addr, val)
+	}
 	switch {
 	case addr < 0x2000:
 		ram.ram_enable = val != 0

@@ -23,7 +23,7 @@ private:
     bool debug = false;
 
 public:
-    RAM(Cart *cart);
+    RAM(Cart *cart, bool debug);
     u8 data[0xFFFF + 1];
     void dump();
 
@@ -103,6 +103,9 @@ inline u8 RAM::get(u16 addr) {
 }
 
 inline void RAM::set(u16 addr, u8 val) {
+    if(this->debug) {
+        printf("ram[%04X] <- %02X\n", addr, val);
+    }
     switch(addr) {
         case 0x0000 ... 0x1FFF: {
             bool newval = (val != 0);

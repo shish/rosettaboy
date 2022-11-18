@@ -1,3 +1,4 @@
+import std/strformat
 import std/streams
 import std/os
 import std/bitops
@@ -50,6 +51,7 @@ const RAM_BANK_SIZE: uint16 = 0x2000
 
 type
     RAM* = ref object
+        debug: bool
         cart: cart.Cart
         ramEnable: bool
         ramBankMode: bool
@@ -60,7 +62,7 @@ type
         boot: array[0x100, uint8]
         data*: array[0xFFFF+1, uint8]
 
-proc create*(cart: Cart): RAM =
+proc create*(cart: Cart, debug: bool): RAM =
     var boot: array[0x100, uint8]
     try:
         if not fileExists("boot.gb"):
@@ -80,6 +82,7 @@ proc create*(cart: Cart): RAM =
             boot[i] = BOOT[i].uint8
 
     return RAM(
+      debug: debug,
       cart: cart,
       ramEnable: true,
       romBank_low: 1,
@@ -158,6 +161,9 @@ func get*(self: RAM, address: uint16): uint8 =
             return self.data[address.int];
 
 proc set*(self: var RAM, address: uint16, val: uint8) =
+    if self.debug:
+        echo fmt"ram[{address:04X}] <- {val:02X}"
+
     case address:
         of 0x0000..0x1FFF:
             self.ramEnable = val != 0;

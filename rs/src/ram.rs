@@ -52,6 +52,7 @@ const ROM_BANK_SIZE: u16 = 0x4000;
 const RAM_BANK_SIZE: u16 = 0x2000;
 
 pub struct RAM {
+    debug: bool,
     cart: cart::Cart,
     ram_enable: bool,
     ram_bank_mode: bool,
@@ -64,7 +65,7 @@ pub struct RAM {
 }
 
 impl RAM {
-    pub fn new(cart: cart::Cart) -> Result<RAM> {
+    pub fn new(cart: cart::Cart, debug: bool) -> Result<RAM> {
         let boot = match ::std::fs::File::open("boot.gb") {
             Ok(mut fp) => {
                 tracing::debug!("Loading boot code from boot.gb");
@@ -80,6 +81,7 @@ impl RAM {
         };
 
         Ok(RAM {
+            debug,
             cart,
             ram_enable: true, // false,
             ram_bank_mode: false,
@@ -166,6 +168,9 @@ impl RAM {
     #[inline(always)]
     pub fn set<T: Into<u16>>(&mut self, addr: T, val: u8) {
         let addr = addr.into();
+        if self.debug {
+            println!("ram[{:04X}] <- {:02X}", addr, val);
+        }
         match addr {
             0x0000..=0x1FFF => {
                 self.ram_enable = val != 0;

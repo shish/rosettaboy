@@ -2,7 +2,7 @@
 
 GameBoy::GameBoy(Args *args) {
     this->cart = new Cart(args->rom);
-    this->ram = new RAM(this->cart);
+    this->ram = new RAM(this->cart, args->debug_ram);
     this->cpu = new CPU(this->ram, args->debug_cpu);
     this->gpu = new GPU(this->cpu, cart->name, args->headless, args->debug_gpu);
     this->buttons = new Buttons(this->cpu, args->headless);

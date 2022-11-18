@@ -212,6 +212,8 @@ class RAM:
         return self.data[addr]
 
     def __setitem__(self, addr: u16, val: u8) -> None:
+        if self.debug:
+            print(f"ram[{addr:04X}] <- {val:02X}")
         if addr < 0x2000:
             self.ram_enable = val != 0
         elif addr < 0x4000:
