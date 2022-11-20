@@ -239,7 +239,7 @@ proc draw_line(self: GPU, ly: uint32) =
         let tile_y = y_in_bgmap div 8
         let tile_sub_y = y_in_bgmap mod 8
 
-        for lx in countup(0, 159, 8):
+        for lx in countup(0, 160, 8):
             let x_in_bgmap = (lx.uint8 + scroll_x) mod 256
             let tile_x = x_in_bgmap div 8
             let tile_sub_x = x_in_bgmap mod 8
