@@ -149,7 +149,6 @@ class GPU
                 }
                 if ($this->hw_renderer) {
                     SDL_UpdateTexture($this->hw_buffer, null, $this->buffer->pixels, $this->buffer->pitch);
-                    SDL_RenderClear($this->hw_renderer);
                     SDL_RenderCopy($this->hw_renderer, $this->hw_buffer, null, null);
                     SDL_RenderPresent($this->hw_renderer);
                 }

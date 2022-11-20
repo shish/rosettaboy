@@ -190,7 +190,6 @@ class GPU:
                         self.buffer.contents.pixels,
                         self.buffer.contents.pitch,
                     )
-                    sdl2.SDL_RenderClear(self.hw_renderer)
                     sdl2.SDL_RenderCopy(self.hw_renderer, self.hw_buffer, None, None)
                     sdl2.SDL_RenderPresent(self.hw_renderer)
 

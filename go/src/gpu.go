@@ -203,7 +203,6 @@ func (gpu *GPU) tick() {
 			if gpu.hw_renderer != nil {
 				// FIXME: drawing to a buffer then blit to screen doesn't work??
 				gpu.hw_buffer.Update(nil, gpu.buffer.Pixels(), int(gpu.buffer.Pitch))
-				gpu.hw_renderer.Clear()
 				gpu.hw_renderer.Copy(gpu.hw_buffer, nil, nil)
 				gpu.hw_renderer.Present()
 			}

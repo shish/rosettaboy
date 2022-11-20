@@ -179,7 +179,6 @@ pub const GPU = struct {
                                 @intCast(c_int, self.buffer.ptr.*.pitch),
                             ) != 0) return SDL.makeError();
                         }
-                        try hw_renderer.clear();
                         try hw_renderer.copy(hw_buffer, null, null);
                         hw_renderer.present();
                     }

@@ -216,7 +216,6 @@ impl<'a> GPU<'a> {
                             buffer.without_lock().unwrap(),
                             buffer.pitch() as usize,
                         )?;
-                        hw_renderer.clear();
                         hw_renderer
                             .copy(hw_buffer, None, None)
                             .map_err(anyhow::Error::msg)?;
