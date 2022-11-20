@@ -40,20 +40,25 @@ public:
 };
 
 inline u8 RAM::get(u16 addr) {
+    u8 val = this->data[addr];
     switch(addr) {
         case 0x0000 ... 0x3FFF: {
             // ROM bank 0
             if(this->data[Mem::BOOT] == 0 && addr < 0x0100) {
-                return this->boot[addr];
+                val = this->boot[addr];
             }
-            return this->cart->data[addr];
+            else {
+                val = this->cart->data[addr];
+            }
+            break;
         }
         case 0x4000 ... 0x7FFF: {
             // Switchable ROM bank
             int bank = this->rom_bank * ROM_BANK_SIZE;
             int offset = addr - 0x4000;
             // printf("fetching %04X from bank %04X (total = %04X)\n", offset, bank, offset + bank);
-            return this->cart->data[bank + offset];
+            val = this->cart->data[bank + offset];
+            break;
         }
         case 0x8000 ... 0x9FFF:
             // VRAM
@@ -69,7 +74,8 @@ inline u8 RAM::get(u16 addr) {
             if(bank + offset >= this->cart->ram_size) {
                 throw new InvalidRamRead(this->ram_bank, offset, this->cart->ram_size);
             }
-            return this->cart->ram[bank + offset];
+            val = this->cart->ram[bank + offset];
+            break;
         }
         case 0xC000 ... 0xCFFF:
             // work RAM, bank 0
@@ -79,14 +85,15 @@ inline u8 RAM::get(u16 addr) {
             break;
         case 0xE000 ... 0xFDFF: {
             // ram[E000-FE00] mirrors ram[C000-DE00]
-            return this->data[addr - 0x2000];
+            val = this->data[addr - 0x2000];
+            break;
         }
         case 0xFE00 ... 0xFE9F:
             // Sprite attribute table
             break;
         case 0xFEA0 ... 0xFEFF:
             // Unusable
-            return 0xFF;
+            val = 0xFF;
             break;
         case 0xFF00 ... 0xFF7F:
             // GPU Registers
@@ -99,7 +106,10 @@ inline u8 RAM::get(u16 addr) {
             break;
     }
 
-    return this->data[addr];
+    if(this->debug) {
+        printf("ram[%04X] -> %02X\n", addr, val);
+    }
+    return val;
 }
 
 inline void RAM::set(u16 addr, u8 val) {

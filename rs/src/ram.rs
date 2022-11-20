@@ -97,20 +97,23 @@ impl RAM {
     #[inline(always)]
     pub fn get<T: Into<u16>>(&self, addr: T) -> u8 {
         let addr = addr.into();
+        let mut val = self.data[addr as usize];
         match addr {
             0x0000..=0x3FFF => {
                 // ROM bank 0
                 if self.data[Mem::BOOT as usize] == 0 && addr < 0x0100 {
-                    return self.boot[addr as usize];
+                    val = self.boot[addr as usize];
                 }
-                return self.cart.data[addr as usize];
+                else {
+                    val = self.cart.data[addr as usize];
+                }
             }
             0x4000..=0x7FFF => {
                 // Switchable ROM bank
                 // TODO: array bounds check
                 let bank = self.rom_bank as usize * ROM_BANK_SIZE as usize;
                 let offset = addr as usize - 0x4000;
-                return self.cart.data[offset + bank];
+                val = self.cart.data[offset + bank];
             }
             0x8000..=0x9FFF => {
                 // VRAM
@@ -132,7 +135,7 @@ impl RAM {
                         (addr - 0xA000)
                     );
                 }
-                return self.cart.ram[bank + offset];
+                val = self.cart.ram[bank + offset];
             }
             0xC000..=0xCFFF => {
                 // work RAM, bank 0
@@ -142,14 +145,14 @@ impl RAM {
             }
             0xE000..=0xFDFF => {
                 // ram[E000-FE00] mirrors ram[C000-DE00]
-                return self.data[addr as usize - 0x2000];
+                val = self.data[addr as usize - 0x2000];
             }
             0xFE00..=0xFE9F => {
                 // Sprite attribute table
             }
             0xFEA0..=0xFEFF => {
                 // Unusable
-                return 0xFF;
+                val = 0xFF;
             }
             0xFF00..=0xFF7F => {
                 // IO Registers
@@ -162,7 +165,10 @@ impl RAM {
             }
         };
 
-        return self.data[addr as usize];
+        if self.debug {
+            println!("ram[{:04X}] -> {:02X}", addr, val);
+        }
+        return val;
     }
 
     #[inline(always)]

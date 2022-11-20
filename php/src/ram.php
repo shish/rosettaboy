@@ -74,18 +74,21 @@ class RAM
 
     public function get(int $addr): int
     {
+        $val = $this->data[$addr];
         if ($addr < 0x4000) {
             // ROM bank 0
             if ($this->data[Mem::$BOOT] == 0 && $addr < 0x0100) {
-                return $this->boot[$addr];
+                $val = $this->boot[$addr];
             }
-            return $this->cart->data[$addr];
+            else {
+                $val = $this->cart->data[$addr];
+            }
         } elseif ($addr < 0x8000) {
             // Switchable ROM bank
             $bank = $this->rom_bank * ROM_BANK_SIZE;
             $offset = $addr - 0x4000;
             // printf("fetching %04X from bank %04X (total = %04X)\n", offset, bank, offset + bank);
-            return $this->cart->data[$bank + $offset];
+            $val = $this->cart->data[$bank + $offset];
         } elseif ($addr < 0xA000) {
             // VRAM
         } elseif ($addr < 0xC000) {
@@ -99,19 +102,19 @@ class RAM
             if ($bank + $offset >= $this->cart->ram_size) {
                 die("Reading beyond RAM limit");
             }
-            return $this->cart->ram[$bank + $offset];
+            $val = $this->cart->ram[$bank + $offset];
         } elseif ($addr < 0xD000) {
             // work RAM, bank 0
         } elseif ($addr < 0xE000) {
             // work RAM, bankable in CGB
         } elseif ($addr < 0xFE00) {
             // ram[E000-FE00] mirrors ram[C000-DE00]
-            return $this->data[$addr - 0x2000];
+            $val = $this->data[$addr - 0x2000];
         } elseif ($addr < 0xFEA0) {
             // Sprite attribute table
         } elseif ($addr < 0xFF00) {
             // Unusable
-            return 0xFF;
+            $val = 0xFF;
         } elseif ($addr < 0xFF80) {
             // GPU Registers
         } elseif ($addr < 0xFFFF) {
@@ -120,7 +123,10 @@ class RAM
             // IE Register
         }
 
-        return $this->data[$addr];
+        if ($this->debug) {
+            printf("ram[%04X] -> %02X\n", $addr, $val);
+        }
+        return $val;
     }
 
     public function set(int $addr, int $val): void

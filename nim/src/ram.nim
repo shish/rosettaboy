@@ -91,21 +91,22 @@ proc create*(cart: Cart, debug: bool): RAM =
     )
 
 
-func get*(self: RAM, address: uint16): uint8 =
+proc get*(self: RAM, address: uint16): uint8 =
+    var val = self.data[address.int];
     case address:
         of 0x0000..0x3FFF:
             # ROM bank 0
             if self.data[consts.Mem_BOOT] == 0 and address < 0x0100:
-                return self.boot[address.int]
-
-            return self.cart.data[address.int].uint8
+                val = self.boot[address.int]
+            else:
+                val = self.cart.data[address.int].uint8
 
         of 0x4000..0x7FFF:
             # Switchable ROM bank
             # TODO: array bounds check
             let bank = self.romBank.int * ROM_BANK_SIZE.int
             let offset = address.int - 0x4000
-            return self.cart.data[offset + bank].uint8
+            val = self.cart.data[offset + bank].uint8
 
         #of 0x8000..0x9FFF:
             # VRAM
@@ -129,7 +130,7 @@ func get*(self: RAM, address: uint16): uint8 =
                 #    (address - 0xA000)
                 #);
 
-            return self.cart.ram[bank + offset].uint8
+            val = self.cart.ram[bank + offset].uint8
 
         #of 0xC000..0xCFFF:
             # work RAM, bank 0
@@ -139,14 +140,14 @@ func get*(self: RAM, address: uint16): uint8 =
 
         of 0xE000..0xFDFF:
             # ram[E000-FE00] mirrors ram[C000-DE00]
-            return self.data[address.int - 0x2000];
+            val = self.data[address.int - 0x2000];
 
         #of 0xFE00..0xFE9F:
             # Sprite attribute table
 
         of 0xFEA0..0xFEFF:
             # Unusable
-            return 0xFF;
+            val = 0xFF;
 
         #of 0xFF00..0xFF7F:
             # IO Registers
@@ -158,7 +159,11 @@ func get*(self: RAM, address: uint16): uint8 =
             # IE Register
 
         else:
-            return self.data[address.int];
+            val = self.data[address.int];
+    if self.debug:
+        echo fmt"ram[{address:04X}] -> {val:02X}"
+    return val
+    
 
 proc set*(self: var RAM, address: uint16, val: uint8) =
     if self.debug:

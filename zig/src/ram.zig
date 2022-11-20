@@ -140,20 +140,23 @@ pub const RAM = struct {
     }
 
     pub fn get(self: *RAM, addr: u16) u8 {
+        var val = self.data[addr];
         switch (addr) {
             0x0000...0x3FFF => {
                 // ROM bank 0
                 if (self.data[consts.Mem.BOOT] == 0 and addr < 0x0100) {
-                    return self.boot[addr];
+                    val = self.boot[addr];
                 }
-                return self.cart.data[addr];
+                else {
+                    val = self.cart.data[addr];
+                }
             },
             0x4000...0x7FFF => {
                 // Switchable ROM bank
                 // TODO: array bounds check
                 var bank = self.rom_bank * ROM_BANK_SIZE;
                 var offset = addr - 0x4000;
-                return self.cart.data[offset + bank];
+                val = self.cart.data[offset + bank];
             },
             0x8000...0x9FFF => {
                 // VRAM
@@ -176,7 +179,7 @@ pub const RAM = struct {
                         //    (addr - 0xA000)
                     );
                 }
-                return self.cart.ram[bank + offset];
+                val = self.cart.ram[bank + offset];
             },
             0xC000...0xCFFF => {
                 // work RAM, bank 0
@@ -186,14 +189,14 @@ pub const RAM = struct {
             },
             0xE000...0xFDFF => {
                 // ram[E000-FE00] mirrors ram[C000-DE00]
-                return self.data[addr - 0x2000];
+                val = self.data[addr - 0x2000];
             },
             0xFE00...0xFE9F => {
                 // Sprite attribute table
             },
             0xFEA0...0xFEFF => {
                 // Unusable
-                return 0xFF;
+                val = 0xFF;
             },
             0xFF00...0xFF7F => {
                 // IO Registers
@@ -206,7 +209,10 @@ pub const RAM = struct {
             },
         }
 
-        return self.data[addr];
+        if (self.debug) {
+            std.debug.print("ram[{X:0>4}] -> {X:0>2}\n", .{ addr, val });
+        }
+        return val;
     }
     pub fn set(self: *RAM, addr: u16, val: u8) void {
         if (self.debug) {

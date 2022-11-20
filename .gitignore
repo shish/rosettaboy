@@ -3,6 +3,7 @@ test_roms
 gb-test-roms
 gb-autotest-roms
 *.log
+*.cpu
 0*.txt
 .vscode/
 venv/

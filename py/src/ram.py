@@ -152,17 +152,19 @@ class RAM:
         return BOOT
 
     def __getitem__(self, addr: u16) -> u8:
+        val = self.data[addr]
         if addr < 0x4000:
             # ROM bank 0
             if self.data[Mem.BOOT] == 0 and addr < 0x100:
-                return self.boot[addr]
-            return self.cart.data[addr]
+                val = self.boot[addr]
+            else:
+                val = self.cart.data[addr]
         elif addr < 0x8000:
             # Switchable ROM bank
             # TODO: array bounds check
             offset = addr - 0x4000
             bank = self.rom_bank * ROM_BANK_SIZE
-            return self.cart.data[bank + offset]
+            val = self.cart.data[bank + offset]
         elif addr < 0xA000:
             # VRAM
             pass
@@ -183,7 +185,7 @@ class RAM:
                     self.ram_bank,
                     offset,
                 )
-            return self.cart.ram[bank + offset]
+            val = self.cart.ram[bank + offset]
         elif addr < 0xD000:
             # work RAM, bank 0
             pass
@@ -192,13 +194,13 @@ class RAM:
             pass
         elif addr < 0xFE00:
             # ram[E000-FE00] mirrors ram[C000-DE00]
-            return self.data[addr - 0x2000]
+            val = self.data[addr - 0x2000]
         elif addr < 0xFEA0:
             # Sprite attribute table
             pass
         elif addr < 0xFF00:
             # Unusable
-            return 0xFF
+            val = 0xFF
         elif addr < 0xFF80:
             # IO Registers
             pass
@@ -209,7 +211,9 @@ class RAM:
             # IE Register
             pass
 
-        return self.data[addr]
+        if self.debug:
+            print(f"ram[{addr:04X}] -> {val:02X}")
+        return val
 
     def __setitem__(self, addr: u16, val: u8) -> None:
         if self.debug:

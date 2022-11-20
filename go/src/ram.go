@@ -163,19 +163,21 @@ func get_boot() []byte {
 }
 
 func (ram *RAM) get(addr uint16) uint8 {
+	var val = ram.data[addr]
 	switch {
 	case addr < 0x4000:
 		// ROM bank 0
 		if ram.data[IO_BOOT] == 0 && addr < 0x100 {
-			return ram.boot[addr]
+			val = ram.boot[addr]
+		} else {
+			val = ram.cart.data[addr]
 		}
-		return ram.cart.data[addr]
 	case addr < 0x8000:
 		// Switchable ROM bank
 		// TODO: array bounds check
 		var bank = int(ram.rom_bank) * ROM_BANK_SIZE
 		var offset = addr - 0x4000
-		return ram.cart.data[int(bank)+int(offset)]
+		val = ram.cart.data[int(bank)+int(offset)]
 	case addr < 0xA000:
 		// VRAM
 	case addr < 0xC000:
@@ -201,12 +203,12 @@ func (ram *RAM) get(addr uint16) uint8 {
 		// work RAM, bankable in CGB
 	case addr < 0xFE00:
 		// ram[E000-FE00] mirrors ram[C000-DE00]
-		return ram.data[addr-0x2000]
+		val = ram.data[addr-0x2000]
 	case addr < 0xFEA0:
 		// Sprite attribute table
 	case addr < 0xFF00:
 		// Unusable
-		return 0xFF
+		val = 0xFF
 	case addr < 0xFF80:
 		// IO Registers
 	case addr < 0xFFFF:
@@ -214,7 +216,11 @@ func (ram *RAM) get(addr uint16) uint8 {
 	default:
 		// IE Register
 	}
-	return ram.data[addr]
+
+	if ram.debug {
+		fmt.Printf("ram[%04X] -> %02X\n", addr, val)
+	}
+	return val
 }
 
 func (ram *RAM) set(addr uint16, val uint8) {
