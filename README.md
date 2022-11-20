@@ -1,5 +1,14 @@
 RosettaBoy
 ==========
+
+[![C++](https://github.com/shish/rosettaboy/actions/workflows/cpp.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/cpp.yml)
+[![Go](https://github.com/shish/rosettaboy/actions/workflows/go.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/go.yml)
+[![Nim](https://github.com/shish/rosettaboy/actions/workflows/nim.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/nim.yml)
+[![PHP](https://github.com/shish/rosettaboy/actions/workflows/php.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/php.yml)
+[![Python](https://github.com/shish/rosettaboy/actions/workflows/py.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/py.yml)
+[![Rust](https://github.com/shish/rosettaboy/actions/workflows/rs.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/rs.yml)
+[![Zig](https://github.com/shish/rosettaboy/actions/workflows/zig.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/zig.yml)
+
 Trying to implement a gameboy emulator in a bunch of languages for my own
 amusement and education; also giving people an opportunity to compare the
 same code written in different languages, similar to
