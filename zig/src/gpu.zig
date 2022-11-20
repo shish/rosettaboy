@@ -224,14 +224,14 @@ pub const GPU = struct {
 
         // Tile data - FIXME
         var tile_display_width: u8 = 32;
-        var tile_id: u15=0;
-        while(tile_id < 384) {
+        var tile_id: u15 = 0;
+        while (tile_id < 384) {
             var xy = SDL.Point{
                 .x = 160 + (tile_id % tile_display_width) * 8,
                 .y = (tile_id / tile_display_width) * 8,
             };
             try self.paint_tile(@intCast(i16, tile_id), &xy, self.bgp, false, false);
-            tile_id+=1;
+            tile_id += 1;
         }
 
         // Background scroll border
