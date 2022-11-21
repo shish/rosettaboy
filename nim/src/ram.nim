@@ -163,7 +163,7 @@ proc get*(self: RAM, address: uint16): uint8 =
     if self.debug:
         echo fmt"ram[{address:04X}] -> {val:02X}"
     return val
-    
+
 
 proc set*(self: var RAM, address: uint16, val: uint8) =
     if self.debug:

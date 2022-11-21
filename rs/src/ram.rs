@@ -103,8 +103,7 @@ impl RAM {
                 // ROM bank 0
                 if self.data[Mem::BOOT as usize] == 0 && addr < 0x0100 {
                     val = self.boot[addr as usize];
-                }
-                else {
+                } else {
                     val = self.cart.data[addr as usize];
                 }
             }

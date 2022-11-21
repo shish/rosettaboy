@@ -46,8 +46,7 @@ inline u8 RAM::get(u16 addr) {
             // ROM bank 0
             if(this->data[Mem::BOOT] == 0 && addr < 0x0100) {
                 val = this->boot[addr];
-            }
-            else {
+            } else {
                 val = this->cart->data[addr];
             }
             break;

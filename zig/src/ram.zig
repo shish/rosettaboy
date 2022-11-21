@@ -146,8 +146,7 @@ pub const RAM = struct {
                 // ROM bank 0
                 if (self.data[consts.Mem.BOOT] == 0 and addr < 0x0100) {
                     val = self.boot[addr];
-                }
-                else {
+                } else {
                     val = self.cart.data[addr];
                 }
             },
