@@ -56,7 +56,7 @@ def test(cwd, rom):
         errors="replace",
     )
     rom_name = rom.replace(f"{TEST_DIR}/", "")
-    if p.returncode == 0:
+    if p.returncode == 0 and "Unit test passed" in p.stdout:
         print(f"{cwd} {rom_name} = {GREEN}Passed{END}")
     elif p.returncode == 2:
         print(f"{cwd} {rom_name} = {RED}Failed{END}")
