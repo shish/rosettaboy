@@ -20,9 +20,6 @@ def main(argv: List[str]) -> int:
         return e.exit_code
     except (KeyboardInterrupt, BrokenPipeError):
         pass
-    except Exception as e:
-        print(str(e))
-        return 1
     finally:
         sdl2.SDL_Quit()
 
