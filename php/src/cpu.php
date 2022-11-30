@@ -387,26 +387,25 @@ class CPU
         }
 
         $op = $this->ram->get($this->PC);
-        $this->PC++;
         if ($op == 0xCB) {
-            $op = $this->ram->get($this->PC);
-            $this->PC++;
+            $op = $this->ram->get($this->PC+1);
+            $this->PC+=2;
             $this->tick_cb($op);
             $this->owed_cycles = $OP_CB_CYCLES[$op] - 1;
         } else {
             global $OP_ARG_BYTES, $OP_ARG_TYPES;
             $arg = new oparg();
-            $nargs = $OP_ARG_BYTES[$OP_ARG_TYPES[$op]];
-            if ($nargs == 1) {
-                $arg->as_u8 = $this->ram->get($this->PC);
+            $arg_len = $OP_ARG_BYTES[$OP_ARG_TYPES[$op]];
+            if ($arg_len == 1) {
+                $arg->as_u8 = $this->ram->get($this->PC+1);
                 $arg->as_i8 = int8($arg->as_u8);
             }
-            if ($nargs == 2) {
-                $low = $this->ram->get($this->PC);
-                $high = $this->ram->get($this->PC+1);
+            if ($arg_len == 2) {
+                $low = $this->ram->get($this->PC+1);
+                $high = $this->ram->get($this->PC+2);
                 $arg->as_u16 = uint16($low) | uint16($high) << 8;
             }
-            $this->PC += $nargs;
+            $this->PC += 1 + $arg_len;
 
             $this->tick_main($op, $arg);
             $this->owed_cycles = $OP_CYCLES[$op] - 1;

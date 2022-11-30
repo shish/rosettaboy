@@ -165,24 +165,25 @@ void CPU::tick_instructions() {
         this->dump_regs();
     }
 
-    u8 op = this->ram->get(this->PC++);
+    u8 op = this->ram->get(this->PC);
     if(op == 0xCB) {
-        op = this->ram->get(this->PC++);
+        op = this->ram->get(this->PC + 1);
+        this->PC += 2;
         this->tick_cb(op);
         owed_cycles = OP_CB_CYCLES[op];
     } else {
         oparg arg;
         arg.as_u16 = 0xCA75;
-        u8 nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]];
-        if(nargs == 1) {
-            arg.as_u8 = this->ram->get(this->PC);
+        u8 arg_len = OP_ARG_BYTES[OP_ARG_TYPES[op]];
+        if(arg_len == 1) {
+            arg.as_u8 = this->ram->get(this->PC + 1);
         }
-        if(nargs == 2) {
-            u16 low = this->ram->get(this->PC);
-            u16 high = this->ram->get(this->PC + 1);
+        if(arg_len == 2) {
+            u16 low = this->ram->get(this->PC + 1);
+            u16 high = this->ram->get(this->PC + 2);
             arg.as_u16 = high << 8 | low;
         }
-        this->PC += nargs;
+        this->PC += 1 + arg_len;
         this->tick_main(op, arg);
         owed_cycles = OP_CYCLES[op];
     }

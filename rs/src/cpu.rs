@@ -418,22 +418,21 @@ impl CPU {
         }
 
         let op = ram.get(self.pc);
-        self.pc += 1;
         if op == 0xCB {
-            let op = ram.get(self.pc);
-            self.pc += 1;
+            let op = ram.get(self.pc + 1);
+            self.pc += 2;
             unsafe {
                 self.tick_cb(ram, op);
             }
             self.owed_cycles = OP_CB_CYCLES[op as usize];
         } else {
-            let arg = {
+            let (arg, arg_len) = {
                 let arg_type = OP_TYPES[op as usize];
                 let arg_len = OP_ARG_BYTES[arg_type as usize];
                 let arg = self.load_op(ram, self.pc, arg_type);
-                self.pc += arg_len;
-                arg
+                (arg, arg_len)
             };
+            self.pc += 1 + arg_len;
             self.tick_main(ram, op, arg)?;
             self.owed_cycles = OP_CYCLES[op as usize];
         }
