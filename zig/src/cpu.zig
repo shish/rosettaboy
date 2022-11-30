@@ -291,10 +291,12 @@ pub const CPU = struct {
         var j = flag(ien, ifl, consts.Interrupt.JOYPAD, 'j');
 
         // printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
-        std.debug.print("{X:0>4} {X:0>4} {X:0>4} {X:0>4} : ", .{ self.regs.r16.af, self.regs.r16.bc, self.regs.r16.de, self.regs.r16.hl });
-        std.debug.print("{X:0>4} = {X:0>2}{X:0>2} : ", .{ self.sp, self.ram.get(self.sp + 1), self.ram.get(self.sp) });
-        std.debug.print("{c}{c}{c}{c} : {c}{c}{c}{c}{c} : ", .{ z, n, h, c, v, l, t, s, j });
-        std.debug.print("{X:0>4} = {X:0>2} : {s}\n", .{ self.pc, op, op_str });
+        var sp_high = self.ram.get(self.sp + 1);
+        var sp_low = self.ram.get(self.sp);
+        try std.io.getStdOut().writer().print("{X:0>4} {X:0>4} {X:0>4} {X:0>4} : ", .{ self.regs.r16.af, self.regs.r16.bc, self.regs.r16.de, self.regs.r16.hl });
+        try std.io.getStdOut().writer().print("{X:0>4} = {X:0>2}{X:0>2} : ", .{ self.sp, sp_high, sp_low });
+        try std.io.getStdOut().writer().print("{c}{c}{c}{c} : {c}{c}{c}{c}{c} : ", .{ z, n, h, c, v, l, t, s, j });
+        try std.io.getStdOut().writer().print("{X:0>4} = {X:0>2} : {s}\n", .{ self.pc, op, op_str });
     }
 
     fn tick_dma(self: *CPU) void {

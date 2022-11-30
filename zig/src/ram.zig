@@ -209,13 +209,13 @@ pub const RAM = struct {
         }
 
         if (self.debug) {
-            std.debug.print("ram[{X:0>4}] -> {X:0>2}\n", .{ addr, val });
+            std.io.getStdOut().writer().print("ram[{X:0>4}] -> {X:0>2}\n", .{ addr, val }) catch return 0;
         }
         return val;
     }
     pub fn set(self: *RAM, addr: u16, val: u8) void {
         if (self.debug) {
-            std.debug.print("ram[{X:0>4}] <- {X:0>2}\n", .{ addr, val });
+            std.io.getStdOut().writer().print("ram[{X:0>4}] <- {X:0>2}\n", .{ addr, val }) catch return;
         }
         switch (addr) {
             0x0000...0x1FFF => {
