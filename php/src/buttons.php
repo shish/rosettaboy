@@ -65,7 +65,7 @@ class Buttons
     public function update_buttons(): void
     {
         $JOYP = ~$this->cpu->ram->get(Mem::$JOYP);
-        $JOYP &= 0xF0;
+        $JOYP &= 0x30;
         if ($JOYP & Joypad::$MODE_DPAD) {
             if ($this->up) {
                 $JOYP |= Joypad::$UP;
@@ -94,7 +94,7 @@ class Buttons
                 $JOYP |= Joypad::$SELECT;
             }
         }
-        $this->cpu->ram->set(Mem::$JOYP, ~$JOYP & 0xFF);
+        $this->cpu->ram->set(Mem::$JOYP, ~$JOYP & 0x3F);
     }
 
     public function handle_inputs(): bool

@@ -67,7 +67,7 @@ pub const Buttons = struct {
 
     pub fn update_buttons(self: *Buttons) void {
         var joyp = ~self.ram.get(consts.Mem.JOYP);
-        joyp &= 0xF0;
+        joyp &= 0x30;
         if (joyp & Joypad.MODE_DPAD != 0) {
             if (self.up) joyp |= Joypad.UP;
             if (self.down) joyp |= Joypad.DOWN;
@@ -80,7 +80,7 @@ pub const Buttons = struct {
             if (self.start) joyp |= Joypad.START;
             if (self.select) joyp |= Joypad.SELECT;
         }
-        self.ram.set(consts.Mem.JOYP, ~joyp);
+        self.ram.set(consts.Mem.JOYP, ~joyp & 0x3F);
     }
 
     pub fn handle_inputs(self: *Buttons) !bool {

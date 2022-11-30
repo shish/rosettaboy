@@ -47,7 +47,7 @@ class Buttons:
 
     def update_buttons(self) -> None:
         JOYP = ~self.cpu.ram[Mem.JOYP]
-        JOYP &= 0xF0
+        JOYP &= 0x30
         if JOYP & Joypad.MODE_DPAD:
             if self.up:
                 JOYP |= Joypad.UP
@@ -67,7 +67,7 @@ class Buttons:
             if self.select:
                 JOYP |= Joypad.SELECT
 
-        self.cpu.ram[Mem.JOYP] = ~JOYP & 0xFF
+        self.cpu.ram[Mem.JOYP] = ~JOYP & 0x3F
 
     def handle_inputs(self) -> bool:
         need_interrupt = False
