@@ -31,7 +31,7 @@ import sys
 import re
 import argparse
 
-pattern = re.compile("([0-9A-F]{4} ){4}")
+pattern = re.compile("(([0-9A-F]{4} ){4}|ram)")
 
 
 def find_valid_lines(fn: str) -> t.Iterable[str]:
