@@ -234,6 +234,24 @@ pub const CPU = struct {
     }
 
     fn dump_regs(self: *CPU) !void {
+        // stack
+        var sp_val = @intCast(u16, self.ram.get(self.sp)) | @intCast(u16, self.ram.get(self.sp + 1)) << 8;
+
+        // interrupts
+        var z: u8 = if (self.regs.flags.z) 'Z' else 'z';
+        var n: u8 = if (self.regs.flags.n) 'N' else 'n';
+        var c: u8 = if (self.regs.flags.c) 'C' else 'c';
+        var h: u8 = if (self.regs.flags.h) 'H' else 'h';
+
+        var ien = self.ram.get(consts.Mem.IE);
+        var ifl = self.ram.get(consts.Mem.IF);
+        var v = flag(ien, ifl, consts.Interrupt.VBLANK, 'v');
+        var l = flag(ien, ifl, consts.Interrupt.STAT, 'l');
+        var t = flag(ien, ifl, consts.Interrupt.TIMER, 't');
+        var s = flag(ien, ifl, consts.Interrupt.SERIAL, 's');
+        var j = flag(ien, ifl, consts.Interrupt.JOYPAD, 'j');
+
+        // opcode & args
         var op = self.ram.get(self.pc);
         var op_str: [16]u8 = "                ".*;
         if (op == 0xCB) {
@@ -266,34 +284,11 @@ pub const CPU = struct {
                     _ = std.mem.replace(u8, base, "i8", &param, &op_str);
                 },
             }
-            //_ = try std.fmt.bufPrint(&op_str, "{s}", .{OP_NAMES[op]});
-            //var arg = self.load_op(self.pc + 1, OP_TYPES[op]);
-            //switch(OP_TYPES[op]) {
-            //    0 => try std.fmt.bufPrint(&op_str, "%s", OP_NAMES[op]),
-            //    1 => try std.fmt.bufPrint(&op_str, OP_NAMES[op], arg.u8),
-            //    2 => try std.fmt.bufPrint(&op_str, OP_NAMES[op], arg.u16),
-            //    3 => try std.fmt.bufPrint(&op_str, OP_NAMES[op], arg.i8),
-            //}
         }
 
-        var z: u8 = if (self.regs.flags.z) 'Z' else 'z';
-        var n: u8 = if (self.regs.flags.n) 'N' else 'n';
-        var c: u8 = if (self.regs.flags.c) 'C' else 'c';
-        var h: u8 = if (self.regs.flags.h) 'H' else 'h';
-
-        var ien = self.ram.get(consts.Mem.IE);
-        var ifl = self.ram.get(consts.Mem.IF);
-        var v = flag(ien, ifl, consts.Interrupt.VBLANK, 'v');
-        var l = flag(ien, ifl, consts.Interrupt.STAT, 'l');
-        var t = flag(ien, ifl, consts.Interrupt.TIMER, 't');
-        var s = flag(ien, ifl, consts.Interrupt.SERIAL, 's');
-        var j = flag(ien, ifl, consts.Interrupt.JOYPAD, 'j');
-
-        // printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
-        var sp_high = self.ram.get(self.sp + 1);
-        var sp_low = self.ram.get(self.sp);
+        // print
         try std.io.getStdOut().writer().print("{X:0>4} {X:0>4} {X:0>4} {X:0>4} : ", .{ self.regs.r16.af, self.regs.r16.bc, self.regs.r16.de, self.regs.r16.hl });
-        try std.io.getStdOut().writer().print("{X:0>4} = {X:0>2}{X:0>2} : ", .{ self.sp, sp_high, sp_low });
+        try std.io.getStdOut().writer().print("{X:0>4} = {X:0>4} : ", .{ self.sp, sp_val });
         try std.io.getStdOut().writer().print("{c}{c}{c}{c} : {c}{c}{c}{c}{c} : ", .{ z, n, h, c, v, l, t, s, j });
         try std.io.getStdOut().writer().print("{X:0>4} = {X:0>2} : {s}\n", .{ self.pc, op, op_str });
     }

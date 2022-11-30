@@ -237,22 +237,10 @@ impl CPU {
     }
 
     fn dump_regs(&self, ram: &ram::RAM) {
-        let mut op = ram.get(self.pc);
-        let op_str = if op == 0xCB {
-            op = ram.get(self.pc + 1);
-            OP_CB_NAMES[op as usize].to_string()
-        } else {
-            let base = OP_NAMES[op as usize].to_string();
-            let arg = self.load_op(ram, self.pc + 1, OP_TYPES[op as usize]);
-            match OP_TYPES[op as usize] {
-                0 => base,
-                1 => base.replace("u8", format!("{:02X}", arg.u8).as_str()),
-                2 => base.replace("u16", format!("{:04X}", arg.u16).as_str()),
-                3 => base.replace("i8", format!("{:+}", arg.i8).as_str()),
-                _ => "Invalid arg_type".to_string(),
-            }
-        };
+        // stack
+        let sp_val = ram.get(self.sp) as u16 | (ram.get(self.sp.overflowing_add(1).0) as u16) << 8;
 
+        // interrupts
         let z;
         let n;
         let c;
@@ -299,15 +287,32 @@ impl CPU {
         let s = flag(Interrupt::SERIAL, 's');
         let j = flag(Interrupt::JOYPAD, 'j');
 
-        // printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
+        // opcode & args
+        let mut op = ram.get(self.pc);
+        let op_str = if op == 0xCB {
+            op = ram.get(self.pc + 1);
+            OP_CB_NAMES[op as usize].to_string()
+        } else {
+            let base = OP_NAMES[op as usize].to_string();
+            let arg = self.load_op(ram, self.pc + 1, OP_TYPES[op as usize]);
+            match OP_TYPES[op as usize] {
+                0 => base,
+                1 => base.replace("u8", format!("{:02X}", arg.u8).as_str()),
+                2 => base.replace("u16", format!("{:04X}", arg.u16).as_str()),
+                3 => base.replace("i8", format!("{:+}", arg.i8).as_str()),
+                _ => "Invalid arg_type".to_string(),
+            }
+        };
+
+        // print
         unsafe {
             println!(
-                "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:02X}{:02X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}",
+                "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:04X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}",
                 self.regs.r16.af,
                 self.regs.r16.bc,
                 self.regs.r16.de,
                 self.regs.r16.hl,
-                self.sp, ram.get(self.sp.overflowing_add(1).0), ram.get(self.sp),
+                self.sp, sp_val,
                 z, n, h, c,
                 v, l, t, s, j,
                 self.pc, op, op_str

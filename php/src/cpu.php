@@ -246,6 +246,10 @@ class CPU
     public function dump_regs()
     {
         global $CB_OP_NAMES, $OP_ARG_TYPES, $OP_NAMES;
+        // stack
+        $sp_val = $this->ram->get($this->SP) | $this->ram->get(($this->SP + 1) & 0xFFFF) << 8;
+
+        // interrupts
         $IE = $this->ram->get(Mem::$IE);
         $IF = $this->ram->get(Mem::$IF);
         $z = (($this->F >> 7) & 1) ? 'Z' : 'z';
@@ -257,6 +261,8 @@ class CPU
         $t = ($IE >> 2) & 1 ? ((($IF >> 2) & 1) ? 'T' : 't') : '_';
         $s = ($IE >> 3) & 1 ? ((($IF >> 3) & 1) ? 'S' : 's') : '_';
         $j = ($IE >> 4) & 1 ? ((($IF >> 4) & 1) ? 'J' : 'j') : '_';
+
+        // opcode & args
         $op = $this->ram->get($this->PC);
         $op_str = "";
         if ($op == 0xCB) {
@@ -271,17 +277,17 @@ class CPU
                     $op_str = sprintf($OP_NAMES[$op], $this->ram->get($this->PC + 1));
                     break;
                 case 2:
-                    $op_str = sprintf($OP_NAMES[$op], uint16($this->ram->get($this->PC + 2)) << 8 | uint16($this->ram->get($this->PC + 1)));
+                    $op_str = sprintf($OP_NAMES[$op], uint16($this->ram->get($this->PC + 1)) | uint16($this->ram->get($this->PC + 2)) << 8);
                     break;
                 case 3:
                     $op_str = sprintf($OP_NAMES[$op], int8($this->ram->get($this->PC + 1)));
                     break;
             }
         }
-        // if(cycle % 10 == 0)
-        // printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
+
+        // print
         printf(
-            "%02X%02X %02X%02X %02X%02X %04X : %04X = %02X%02X : %s%s%s%s : %s%s%s%s%s : %04X = %02X : %s\n",
+            "%02X%02X %02X%02X %02X%02X %04X : %04X = %04X : %s%s%s%s : %s%s%s%s%s : %04X = %02X : %s\n",
             $this->A,
             $this->F,
             $this->B,
@@ -290,8 +296,7 @@ class CPU
             $this->E,
             $this->HL,
             $this->SP,
-            $this->ram->get(($this->SP + 1) & 0xFFFF),
-            $this->ram->get($this->SP),
+            $sp_val,
             $z,
             $n,
             $h,
