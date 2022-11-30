@@ -394,7 +394,21 @@ class CPU
             $this->tick_cb($op);
             $this->owed_cycles = $OP_CB_CYCLES[$op] - 1;
         } else {
-            $this->tick_main($op);
+            global $OP_ARG_BYTES, $OP_ARG_TYPES;
+            $arg = new oparg();
+            $nargs = $OP_ARG_BYTES[$OP_ARG_TYPES[$op]];
+            if ($nargs == 1) {
+                $arg->as_u8 = $this->ram->get($this->PC);
+                $arg->as_i8 = int8($arg->as_u8);
+            }
+            if ($nargs == 2) {
+                $low = $this->ram->get($this->PC);
+                $high = $this->ram->get($this->PC+1);
+                $arg->as_u16 = uint16($low) | uint16($high) << 8;
+            }
+            $this->PC += $nargs;
+
+            $this->tick_main($op, $arg);
             $this->owed_cycles = $OP_CYCLES[$op] - 1;
         }
 
@@ -421,23 +435,8 @@ class CPU
         }
     }
 
-    public function tick_main(int $op)
+    public function tick_main(int $op, oparg $arg)
     {
-        global $OP_ARG_BYTES, $OP_ARG_TYPES;
-        // Load arg
-        $arg = new oparg();
-        $nargs = $OP_ARG_BYTES[$OP_ARG_TYPES[$op]];
-        if ($nargs == 1) {
-            $arg->as_u8 = $this->ram->get($this->PC);
-            $arg->as_i8 = int8($arg->as_u8);
-        }
-        if ($nargs == 2) {
-            $low = $this->ram->get($this->PC);
-            $high = $this->ram->get($this->PC+1);
-            $arg->as_u16 = uint16($low) | uint16($high) << 8;
-        }
-        $this->PC += $nargs;
-
         // Execute
         switch ($op) {
             case 0x00: /* NOP */

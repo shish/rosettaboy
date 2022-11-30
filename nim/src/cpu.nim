@@ -361,22 +361,7 @@ proc setReg(self: var CPU, n: uint8, val: uint8) =
 Execute a normal instruction (everything except for those
 prefixed with 0xCB)
 ]#
-proc tickMain(self: var CPU, op: uint8) =
-    # Load args
-    var arg: OpArg
-    arg.asU16 = 0xCA75
-    var nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]];
-    if nargs == 1:
-        arg.asU8 = self.ram.get(self.pc)
-
-    if nargs == 2:
-        var arglow = self.ram.get(self.pc).uint16
-        var arghigh = self.ram.get(self.pc+1).uint16
-        arg.asU16 = bitor(arghigh shl 8, arglow)
-
-    self.pc += nargs.uint16
-
-
+proc tickMain(self: var CPU, op: uint8, arg: OpArg) =
     # Execute
     var val: uint8 = 0
     var carry: uint8 = 0
@@ -895,7 +880,19 @@ proc tickInstructions(self: var CPU) =
         self.tickCb(op);
         self.owedCycles = OP_CB_CYCLES[op].uint32;
     else:
-        self.tickMain(op);
+        var arg: OpArg
+        arg.asU16 = 0xCA75
+        var nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]];
+        if nargs == 1:
+            arg.asU8 = self.ram.get(self.pc)
+
+        if nargs == 2:
+            var arglow = self.ram.get(self.pc).uint16
+            var arghigh = self.ram.get(self.pc+1).uint16
+            arg.asU16 = bitor(arghigh shl 8, arglow)
+
+        self.pc += nargs.uint16
+        self.tickMain(op, arg);
         self.owedCycles = OP_CYCLES[op].uint32;
 
     # Flags should be union'ed with the F register, but nim doesn't

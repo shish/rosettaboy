@@ -171,7 +171,19 @@ void CPU::tick_instructions() {
         this->tick_cb(op);
         owed_cycles = OP_CB_CYCLES[op];
     } else {
-        this->tick_main(op);
+        oparg arg;
+        arg.as_u16 = 0xCA75;
+        u8 nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]];
+        if(nargs == 1) {
+            arg.as_u8 = this->ram->get(this->PC);
+        }
+        if(nargs == 2) {
+            u16 low = this->ram->get(this->PC);
+            u16 high = this->ram->get(this->PC + 1);
+            arg.as_u16 = high << 8 | low;
+        }
+        this->PC += nargs;
+        this->tick_main(op, arg);
         owed_cycles = OP_CYCLES[op];
     }
     if(owed_cycles > 0) owed_cycles -= 1; // HALT has cycles=0
@@ -181,20 +193,8 @@ void CPU::tick_instructions() {
  * Execute a normal instruction (everything except for those
  * prefixed with 0xCB)
  */
-void CPU::tick_main(u8 op) {
+void CPU::tick_main(u8 op, oparg arg) {
     // Load args
-    oparg arg;
-    arg.as_u16 = 0xCA75;
-    u8 nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]];
-    if(nargs == 1) {
-        arg.as_u8 = this->ram->get(this->PC);
-    }
-    if(nargs == 2) {
-        u16 low = this->ram->get(this->PC);
-        u16 high = this->ram->get(this->PC + 1);
-        arg.as_u16 = high << 8 | low;
-    }
-    this->PC += nargs;
 
     // Execute
     u8 val = 0, carry = 0;

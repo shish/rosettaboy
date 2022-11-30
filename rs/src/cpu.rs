@@ -427,7 +427,14 @@ impl CPU {
             }
             self.owed_cycles = OP_CB_CYCLES[op as usize];
         } else {
-            self.tick_main(ram, op)?;
+            let arg = {
+                let arg_type = OP_TYPES[op as usize];
+                let arg_len = OP_ARG_BYTES[arg_type as usize];
+                let arg = self.load_op(ram, self.pc, arg_type);
+                self.pc += arg_len;
+                arg
+            };
+            self.tick_main(ram, op, arg)?;
             self.owed_cycles = OP_CYCLES[op as usize];
         }
 
@@ -466,15 +473,7 @@ impl CPU {
         }
     }
 
-    fn tick_main(&mut self, ram: &mut ram::RAM, op: u8) -> Result<()> {
-        let arg = {
-            let arg_type = OP_TYPES[op as usize];
-            let arg_len = OP_ARG_BYTES[arg_type as usize];
-            let arg = self.load_op(ram, self.pc, arg_type);
-            self.pc += arg_len;
-            arg
-        };
-
+    fn tick_main(&mut self, ram: &mut ram::RAM, op: u8, arg: OpArg) -> Result<()> {
         unsafe {
             match op {
                 0x00 => { /* NOP */ }
