@@ -13,3 +13,9 @@ Makefile
 *.swp
 *.txt
 *.sav
+
+Cython
+*.c
+*.h
+*.html
+build_temp
