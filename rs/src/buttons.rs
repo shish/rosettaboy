@@ -135,7 +135,7 @@ impl Buttons {
                 joyp.insert(Joypad::SELECT);
             }
         }
-        ram.set(Mem::JOYP, !joyp.bits());
+        ram.set(Mem::JOYP, !joyp.bits() & 0x3F);
     }
 
     /**

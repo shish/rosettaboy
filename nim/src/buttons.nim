@@ -52,7 +52,7 @@ them back when writing.
 ]#
 proc updateButtons(self: var Buttons) =
     var joyp = bitops.bitnot(self.ram.get(consts.Mem_JOYP))
-    joyp = bitops.bitand(joyp, 0xF0)
+    joyp = bitops.bitand(joyp, 0x30)
     if bitops.bitand(joyp, JOYPAD_MODE_DPAD) != 0:
         if self.up:
             joyp = bitops.bitor(joyp, JOYPAD_UP)
@@ -71,7 +71,7 @@ proc updateButtons(self: var Buttons) =
             joyp = bitops.bitor(joyp, JOYPAD_START)
         if self.select:
             joyp = bitops.bitor(joyp, JOYPAD_SELECT)
-    self.ram.set(consts.Mem_JOYP, bitops.bitnot(joyp))
+    self.ram.set(consts.Mem_JOYP, bitops.bitand(bitops.bitnot(joyp), 0x3F))
 
 
 #[
