@@ -66,7 +66,8 @@ class Buttons:
                 JOYP |= Joypad.START
             if self.select:
                 JOYP |= Joypad.SELECT
-        self.cpu.ram[Mem.JOYP] = ~JOYP
+        
+        self.cpu.ram[Mem.JOYP] = ~JOYP & 0xFF
 
     def handle_inputs(self) -> bool:
         need_interrupt = False
