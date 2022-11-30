@@ -3,6 +3,7 @@
 import sdl2
 import sys
 from typing import List
+from traceback import print_exception
 
 from .args import parse_args
 from .gameboy import GameBoy
@@ -16,10 +17,13 @@ def main(argv: List[str]) -> int:
         gameboy = GameBoy(args)
         gameboy.run()
     except EmuError as e:
-        print(e)
+        print_exception(e)
         return e.exit_code
     except (KeyboardInterrupt, BrokenPipeError):
         pass
+    except Exception as e:
+        print_exception(e)
+        return 1
     finally:
         sdl2.SDL_Quit()
 
