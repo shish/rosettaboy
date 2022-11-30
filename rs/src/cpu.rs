@@ -64,7 +64,7 @@ pub const OP_TYPES: [u8; 0x100] = [
 ];
 
 // no arg, u8, u16, i8
-pub const OP_LENS: [u16; 4] = [0, 1, 2, 1];
+pub const OP_ARG_BYTES: [u16; 4] = [0, 1, 2, 1];
 
 #[rustfmt::skip]
 pub const OP_NAMES: [&str; 0x100] = [
@@ -454,7 +454,7 @@ impl CPU {
             },
             2 => OpArg {
                 u8: 0,
-                u16: (ram.get(addr + 1) as u16) << 8 | (ram.get(addr) as u16),
+                u16: (ram.get(addr) as u16) | (ram.get(addr + 1) as u16) << 8,
                 i8: 0,
             },
             3 => OpArg {
@@ -469,7 +469,7 @@ impl CPU {
     fn tick_main(&mut self, ram: &mut ram::RAM, op: u8) -> Result<()> {
         let arg = {
             let arg_type = OP_TYPES[op as usize];
-            let arg_len = OP_LENS[arg_type as usize];
+            let arg_len = OP_ARG_BYTES[arg_type as usize];
             let arg = self.load_op(ram, self.pc, arg_type);
             self.pc += arg_len;
             arg

@@ -368,14 +368,13 @@ proc tickMain(self: var CPU, op: uint8) =
     var nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]];
     if nargs == 1:
         arg.asU8 = self.ram.get(self.pc)
-        self.pc+=1
 
     if nargs == 2:
         var arglow = self.ram.get(self.pc).uint16
-        self.pc+=1
-        var arghigh = self.ram.get(self.pc).uint16
-        self.pc+=1
+        var arghigh = self.ram.get(self.pc+1).uint16
         arg.asU16 = bitor(arghigh shl 8, arglow)
+
+    self.pc += nargs.uint16
 
 
     # Execute

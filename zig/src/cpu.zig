@@ -66,7 +66,7 @@ pub const OP_TYPES = [_]u2{
 };
 
 // no arg, u8, u16, i8
-pub const OP_LENS = [_]u2{ 0, 1, 2, 1 };
+pub const OP_ARG_BYTES = [_]u2{ 0, 1, 2, 1 };
 
 pub const OP_NAMES = [_][]const u8{
     "NOP",          "LD BC,$u16", "LD [BC],A",   "INC BC",    "INC B",        "DEC B",     "LD B,$u8",    "RCLA",
@@ -402,7 +402,7 @@ pub const CPU = struct {
                 .u8 = self.ram.get(addr),
             },
             2 => OpArg{
-                .u16 = @intCast(u16, self.ram.get(addr + 1)) << 8 | (self.ram.get(addr)),
+                .u16 = @intCast(u16, self.ram.get(addr)) | @intCast(u16, self.ram.get(addr + 1)) << 8,
             },
             3 => OpArg{
                 .i8 = @bitCast(i8, self.ram.get(addr)),
@@ -412,7 +412,7 @@ pub const CPU = struct {
 
     fn tick_main(self: *CPU, op: u8) !void {
         var arg_type = OP_TYPES[op];
-        var arg_len = OP_LENS[arg_type];
+        var arg_len = OP_ARG_BYTES[arg_type];
         var arg = self.load_op(self.pc, arg_type);
         self.pc += arg_len;
 
