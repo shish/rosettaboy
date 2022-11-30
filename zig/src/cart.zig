@@ -85,9 +85,6 @@ pub const Cart = struct {
         // FIXME: ram should be synced with .sav file
         var ram = try allocator.alloc(u8, ram_size);
 
-        // FIXME: ram.get(address within cart range) crashes without this
-        //std.debug.print("cart data {*}\n", .{data});
-
         return Cart{
             .data = data,
             .ram = ram,

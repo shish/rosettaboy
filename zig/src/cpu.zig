@@ -1,5 +1,4 @@
 const std = @import("std");
-const print = @import("std").debug.print;
 
 const RAM = @import("ram.zig").RAM;
 const consts = @import("consts.zig");
@@ -352,7 +351,7 @@ pub const CPU = struct {
         var queue = self.ram.get(consts.Mem.IE) & self.ram.get(consts.Mem.IF);
         if (self.interrupts and queue != 0) {
             if (self.debug) {
-                std.debug.print("Handling interrupts: {X:0>2} & {X:0>2}\n", .{ self.ram.get(consts.Mem.IE), self.ram.get(consts.Mem.IF) });
+                std.io.getStdOut().writer().print("Handling interrupts: {X:0>2} & {X:0>2}\n", .{ self.ram.get(consts.Mem.IE), self.ram.get(consts.Mem.IF) }) catch return;
             }
 
             // no nested interrupts, RETI will re-enable
@@ -856,7 +855,7 @@ pub const CPU = struct {
                 self.pc = 0x38;
             },
             else => {
-                std.debug.print("Invalid op: {X:0>2}\n", .{op});
+                try std.io.getStdOut().writer().print("Invalid op: {X:0>2}\n", .{op});
                 return errors.GameException.InvalidOpcode;
             },
         }

@@ -3,7 +3,6 @@ const std = @import("std");
 
 const errors = @import("errors.zig");
 
-const debug = std.debug;
 const io = std.io;
 
 pub const Args = struct {

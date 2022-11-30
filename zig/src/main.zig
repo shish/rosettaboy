@@ -31,11 +31,11 @@ pub fn main() anyerror!void {
     gameboy.run() catch |err| {
         switch (err) {
             errors.ControlledExit.UnitTestPassed => {
-                std.debug.print("Unit test passed\n", .{});
+                try std.io.getStdOut().writer().print("Unit test passed\n", .{});
                 std.os.exit(0);
             },
             errors.ControlledExit.UnitTestFailed => {
-                std.debug.print("Unit test failed\n", .{});
+                try std.io.getStdOut().writer().print("Unit test failed\n", .{});
                 std.os.exit(2);
             },
             errors.ControlledExit.Timeout => {
@@ -50,11 +50,11 @@ pub fn main() anyerror!void {
             },
             // FIXME: match by error group?
             // errors.GameException => {
-            //     std.debug.print("Game error\n", .{});
+            //     std.io.getStdOut().writer().print("Game error\n", .{});
             //     std.os.exit(3);
             // },
             // errors.UserException => {
-            //     std.debug.print("User error\n", .{});
+            //     std.io.getStdOut().writer().print("User error\n", .{});
             //     std.os.exit(4);
             // },
             SDL.Error.SdlError => {
