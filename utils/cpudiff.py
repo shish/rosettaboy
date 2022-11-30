@@ -62,7 +62,7 @@ def run(files: t.List[str], before: int) -> None:
 
 def main(argv) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("-B", "--before", type=int, help="Common lines to show before diff")
+    parser.add_argument("-B", "--before", default=5, type=int, help="Common lines to show before diff")
     parser.add_argument("files", nargs="+", help="CPU log files to compare")
     args = parser.parse_args()
 
