@@ -187,13 +187,14 @@ void CPU::tick_main(u8 op) {
     arg.as_u16 = 0xCA75;
     u8 nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]];
     if(nargs == 1) {
-        arg.as_u8 = this->ram->get(this->PC++);
+        arg.as_u8 = this->ram->get(this->PC);
     }
     if(nargs == 2) {
-        u16 low = this->ram->get(this->PC++);
-        u16 high = this->ram->get(this->PC++);
+        u16 low = this->ram->get(this->PC);
+        u16 high = this->ram->get(this->PC + 1);
         arg.as_u16 = high << 8 | low;
     }
+    this->PC += nargs;
 
     // Execute
     u8 val = 0, carry = 0;

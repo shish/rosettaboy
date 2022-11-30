@@ -228,7 +228,7 @@ func (cpu *CPU) dump_regs() {
 		case 1:
 			op_str = fmt.Sprintf(OP_NAMES[op], cpu.ram.get(cpu.PC+1))
 		case 2:
-			op_str = fmt.Sprintf(OP_NAMES[op], uint16(cpu.ram.get(cpu.PC+2))<<8|uint16(cpu.ram.get(cpu.PC+1)))
+			op_str = fmt.Sprintf(OP_NAMES[op], uint16(cpu.ram.get(cpu.PC+1))|uint16(cpu.ram.get(cpu.PC+2))<<8)
 		case 3:
 			op_str = fmt.Sprintf(OP_NAMES[op], int8(cpu.ram.get(cpu.PC+1)))
 		}
@@ -363,15 +363,13 @@ func (cpu *CPU) tick_main(op uint8) error {
 	if nargs == 1 {
 		arg.as_u8 = cpu.ram.get(cpu.PC)
 		arg.as_i8 = int8(arg.as_u8)
-		cpu.PC++
 	}
 	if nargs == 2 {
 		var low = cpu.ram.get(cpu.PC)
-		cpu.PC++
-		var high = cpu.ram.get(cpu.PC)
-		cpu.PC++
+		var high = cpu.ram.get(cpu.PC + 1)
 		arg.as_u16 = uint16(high)<<8 | uint16(low)
 	}
+	cpu.PC += uint16(nargs)
 
 	// Execute
 	var val uint8 = 0

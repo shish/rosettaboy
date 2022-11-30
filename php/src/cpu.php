@@ -430,15 +430,13 @@ class CPU
         if ($nargs == 1) {
             $arg->as_u8 = $this->ram->get($this->PC);
             $arg->as_i8 = int8($arg->as_u8);
-            $this->PC++;
         }
         if ($nargs == 2) {
             $low = $this->ram->get($this->PC);
-            $this->PC++;
-            $high = $this->ram->get($this->PC);
-            $this->PC++;
-            $arg->as_u16 = uint16($high) << 8 | uint16($low);
+            $high = $this->ram->get($this->PC+1);
+            $arg->as_u16 = uint16($low) | uint16($high) << 8;
         }
+        $this->PC += $nargs;
 
         // Execute
         switch ($op) {
