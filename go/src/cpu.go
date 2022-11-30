@@ -317,27 +317,26 @@ func (cpu *CPU) tick_instructions() error {
 	}
 
 	var op = cpu.ram.get(cpu.PC)
-	cpu.PC++
 	if op == 0xCB {
-		op = cpu.ram.get(cpu.PC)
-		cpu.PC++
+		op = cpu.ram.get(cpu.PC + 1)
+		cpu.PC += 2
 		cpu.tick_cb(op)
 		cpu.owed_cycles = OP_CB_CYCLES[op]
 	} else {
 		// Load args
 		var arg oparg
 		arg.as_u16 = 0
-		var nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]]
-		if nargs == 1 {
-			arg.as_u8 = cpu.ram.get(cpu.PC)
+		var arg_len = OP_ARG_BYTES[OP_ARG_TYPES[op]]
+		if arg_len == 1 {
+			arg.as_u8 = cpu.ram.get(cpu.PC + 1)
 			arg.as_i8 = int8(arg.as_u8)
 		}
-		if nargs == 2 {
-			var low = cpu.ram.get(cpu.PC)
-			var high = cpu.ram.get(cpu.PC + 1)
+		if arg_len == 2 {
+			var low = cpu.ram.get(cpu.PC + 1)
+			var high = cpu.ram.get(cpu.PC + 2)
 			arg.as_u16 = uint16(high)<<8 | uint16(low)
 		}
-		cpu.PC += uint16(nargs)
+		cpu.PC += 1 + uint16(arg_len)
 		err := cpu.tick_main(op, arg)
 		if err != nil {
 			return err

@@ -377,17 +377,16 @@ pub const CPU = struct {
         }
 
         var op = self.ram.get(self.pc);
-        self.pc += 1;
         if (op == 0xCB) {
-            op = self.ram.get(self.pc);
-            self.pc += 1;
+            op = self.ram.get(self.pc + 1);
+            self.pc += 2;
             self.tick_cb(op);
             self.owed_cycles = OP_CB_CYCLES[op];
         } else {
             var arg_type = OP_TYPES[op];
             var arg_len = OP_ARG_BYTES[arg_type];
             var arg = self.load_op(self.pc, arg_type);
-            self.pc += arg_len;
+            self.pc += 1 + arg_len;
             try self.tick_main(op, arg);
             self.owed_cycles = OP_CYCLES[op];
         }

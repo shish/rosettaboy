@@ -873,25 +873,24 @@ proc tickInstructions(self: var CPU) =
         self.dumpRegs();
 
     var op = self.ram.get(self.pc)
-    self.pc += 1
     if op == 0xCB:
-        op = self.ram.get(self.pc)
-        self.pc+=1
+        op = self.ram.get(self.pc+1)
+        self.pc+=2
         self.tickCb(op);
         self.owedCycles = OP_CB_CYCLES[op].uint32;
     else:
         var arg: OpArg
         arg.asU16 = 0xCA75
-        var nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]];
-        if nargs == 1:
-            arg.asU8 = self.ram.get(self.pc)
+        var argLen = OP_ARG_BYTES[OP_ARG_TYPES[op]];
+        if argLen == 1:
+            arg.asU8 = self.ram.get(self.pc+1)
 
-        if nargs == 2:
-            var arglow = self.ram.get(self.pc).uint16
-            var arghigh = self.ram.get(self.pc+1).uint16
+        if argLen == 2:
+            var arglow = self.ram.get(self.pc+1).uint16
+            var arghigh = self.ram.get(self.pc+2).uint16
             arg.asU16 = bitor(arghigh shl 8, arglow)
 
-        self.pc += nargs.uint16
+        self.pc += 1 + argLen.uint16
         self.tickMain(op, arg);
         self.owedCycles = OP_CYCLES[op].uint32;
 
