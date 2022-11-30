@@ -22,6 +22,10 @@ CPU::CPU(RAM *ram, bool debug) {
 }
 
 void CPU::dump_regs() {
+    // stack
+    u16 sp_val = this->ram->get(this->SP) | this->ram->get(this->SP + 1) << 8;
+
+    // interrupts
     u8 IE = this->ram->get(Mem::IE);
     u8 IF = this->ram->get(Mem::IF);
     char z = 'z' ^ ((this->F >> 7) & 1) << 5;
@@ -33,6 +37,8 @@ void CPU::dump_regs() {
     char t = (IE >> 2) & 1 ? 't' ^ ((IF >> 2) & 1) << 5 : '_';
     char s = (IE >> 3) & 1 ? 's' ^ ((IF >> 3) & 1) << 5 : '_';
     char j = (IE >> 4) & 1 ? 'j' ^ ((IF >> 4) & 1) << 5 : '_';
+
+    // opcode & args
     u8 op = this->ram->get(PC);
     char op_str[16] = "";
     if(op == 0xCB) {
@@ -42,16 +48,16 @@ void CPU::dump_regs() {
         if(OP_ARG_TYPES[op] == 0) snprintf(op_str, 16, "%s", OP_NAMES[op].c_str());
         if(OP_ARG_TYPES[op] == 1) snprintf(op_str, 16, OP_NAMES[op].c_str(), this->ram->get(PC + 1));
         if(OP_ARG_TYPES[op] == 2)
-            snprintf(op_str, 16, OP_NAMES[op].c_str(), this->ram->get(PC + 2) << 8 | this->ram->get(PC + 1));
+            snprintf(op_str, 16, OP_NAMES[op].c_str(), this->ram->get(PC + 1) | this->ram->get(PC + 2) << 8);
         if(OP_ARG_TYPES[op] == 3) snprintf(op_str, 16, OP_NAMES[op].c_str(), (i8)this->ram->get(PC + 1));
     }
-    // if(cycle % 10 == 0)
-    // printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
+
+    // print
     // clang-format off
     printf(
-        "%04X %04X %04X %04X : %04X = %02X%02X : %c%c%c%c : %c%c%c%c%c : %04X = %02X : %s\n",
+        "%04X %04X %04X %04X : %04X = %04X : %c%c%c%c : %c%c%c%c%c : %04X = %02X : %s\n",
         AF, BC, DE, HL,
-        SP, this->ram->get(this->SP + 1), this->ram->get(this->SP),
+        SP, sp_val,
         z, n, h, c,
         v, l, t, s, j,
         PC, op, op_str

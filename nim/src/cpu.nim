@@ -819,6 +819,10 @@ proc tickCb(self: var CPU, op: uint8) =
 
 
 proc dumpRegs(self: var CPU) =
+    # stack
+    let sp_val = bitor(self.ram.get(self.sp).uint16, self.ram.get(self.sp + 1).uint16 shl 8)
+
+    # interrupts
     let memIe = self.ram.get(consts.MEM_IE);
     let memIf = self.ram.get(consts.MEM_IF);
     let z = bitxor('z'.uint8, bitand((self.regs.r8.f shr 7), 1) shl 5).char;
@@ -830,6 +834,8 @@ proc dumpRegs(self: var CPU) =
     let t = if bitand(memIe shr 2, 1) == 1: bitxor('t'.uint8, bitand((memIf shr 2), 1) shl 5).char else: '_'
     let s = if bitand(memIe shr 3, 1) == 1: bitxor('s'.uint8, bitand((memIf shr 3), 1) shl 5).char else: '_'
     let j = if bitand(memIe shr 4, 1) == 1: bitxor('j'.uint8, bitand((memIf shr 4), 1) shl 5).char else: '_'
+
+    # opcode & args
     var op = self.ram.get(self.pc);
     var opStr = newString(1024)
     if op == 0xCB:
@@ -842,18 +848,18 @@ proc dumpRegs(self: var CPU) =
             let arg = self.ram.get(self.pc + 1)
             opStr.setLen snprintf(opStr.cstring, 1024, OP_NAMES[op].cstring, arg)
         if(OP_ARG_TYPES[op] == 2):
-            let arg = bitor(self.ram.get(self.pc + 2).uint16 shl 8, self.ram.get(self.pc + 1))
+            let arg = bitor(self.ram.get(self.pc + 1).uint16, self.ram.get(self.pc + 2).uint16 shl 8)
             opStr.setLen snprintf(opStr.cstring, 1024, OP_NAMES[op].cstring, arg)
         if(OP_ARG_TYPES[op] == 3):
             var arg = self.ram.get(self.pc + 1).int16
             if arg > 127:
                 arg -= 256
             opStr.setLen snprintf(opStr.cstring, 1024, OP_NAMES[op].cstring, arg)
-    # if(cycle % 10 == 0)
-    # printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
+
+    # print
     var line = ""
     line.add(fmt"{self.regs.r16.af:04X} {self.regs.r16.bc:04X} {self.regs.r16.de:04X} {self.regs.r16.hl:04X} : ")
-    line.add(fmt"{self.sp:04X} = {self.ram.get(self.sp + 1):02X}{self.ram.get(self.sp):02X} : ")
+    line.add(fmt"{self.sp:04X} = {sp_val:04X} : ")
     line.add(fmt"{z}{n}{h}{c} : {v}{l}{t}{s}{j} : {self.pc:04X} = {op:02X} : {op_str}")
     echo line
 

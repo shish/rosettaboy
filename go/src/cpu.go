@@ -205,6 +205,10 @@ func join16(a, b uint8) uint16 {
 }
 
 func (cpu *CPU) dump_regs() {
+	// stack
+	var sp_val = uint16(cpu.ram.get(cpu.SP)) | uint16(cpu.ram.get(cpu.SP+1))<<8
+
+	// interrupts
 	var IE = cpu.ram.get(IO_IE)
 	var IF = cpu.ram.get(IO_IF)
 	var z = 'z' ^ ((cpu.F>>7)&1)<<5
@@ -216,6 +220,8 @@ func (cpu *CPU) dump_regs() {
 	var t = _tert((IE>>2)&1, 't'^((IF>>2)&1)<<5, '_')
 	var s = _tert((IE>>3)&1, 's'^((IF>>3)&1)<<5, '_')
 	var j = _tert((IE>>4)&1, 'j'^((IF>>4)&1)<<5, '_')
+
+	// opcode & args
 	var op = cpu.ram.get(cpu.PC)
 	var op_str = ""
 	if op == 0xCB {
@@ -233,11 +239,11 @@ func (cpu *CPU) dump_regs() {
 			op_str = fmt.Sprintf(OP_NAMES[op], int8(cpu.ram.get(cpu.PC+1)))
 		}
 	}
-	// if(cycle % 10 == 0)
-	// printf("A F  B C  D E  H L  : SP   = [SP] : F    : IE/IF : PC   = OP : INSTR\n");
-	fmt.Printf("%02X%02X %02X%02X %02X%02X %04X : %04X = %02X%02X : %c%c%c%c : %c%c%c%c%c : %04X = %02X : %s\n",
+
+	// print
+	fmt.Printf("%02X%02X %02X%02X %02X%02X %04X : %04X = %04X : %c%c%c%c : %c%c%c%c%c : %04X = %02X : %s\n",
 		cpu.A, cpu.F, cpu.B, cpu.C, cpu.D, cpu.E, cpu.HL,
-		cpu.SP, cpu.ram.get(cpu.SP+1), cpu.ram.get(cpu.SP),
+		cpu.SP, sp_val,
 		z, n, h, c,
 		v, l, t, s, j,
 		cpu.PC, op, op_str,
