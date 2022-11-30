@@ -94,7 +94,7 @@ class Buttons
                 $JOYP |= Joypad::$SELECT;
             }
         }
-        $this->cpu->ram->set(Mem::$JOYP, ~$JOYP);
+        $this->cpu->ram->set(Mem::$JOYP, ~$JOYP & 0xFF);
     }
 
     public function handle_inputs(): bool
