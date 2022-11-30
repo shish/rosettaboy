@@ -384,7 +384,11 @@ pub const CPU = struct {
             self.tick_cb(op);
             self.owed_cycles = OP_CB_CYCLES[op];
         } else {
-            try self.tick_main(op);
+            var arg_type = OP_TYPES[op];
+            var arg_len = OP_ARG_BYTES[arg_type];
+            var arg = self.load_op(self.pc, arg_type);
+            self.pc += arg_len;
+            try self.tick_main(op, arg);
             self.owed_cycles = OP_CYCLES[op];
         }
 
@@ -411,12 +415,7 @@ pub const CPU = struct {
         };
     }
 
-    fn tick_main(self: *CPU, op: u8) !void {
-        var arg_type = OP_TYPES[op];
-        var arg_len = OP_ARG_BYTES[arg_type];
-        var arg = self.load_op(self.pc, arg_type);
-        self.pc += arg_len;
-
+    fn tick_main(self: *CPU, op: u8, arg: OpArg) !void {
         switch (op) {
             0x00 => {}, // NOP
             0x01 => {

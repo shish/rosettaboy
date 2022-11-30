@@ -324,7 +324,21 @@ func (cpu *CPU) tick_instructions() error {
 		cpu.tick_cb(op)
 		cpu.owed_cycles = OP_CB_CYCLES[op]
 	} else {
-		err := cpu.tick_main(op)
+		// Load args
+		var arg oparg
+		arg.as_u16 = 0
+		var nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]]
+		if nargs == 1 {
+			arg.as_u8 = cpu.ram.get(cpu.PC)
+			arg.as_i8 = int8(arg.as_u8)
+		}
+		if nargs == 2 {
+			var low = cpu.ram.get(cpu.PC)
+			var high = cpu.ram.get(cpu.PC + 1)
+			arg.as_u16 = uint16(high)<<8 | uint16(low)
+		}
+		cpu.PC += uint16(nargs)
+		err := cpu.tick_main(op, arg)
 		if err != nil {
 			return err
 		}
@@ -355,22 +369,7 @@ func (cpu *CPU) tick_instructions() error {
 	return nil
 }
 
-func (cpu *CPU) tick_main(op uint8) error {
-	// Load args
-	var arg oparg
-	arg.as_u16 = 0
-	var nargs = OP_ARG_BYTES[OP_ARG_TYPES[op]]
-	if nargs == 1 {
-		arg.as_u8 = cpu.ram.get(cpu.PC)
-		arg.as_i8 = int8(arg.as_u8)
-	}
-	if nargs == 2 {
-		var low = cpu.ram.get(cpu.PC)
-		var high = cpu.ram.get(cpu.PC + 1)
-		arg.as_u16 = uint16(high)<<8 | uint16(low)
-	}
-	cpu.PC += uint16(nargs)
-
+func (cpu *CPU) tick_main(op uint8, arg oparg) error {
 	// Execute
 	var val uint8 = 0
 	var carry uint8 = 0
