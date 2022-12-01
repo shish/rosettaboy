@@ -239,7 +239,7 @@ class CPU
         // Set a given interrupt bit - on the next tick, if the interrupt
         // handler for self interrupt is enabled (and interrupts in general
         // are enabled), then the interrupt handler will be called.
-        $this->ram->data[Mem::$IF] |= $i->value;
+        $this->ram->set(Mem::$IF, $this->ram->get(Mem::$IF) | $i->value);
         $this->halt = false; // interrupts interrupt HALT state
     }
 
