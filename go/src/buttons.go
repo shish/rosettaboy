@@ -57,7 +57,7 @@ func (buttons *Buttons) tick() error {
 }
 
 func (buttons *Buttons) update_buttons() {
-	var JOYP = ^buttons.cpu.ram.data[IO_JOYP]
+	var JOYP = ^buttons.cpu.ram.get(IO_JOYP)
 	JOYP &= 0x30
 	if JOYP&JOYPAD_MODE_DPAD > 0 {
 		if buttons.up {
@@ -87,7 +87,7 @@ func (buttons *Buttons) update_buttons() {
 			JOYP |= JOYPAD_SELECT
 		}
 	}
-	buttons.cpu.ram.data[IO_JOYP] = ^JOYP & 0x3F
+	buttons.cpu.ram.set(IO_JOYP, ^JOYP&0x3F)
 }
 
 func (buttons *Buttons) handle_inputs() (bool, error) {
