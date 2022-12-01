@@ -147,28 +147,24 @@ class GPU:
         ly = (self.cycle // 114) % 154
         self.cpu.ram[Mem.LY] = ly
 
+        stat = self.cpu.ram[Mem.STAT]
+        stat &= ~Stat.MODE_BITS
+        stat &= ~Stat.LYC_EQUAL
+
         # LYC compare & interrupt
         if self.cpu.ram[Mem.LY] == self.cpu.ram[Mem.LYC]:
-            if self.cpu.ram[Mem.STAT] & Stat.LYC_INTERRUPT:
+            stat |= Stat.LYC_EQUAL
+            if stat & Stat.LYC_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
-
-            self.cpu.ram[Mem.STAT] |= Stat.LYC_EQUAL
-        else:
-            self.cpu.ram[Mem.STAT] &= ~Stat.LYC_EQUAL
 
         # Set mode
         if lx == 0 and ly < 144:
-            self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~Stat.MODE_BITS
-            ) | Stat.OAM
-
-            if self.cpu.ram[Mem.STAT] & Stat.OAM_INTERRUPT:
+            stat |= Stat.OAM
+            if stat & Stat.OAM_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
 
         elif lx == 20 and ly < 144:
-            self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~Stat.MODE_BITS
-            ) | Stat.DRAWING
+            stat |= Stat.DRAWING
 
             if ly == 0:
                 # TODO: how often should we update palettes?
@@ -194,22 +190,17 @@ class GPU:
                     sdl2.SDL_RenderPresent(self.hw_renderer)
 
         elif lx == 63 and ly < 144:
-            self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~Stat.MODE_BITS
-            ) | Stat.HBLANK
-
-            if self.cpu.ram[Mem.STAT] & Stat.HBLANK_INTERRUPT:
+            stat |= Stat.HBLANK
+            if stat & Stat.HBLANK_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
 
         elif lx == 0 and ly == 144:
-            self.cpu.ram[Mem.STAT] = (
-                self.cpu.ram[Mem.STAT] & ~Stat.MODE_BITS
-            ) | Stat.VBLANK
-
-            if self.cpu.ram[Mem.STAT] & Stat.VBLANK_INTERRUPT:
+            stat |= Stat.VBLANK
+            if stat & Stat.VBLANK_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
-
             self.cpu.interrupt(Interrupt.VBLANK)
+
+        self.cpu.ram[Mem.STAT] = stat
 
     def update_palettes(self) -> None:
         raw_bgp = self.cpu.ram[Mem.BGP]

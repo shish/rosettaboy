@@ -89,24 +89,26 @@ void GPU::tick() {
     u8 ly = (this->cycle / 114) % 154;
     this->cpu->ram->set(Mem::LY, ly);
 
+    u8 stat = this->cpu->ram->get(Mem::STAT);
+    stat &= ~Stat::MODE_BITS;
+    stat &= ~Stat::LYC_EQUAL;
+
     // LYC compare & interrupt
-    if(this->cpu->ram->get(Mem::LY) == this->cpu->ram->get(Mem::LYC)) {
-        if(this->cpu->ram->get(Mem::STAT) & Stat::LYC_INTERRUPT) {
+    if(ly == this->cpu->ram->get(Mem::LYC)) {
+        stat |= Stat::LYC_EQUAL;
+        if(stat & Stat::LYC_INTERRUPT) {
             this->cpu->interrupt(Interrupt::STAT);
         }
-        this->cpu->ram->_or(Mem::STAT, Stat::LYC_EQUAL);
-    } else {
-        this->cpu->ram->_and(Mem::STAT, ~Stat::LYC_EQUAL);
     }
 
     // Set mode
     if(lx == 0 && ly < 144) {
-        this->cpu->ram->set(Mem::STAT, (this->cpu->ram->get(Mem::STAT) & ~Stat::MODE_BITS) | Stat::OAM);
-        if(this->cpu->ram->get(Mem::STAT) & Stat::OAM_INTERRUPT) {
+        stat |= Stat::OAM;
+        if(stat & Stat::OAM_INTERRUPT) {
             this->cpu->interrupt(Interrupt::STAT);
         }
     } else if(lx == 20 && ly < 144) {
-        this->cpu->ram->set(Mem::STAT, (this->cpu->ram->get(Mem::STAT) & ~Stat::MODE_BITS) | Stat::DRAWING);
+        stat |= Stat::DRAWING;
         if(ly == 0) {
             // TODO: how often should we update palettes?
             // Should every pixel reference them directly?
@@ -127,17 +129,18 @@ void GPU::tick() {
             }
         }
     } else if(lx == 63 && ly < 144) {
-        this->cpu->ram->set(Mem::STAT, (this->cpu->ram->get(Mem::STAT) & ~Stat::MODE_BITS) | Stat::HBLANK);
-        if(this->cpu->ram->get(Mem::STAT) & Stat::HBLANK_INTERRUPT) {
+        stat |= Stat::HBLANK;
+        if(stat & Stat::HBLANK_INTERRUPT) {
             this->cpu->interrupt(Interrupt::STAT);
         }
     } else if(lx == 0 && ly == 144) {
-        this->cpu->ram->set(Mem::STAT, (this->cpu->ram->get(Mem::STAT) & ~Stat::MODE_BITS) | Stat::VBLANK);
-        if(this->cpu->ram->get(Mem::STAT) & Stat::VBLANK_INTERRUPT) {
+        stat |= Stat::VBLANK;
+        if(stat & Stat::VBLANK_INTERRUPT) {
             this->cpu->interrupt(Interrupt::STAT);
         }
         this->cpu->interrupt(Interrupt::VBLANK);
     }
+    this->cpu->ram->set(Mem::STAT, stat);
 }
 
 void GPU::update_palettes() {

@@ -170,32 +170,29 @@ impl<'a> GPU<'a> {
         }
 
         let lx = self.cycle % 114;
-        let ly = (self.cycle / 114) % 154;
-        ram.set(Mem::LY, ly as u8);
+        let ly = ((self.cycle / 114) % 154) as u8;
+        ram.set(Mem::LY, ly);
 
-        let stat = Stat::from_bits(ram.get(Mem::STAT)).unwrap();
+        let mut stat = Stat::from_bits(ram.get(Mem::STAT)).unwrap();
+        stat.remove(Stat::MODE_BITS);
+        stat.remove(Stat::LYC_EQUAL);
 
         // LYC compare & interrupt
-        if ram.get(Mem::LY) == ram.get(Mem::LYC) {
+        if ly == ram.get(Mem::LYC) {
+            stat.insert(Stat::LYC_EQUAL);
             if stat.contains(Stat::LYC_INTERRUPT) {
                 cpu.interrupt(ram, Interrupt::STAT);
             }
-            ram._or(Mem::STAT, Stat::LYC_EQUAL.bits());
-        } else {
-            ram._and(Mem::STAT, !Stat::LYC_EQUAL.bits());
         }
 
-        // Set `ram[STAT].bit{0,1}` to `OAM / Drawing / HBlank / VBlank`
+        // Set mode
         if lx == 0 && ly < 144 {
-            ram.set(Mem::STAT, ((stat & !Stat::MODE_BITS) | Stat::OAM).bits());
+            stat.insert(Stat::OAM);
             if stat.contains(Stat::OAM_INTERRUPT) {
                 cpu.interrupt(ram, Interrupt::STAT);
             }
         } else if lx == 20 && ly < 144 {
-            ram.set(
-                Mem::STAT,
-                ((stat & !Stat::MODE_BITS) | Stat::DRAWING).bits(),
-            );
+            stat.insert(Stat::DRAWING);
             if ly == 0 {
                 // TODO: how often should we update palettes?
                 // Should every pixel reference them directly?
@@ -224,17 +221,18 @@ impl<'a> GPU<'a> {
                 }
             }
         } else if lx == 63 && ly < 144 {
-            ram.set(Mem::STAT, ((stat & !Stat::MODE_BITS) | Stat::HBLANK).bits());
+            stat.insert(Stat::HBLANK);
             if stat.contains(Stat::HBLANK_INTERRUPT) {
                 cpu.interrupt(ram, Interrupt::STAT);
             }
         } else if lx == 0 && ly == 144 {
-            ram.set(Mem::STAT, ((stat & !Stat::MODE_BITS) | Stat::VBLANK).bits());
+            stat.insert(Stat::VBLANK);
             if stat.contains(Stat::VBLANK_INTERRUPT) {
                 cpu.interrupt(ram, Interrupt::STAT);
             }
             cpu.interrupt(ram, Interrupt::VBLANK);
         }
+        ram.set(Mem::STAT, stat.bits());
 
         Ok(())
     }

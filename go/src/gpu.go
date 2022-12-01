@@ -161,32 +161,29 @@ func (gpu *GPU) tick() {
 	}
 
 	var lx = gpu.cycle % 114
-	var ly = (gpu.cycle / 114) % 154
-	gpu.cpu.ram.set(IO_LY, uint8(ly))
+	var ly = uint8((gpu.cycle / 114) % 154)
+	gpu.cpu.ram.set(IO_LY, ly)
 
 	var stat = gpu.cpu.ram.get(IO_STAT)
+	stat &= ^STAT_MODE_BITS
+	stat &= ^STAT_LYC_EQUAL
 
 	// LYC compare & interrupt
-	if gpu.cpu.ram.get(IO_LY) == gpu.cpu.ram.get(IO_LYC) {
+	if ly == gpu.cpu.ram.get(IO_LYC) {
+		stat |= STAT_LYC_EQUAL
 		if stat&STAT_LYC_INTERRUPT > 0 {
 			gpu.cpu.interrupt(INT_STAT)
 		}
-		gpu.cpu.ram._or(IO_STAT, STAT_LYC_EQUAL)
-	} else {
-		gpu.cpu.ram._and(IO_STAT, ^STAT_LYC_EQUAL)
 	}
 
 	// Set `ram[STAT].bit{0,1}` to `OAM / Drawing / HBlank / VBlank`
 	if lx == 0 && ly < 144 {
-		gpu.cpu.ram.set(IO_STAT, ((stat & ^STAT_MODE_BITS) | STAT_OAM))
+		stat |= STAT_OAM
 		if stat&(STAT_OAM_INTERRUPT) > 0 {
 			gpu.cpu.interrupt(INT_STAT)
 		}
 	} else if lx == 20 && ly < 144 {
-		gpu.cpu.ram.set(
-			IO_STAT,
-			((stat & ^STAT_MODE_BITS) | STAT_DRAWING),
-		)
+		stat |= STAT_DRAWING
 		if ly == 0 {
 			// TODO: how often should we update palettes?
 			// Should every pixel reference them directly?
@@ -208,17 +205,18 @@ func (gpu *GPU) tick() {
 			}
 		}
 	} else if lx == 63 && ly < 144 {
-		gpu.cpu.ram.set(IO_STAT, ((stat & ^STAT_MODE_BITS) | STAT_HBLANK))
+		stat |= STAT_HBLANK
 		if stat&STAT_HBLANK_INTERRUPT > 0 {
 			gpu.cpu.interrupt(INT_STAT)
 		}
 	} else if lx == 0 && ly == 144 {
-		gpu.cpu.ram.set(IO_STAT, ((stat & ^STAT_MODE_BITS) | STAT_VBLANK))
+		stat |= STAT_VBLANK
 		if stat&STAT_VBLANK_INTERRUPT > 0 {
 			gpu.cpu.interrupt(INT_STAT)
 		}
 		gpu.cpu.interrupt(INT_VBLANK)
 	}
+	gpu.cpu.ram.set(IO_STAT, stat)
 }
 
 func (gpu *GPU) update_palettes() {

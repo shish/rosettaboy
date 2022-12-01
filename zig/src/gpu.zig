@@ -136,24 +136,26 @@ pub const GPU = struct {
         var ly: u8 = @intCast(u8, (self.cycle / 114) % 154);
         self.cpu.ram.set(consts.Mem.LY, ly);
 
+        var stat = self.cpu.ram.get(consts.Mem.STAT);
+        stat &= ~Stat.LYC_EQUAL;
+        stat &= ~Stat.MODE_BITS;
+
         // LYC compare & interrupt
-        if (self.cpu.ram.get(consts.Mem.LY) == self.cpu.ram.get(consts.Mem.LYC)) {
-            if (self.cpu.ram.get(consts.Mem.STAT) & Stat.LYC_INTERRUPT != 0) {
+        if (ly == self.cpu.ram.get(consts.Mem.LYC)) {
+            stat |= Stat.LYC_EQUAL;
+            if (stat & Stat.LYC_INTERRUPT != 0) {
                 self.cpu.interrupt(consts.Interrupt.STAT);
             }
-            self.cpu.ram._or(consts.Mem.STAT, Stat.LYC_EQUAL);
-        } else {
-            self.cpu.ram._and(consts.Mem.STAT, ~Stat.LYC_EQUAL);
         }
 
         // Set mode
         if (lx == 0 and ly < 144) {
-            self.cpu.ram.set(consts.Mem.STAT, (self.cpu.ram.get(consts.Mem.STAT) & ~Stat.MODE_BITS) | Stat.OAM);
-            if (self.cpu.ram.get(consts.Mem.STAT) & Stat.OAM_INTERRUPT != 0) {
+            stat |= Stat.OAM;
+            if (stat & Stat.OAM_INTERRUPT != 0) {
                 self.cpu.interrupt(consts.Interrupt.STAT);
             }
         } else if (lx == 20 and ly < 144) {
-            self.cpu.ram.set(consts.Mem.STAT, (self.cpu.ram.get(consts.Mem.STAT) & ~Stat.MODE_BITS) | Stat.DRAWING);
+            stat |= Stat.DRAWING;
             if (ly == 0) {
                 // TODO: how often should we update palettes?
                 // Should every pixel reference them directly?
@@ -184,17 +186,18 @@ pub const GPU = struct {
                 }
             }
         } else if (lx == 63 and ly < 144) {
-            self.cpu.ram.set(consts.Mem.STAT, (self.cpu.ram.get(consts.Mem.STAT) & ~Stat.MODE_BITS) | Stat.HBLANK);
-            if (self.cpu.ram.get(consts.Mem.STAT) & Stat.HBLANK_INTERRUPT != 0) {
+            stat |= Stat.HBLANK;
+            if (stat & Stat.HBLANK_INTERRUPT != 0) {
                 self.cpu.interrupt(consts.Interrupt.STAT);
             }
         } else if (lx == 0 and ly == 144) {
-            self.cpu.ram.set(consts.Mem.STAT, (self.cpu.ram.get(consts.Mem.STAT) & ~Stat.MODE_BITS) | Stat.VBLANK);
-            if (self.cpu.ram.get(consts.Mem.STAT) & Stat.VBLANK_INTERRUPT != 0) {
+            stat |= Stat.VBLANK;
+            if (stat & Stat.VBLANK_INTERRUPT != 0) {
                 self.cpu.interrupt(consts.Interrupt.STAT);
             }
             self.cpu.interrupt(consts.Interrupt.VBLANK);
         }
+        self.cpu.ram.set(consts.Mem.STAT, stat);
     }
 
     fn update_palettes(self: *GPU) void {

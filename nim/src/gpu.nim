@@ -334,22 +334,23 @@ proc tick*(self: var GPU) =
     let ly = ((self.cycle div 114) mod 154).uint8
     self.ram.set(consts.Mem_LY, ly)
 
+    var stat = self.ram.get(consts.Mem_STAT)
+    stat = bitand(stat, Stat_MODE_BITS)
+    stat = bitand(stat, Stat_LYC_EQUAL)
+
     # LYC compare & interrupt
-    if(self.ram.get(consts.Mem_LY) == self.ram.get(consts.Mem_LYC)):
-        if bitand(self.ram.get(consts.Mem_STAT), Stat_LYC_INTERRUPT) != 0:
+    if(ly == self.ram.get(consts.Mem_LYC)):
+        stat = bitor(stat, Stat_LYC_EQUAL)
+        if bitand(stat, Stat_LYC_INTERRUPT) != 0:
             self.cpu.interrupt(consts.Interrupt_STAT)
-        self.ram.mem_or(consts.Mem_STAT, Stat_LYC_EQUAL)
-    else:
-        self.ram.mem_and(consts.Mem_STAT, bitnot(Stat_LYC_EQUAL))
 
     # Set mode
     if(lx == 0 and ly < 144):
-        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)), Stat_OAM))
-        if bitand(self.ram.get(consts.Mem_STAT), Stat_OAM_INTERRUPT) != 0:
+        stat = bitor(stat, Stat_OAM)
+        if bitand(stat, Stat_OAM_INTERRUPT) != 0:
             self.cpu.interrupt(consts.Interrupt_STAT)
     elif(lx == 20 and ly < 144):
-        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)),
-                Stat_DRAWING))
+        stat = bitor(stat, Stat_DRAWING)
         if(ly == 0):
             # TODO: how often should we update palettes?
             # Should every pixel reference them directly?
@@ -366,13 +367,12 @@ proc tick*(self: var GPU) =
                 self.hw_renderer.copy(self.hw_buffer, nil, nil)
                 self.hw_renderer.present()
     elif(lx == 63 and ly < 144):
-        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)),
-                Stat_HBLANK))
-        if bitand(self.ram.get(consts.Mem_STAT), Stat_HBLANK_INTERRUPT) != 0:
+        stat = bitor(stat, Stat_HBLANK)
+        if bitand(stat, Stat_HBLANK_INTERRUPT) != 0:
             self.cpu.interrupt(consts.Interrupt_STAT)
     elif(lx == 0 and ly == 144):
-        self.ram.set(consts.Mem_STAT, bitor(bitand(self.ram.get(consts.Mem_STAT), bitnot(Stat_MODE_BITS)),
-                Stat_VBLANK))
-        if bitand(self.ram.get(consts.Mem_STAT), Stat_VBLANK_INTERRUPT) != 0:
+        stat = bitor(stat, Stat_VBLANK)
+        if bitand(stat, Stat_VBLANK_INTERRUPT) != 0:
             self.cpu.interrupt(consts.Interrupt_STAT)
         self.cpu.interrupt(consts.Interrupt_VBLANK)
+    self.ram.set(consts.Mem_STAT, stat)
