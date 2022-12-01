@@ -132,6 +132,9 @@ class RAM
     {
         if ($this->debug) {
             printf("ram[%04X] <- %02X\n", $addr, $val);
+            if ($val < 0 || $val > 0xFF) {
+                throw new Exception("bad ram set");
+            }
         }
         if ($addr < 0x2000) {
             $newval = ($val != 0);
@@ -228,6 +231,6 @@ class RAM
 
     public function _inc($addr)
     {
-        $this->set($addr, $this->get($addr) + 1);
+        $this->set($addr, ($this->get($addr) + 1) & 0xFF);
     }
 }
