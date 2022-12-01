@@ -380,7 +380,7 @@ pub const CPU = struct {
         } else {
             var arg_type = OP_TYPES[op];
             var arg_len = OP_ARG_BYTES[arg_type];
-            var arg = self.load_op(self.pc, arg_type);
+            var arg = self.load_op(self.pc + 1, arg_type);
             self.pc += 1 + arg_len;
             try self.tick_main(op, arg);
             self.owed_cycles = OP_CYCLES[op];
