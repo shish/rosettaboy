@@ -186,7 +186,7 @@ func (cpu *CPU) interrupt(i byte) {
 	// Set a given interrupt bit - on the next tick, if the interrupt
 	// handler for cpu interrupt is enabled (and interrupts in general
 	// are enabled), then the interrupt handler will be called.
-	cpu.ram.data[IO_IF] |= i
+	cpu.ram.set(IO_IF, cpu.ram.get(IO_IF)|i)
 	cpu.halt = false // interrupts interrupt HALT state
 }
 
