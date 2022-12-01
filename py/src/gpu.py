@@ -152,7 +152,7 @@ class GPU:
         stat &= ~Stat.LYC_EQUAL
 
         # LYC compare & interrupt
-        if self.cpu.ram[Mem.LY] == self.cpu.ram[Mem.LYC]:
+        if ly == self.cpu.ram[Mem.LYC]:
             stat |= Stat.LYC_EQUAL
             if stat & Stat.LYC_INTERRUPT:
                 self.cpu.interrupt(Interrupt.STAT)
