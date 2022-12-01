@@ -434,7 +434,7 @@ impl CPU {
             let (arg, arg_len) = {
                 let arg_type = OP_TYPES[op as usize];
                 let arg_len = OP_ARG_BYTES[arg_type as usize];
-                let arg = self.load_op(ram, self.pc, arg_type);
+                let arg = self.load_op(ram, self.pc + 1, arg_type);
                 (arg, arg_len)
             };
             self.pc += 1 + arg_len;
