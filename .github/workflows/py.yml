@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y black
+      run: sudo apt-get update && sudo apt-get install -y python3.11-venv
     - name: Checkout
       uses: actions/checkout@v3
     - name: Check
