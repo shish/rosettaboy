@@ -200,14 +200,14 @@ class GPU
         for ($tile_id = 0; $tile_id < 384; $tile_id++) {
             $xy = new SDL_Point(
                 160 + ($tile_id % $tile_display_width) * 8,
-                ($tile_id / $tile_display_width) * 8,
+                floor($tile_id / $tile_display_width) * 8,
             );
             $this->paint_tile($tile_id, $xy, $this->bgp, false, false);
         }
 
         // Background scroll border
         if ($LCDC & LCDC::$BG_WIN_ENABLED) {
-            $rect = new SDL_Point(0, 0, 160, 144);
+            $rect = new SDL_Rect(0, 0, 160, 144);
             SDL_SetRenderDrawColor($this->renderer, 255, 0, 0, 0xFF);
             SDL_RenderDrawRect($this->renderer, $rect);
         }
@@ -373,7 +373,7 @@ class GPU
 
 function gen_hue(int $n): SDL_Color
 {
-    $region = $n / 43;
+    $region = floor($n / 43);
     $remainder = ($n - ($region * 43)) * 6;
 
     $q = 255 - $remainder;
