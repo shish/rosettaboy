@@ -1,53 +1,168 @@
-from enum import Enum
-from typing import Optional
+import typing as t
 import sys
-from textwrap import dedent
 
-from .errors import UnitTestPassed, UnitTestFailed
+from .errors import UnitTestPassed, UnitTestFailed, InvalidOpcode
 from .ram import RAM
 from .consts import *
 
 
-class Reg(Enum):
-    A = "A"
-    B = "B"
-    C = "C"
-    D = "D"
-    E = "E"
-    F = "F"
-    H = "H"
-    L = "L"
+# fmt: off
+OP_CYCLES: t.List[int] = [
+    # 1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    1, 3, 2, 2, 1, 1, 2, 1, 5, 2, 2, 2, 1, 1, 2, 1, # 0
+    0, 3, 2, 2, 1, 1, 2, 1, 3, 2, 2, 2, 1, 1, 2, 1, # 1
+    2, 3, 2, 2, 1, 1, 2, 1, 2, 2, 2, 2, 1, 1, 2, 1, # 2
+    2, 3, 2, 2, 3, 3, 3, 1, 2, 2, 2, 2, 1, 1, 2, 1, # 3
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, # 4
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, # 5
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, # 6
+    2, 2, 2, 2, 2, 2, 0, 2, 1, 1, 1, 1, 1, 1, 2, 1, # 7
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, # 8
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, # 9
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, # A
+    1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, # B
+    2, 3, 3, 4, 3, 4, 2, 4, 2, 4, 3, 0, 3, 6, 2, 4, # C
+    2, 3, 3, 0, 3, 4, 2, 4, 2, 4, 3, 0, 3, 0, 2, 4, # D
+    3, 3, 2, 0, 0, 4, 2, 4, 4, 1, 4, 0, 0, 0, 2, 4, # E
+    3, 3, 2, 1, 0, 4, 2, 4, 3, 2, 4, 1, 0, 0, 2, 4, # F
+]
 
-    BC = "BC"
-    DE = "DE"
-    AF = "AF"
-    HL = "HL"
+OP_CB_CYCLES: t.List[int] = [
+    # 1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # 0
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # 1
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # 2
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # 3
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 3, 2, # 4
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 3, 2, # 5
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 3, 2, # 6
+    2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 3, 2, # 7
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # 8
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # 9
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # A
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # B
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # C
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # D
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # E
+    2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # F
+]
 
-    SP = "SP"
-    PC = "PC"
+OP_TYPES: t.List[int] = [
+    # 1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    0, 2, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 1, 0, # 0
+    1, 2, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 0, 0, 1, 0, # 1
+    3, 2, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 0, 0, 1, 0, # 2
+    3, 2, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 0, 0, 1, 0, # 3
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, # 4
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, # 5
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, # 6
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, # 7
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, # 8
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, # 9
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, # A
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, # B
+    0, 0, 2, 2, 2, 0, 1, 0, 0, 0, 2, 0, 2, 2, 1, 0, # C
+    0, 0, 2, 0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 1, 0, # D
+    1, 0, 0, 0, 0, 0, 1, 0, 3, 0, 2, 0, 0, 0, 1, 0, # E
+    1, 0, 0, 0, 0, 0, 1, 0, 3, 0, 2, 0, 0, 0, 1, 0, # F
+]
 
-    MEM_AT_HL = "MEM_AT_HL"
+# no arg, u8, u16, i8
+OP_LENS: t.List[int] = [0, 1, 2, 1]
+
+OP_NAMES: t.List[str] = [
+    "NOP",          "LD BC,$u16", "LD [BC],A",   "INC BC",    "INC B",        "DEC B",     "LD B,$u8",    "RCLA",
+    "LD [$u16],SP", "ADD HL,BC",  "LD A,[BC]",   "DEC BC",    "INC C",        "DEC C",     "LD C,$u8",    "RRCA",
+    "STOP",         "LD DE,$u16", "LD [DE],A",   "INC DE",    "INC D",        "DEC D",     "LD D,$u8",    "RLA",
+    "JR i8",        "ADD HL,DE",  "LD A,[DE]",   "DEC DE",    "INC E",        "DEC E",     "LD E,$u8",    "RRA",
+    "JR NZ,i8",     "LD HL,$u16", "LD [HL+],A",  "INC HL",    "INC H",        "DEC H",     "LD H,$u8",    "DAA",
+    "JR Z,i8",      "ADD HL,HL",  "LD A,[HL+]",  "DEC HL",    "INC L",        "DEC L",     "LD L,$u8",    "CPL",
+    "JR NC,i8",     "LD SP,$u16", "LD [HL-],A",  "INC SP",    "INC [HL]",     "DEC [HL]",  "LD [HL],$u8", "SCF",
+    "JR C,i8",      "ADD HL,SP",  "LD A,[HL-]",  "DEC SP",    "INC A",        "DEC A",     "LD A,$u8",    "CCF",
+    "LD B,B",       "LD B,C",     "LD B,D",      "LD B,E",    "LD B,H",       "LD B,L",    "LD B,[HL]",   "LD B,A",
+    "LD C,B",       "LD C,C",     "LD C,D",      "LD C,E",    "LD C,H",       "LD C,L",    "LD C,[HL]",   "LD C,A",
+    "LD D,B",       "LD D,C",     "LD D,D",      "LD D,E",    "LD D,H",       "LD D,L",    "LD D,[HL]",   "LD D,A",
+    "LD E,B",       "LD E,C",     "LD E,D",      "LD E,E",    "LD E,H",       "LD E,L",    "LD E,[HL]",   "LD E,A",
+    "LD H,B",       "LD H,C",     "LD H,D",      "LD H,E",    "LD H,H",       "LD H,L",    "LD H,[HL]",   "LD H,A",
+    "LD L,B",       "LD L,C",     "LD L,D",      "LD L,E",    "LD L,H",       "LD L,L",    "LD L,[HL]",   "LD L,A",
+    "LD [HL],B",    "LD [HL],C",  "LD [HL],D",   "LD [HL],E", "LD [HL],H",    "LD [HL],L", "HALT",        "LD [HL],A",
+    "LD A,B",       "LD A,C",     "LD A,D",      "LD A,E",    "LD A,H",       "LD A,L",    "LD A,[HL]",   "LD A,A",
+    "ADD A,B",      "ADD A,C",    "ADD A,D",     "ADD A,E",   "ADD A,H",      "ADD A,L",   "ADD A,[HL]",  "ADD A,A",
+    "ADC A,B",      "ADC A,C",    "ADC A,D",     "ADC A,E",   "ADC A,H",      "ADC A,L",   "ADC A,[HL]",  "ADC A,A",
+    "SUB A,B",      "SUB A,C",    "SUB A,D",     "SUB A,E",   "SUB A,H",      "SUB A,L",   "SUB A,[HL]",  "SUB A,A",
+    "SBC A,B",      "SBC A,C",    "SBC A,D",     "SBC A,E",   "SBC A,H",      "SBC A,L",   "SBC A,[HL]",  "SBC A,A",
+    "AND B",        "AND C",      "AND D",       "AND E",     "AND H",        "AND L",     "AND [HL]",    "AND A",
+    "XOR B",        "XOR C",      "XOR D",       "XOR E",     "XOR H",        "XOR L",     "XOR [HL]",    "XOR A",
+    "OR B",         "OR C",       "OR D",        "OR E",      "OR H",         "OR L",      "OR [HL]",     "OR A",
+    "CP B",         "CP C",       "CP D",        "CP E",      "CP H",         "CP L",      "CP [HL]",     "CP A",
+    "RET NZ",       "POP BC",     "JP NZ,$u16",  "JP $u16",   "CALL NZ,$u16", "PUSH BC",   "ADD A,$u8",   "RST 00",
+    "RET Z",        "RET",        "JP Z,$u16",   "ERR CB",    "CALL Z,$u16",  "CALL $u16", "ADC A,$u8",   "RST 08",
+    "RET NC",       "POP DE",     "JP NC,$u16",  "ERR D3",    "CALL NC,$u16", "PUSH DE",   "SUB A,$u8",   "RST 10",
+    "RET C",        "RETI",       "JP C,$u16",   "ERR DB",    "CALL C,$u16",  "ERR DD",    "SBC A,$u8",   "RST 18",
+    "LDH [$u8],A",  "POP HL",     "LDH [C],A",   "DBG",       "ERR E4",       "PUSH HL",   "AND $u8",     "RST 20",
+    "ADD SP i8",    "JP HL",      "LD [$u16],A", "ERR EB",    "ERR EC",       "ERR ED",    "XOR $u8",     "RST 28",
+    "LDH A,[$u8]",  "POP AF",     "LDH A,[C]",   "DI",        "ERR F4",       "PUSH AF",   "OR $u8",      "RST 30",
+    "LD HL,SPi8",   "LD SP,HL",   "LD A,[$u16]", "EI",        "ERR FC",       "ERR FD",    "CP $u8",      "RST 38",
+]
+
+OP_CB_NAMES: t.List[str] = [
+    "RLC B", "RLC C", "RLC D", "RLC E", "RLC H", "RLC L", "RLC [HL]", "RLC A",
+    "RRC B", "RRC C", "RRC D", "RRC E", "RRC H", "RRC L", "RRC [HL]", "RRC A",
+    "RL B", "RL C", "RL D", "RL E", "RL H", "RL L", "RL [HL]", "RL A",
+    "RR B", "RR C", "RR D", "RR E", "RR H", "RR L", "RR [HL]", "RR A",
+    "SLA B", "SLA C", "SLA D", "SLA E", "SLA H", "SLA L", "SLA [HL]", "SLA A",
+    "SRA B", "SRA C", "SRA D", "SRA E", "SRA H", "SRA L", "SRA [HL]", "SRA A",
+    "SWAP B", "SWAP C", "SWAP D", "SWAP E", "SWAP H", "SWAP L", "SWAP [HL]", "SWAP A",
+    "SRL B", "SRL C", "SRL D", "SRL E", "SRL H", "SRL L", "SRL [HL]", "SRL A",
+    "BIT 0,B", "BIT 0,C", "BIT 0,D", "BIT 0,E", "BIT 0,H", "BIT 0,L", "BIT 0,[HL]", "BIT 0,A",
+    "BIT 1,B", "BIT 1,C", "BIT 1,D", "BIT 1,E", "BIT 1,H", "BIT 1,L", "BIT 1,[HL]", "BIT 1,A",
+    "BIT 2,B", "BIT 2,C", "BIT 2,D", "BIT 2,E", "BIT 2,H", "BIT 2,L", "BIT 2,[HL]", "BIT 2,A",
+    "BIT 3,B", "BIT 3,C", "BIT 3,D", "BIT 3,E", "BIT 3,H", "BIT 3,L", "BIT 3,[HL]", "BIT 3,A",
+    "BIT 4,B", "BIT 4,C", "BIT 4,D", "BIT 4,E", "BIT 4,H", "BIT 4,L", "BIT 4,[HL]", "BIT 4,A",
+    "BIT 5,B", "BIT 5,C", "BIT 5,D", "BIT 5,E", "BIT 5,H", "BIT 5,L", "BIT 5,[HL]", "BIT 5,A",
+    "BIT 6,B", "BIT 6,C", "BIT 6,D", "BIT 6,E", "BIT 6,H", "BIT 6,L", "BIT 6,[HL]", "BIT 6,A",
+    "BIT 7,B", "BIT 7,C", "BIT 7,D", "BIT 7,E", "BIT 7,H", "BIT 7,L", "BIT 7,[HL]", "BIT 7,A",
+    "RES 0,B", "RES 0,C", "RES 0,D", "RES 0,E", "RES 0,H", "RES 0,L", "RES 0,[HL]", "RES 0,A",
+    "RES 1,B", "RES 1,C", "RES 1,D", "RES 1,E", "RES 1,H", "RES 1,L", "RES 1,[HL]", "RES 1,A",
+    "RES 2,B", "RES 2,C", "RES 2,D", "RES 2,E", "RES 2,H", "RES 2,L", "RES 2,[HL]", "RES 2,A",
+    "RES 3,B", "RES 3,C", "RES 3,D", "RES 3,E", "RES 3,H", "RES 3,L", "RES 3,[HL]", "RES 3,A",
+    "RES 4,B", "RES 4,C", "RES 4,D", "RES 4,E", "RES 4,H", "RES 4,L", "RES 4,[HL]", "RES 4,A",
+    "RES 5,B", "RES 5,C", "RES 5,D", "RES 5,E", "RES 5,H", "RES 5,L", "RES 5,[HL]", "RES 5,A",
+    "RES 6,B", "RES 6,C", "RES 6,D", "RES 6,E", "RES 6,H", "RES 6,L", "RES 6,[HL]", "RES 6,A",
+    "RES 7,B", "RES 7,C", "RES 7,D", "RES 7,E", "RES 7,H", "RES 7,L", "RES 7,[HL]", "RES 7,A",
+    "SET 0,B", "SET 0,C", "SET 0,D", "SET 0,E", "SET 0,H", "SET 0,L", "SET 0,[HL]", "SET 0,A",
+    "SET 1,B", "SET 1,C", "SET 1,D", "SET 1,E", "SET 1,H", "SET 1,L", "SET 1,[HL]", "SET 1,A",
+    "SET 2,B", "SET 2,C", "SET 2,D", "SET 2,E", "SET 2,H", "SET 2,L", "SET 2,[HL]", "SET 2,A",
+    "SET 3,B", "SET 3,C", "SET 3,D", "SET 3,E", "SET 3,H", "SET 3,L", "SET 3,[HL]", "SET 3,A",
+    "SET 4,B", "SET 4,C", "SET 4,D", "SET 4,E", "SET 4,H", "SET 4,L", "SET 4,[HL]", "SET 4,A",
+    "SET 5,B", "SET 5,C", "SET 5,D", "SET 5,E", "SET 5,H", "SET 5,L", "SET 5,[HL]", "SET 5,A",
+    "SET 6,B", "SET 6,C", "SET 6,D", "SET 6,E", "SET 6,H", "SET 6,L", "SET 6,[HL]", "SET 6,A",
+    "SET 7,B", "SET 7,C", "SET 7,D", "SET 7,E", "SET 7,H", "SET 7,L", "SET 7,[HL]", "SET 7,A",
+]
+# fmt: on
 
 
-GEN_REGS = ["B", "C", "D", "E", "H", "L", "[HL]", "A"]
+class OpArg:
+    def __init__(self, ram: RAM, addr: u16, arg_type: int):
+        self.u8: u8 = 0
+        self.i8: i8 = 0
+        self.u16: u16 = 0
 
-
-class OpNotImplemented(Exception):
-    pass
-
-
-def opcode(name: str, cycles: int, args: str = ""):
-    def dec(fn):
-        fn.name = name
-        fn.cycles = cycles
-        fn.args = args
-        return fn
-
-    return dec
+        if arg_type == 0:
+            pass
+        elif arg_type == 1:
+            self.u8 = ram[addr]
+        elif arg_type == 2:
+            self.u16 = ram[addr] | ram[addr + 1] << 8
+        elif arg_type == 3:
+            self.i8 = ram[addr]
+            if self.i8 > 127:
+                self.i8 -= 256
+        else:
+            raise Exception(f"Unknown arg type: {arg_type}")
 
 
 class CPU:
-    # <editor-fold description="Init">
     def __init__(self, ram: RAM, debug=False) -> None:
         self.ram = ram
         self.interrupts = True
@@ -60,216 +175,22 @@ class CPU:
         self._owed_cycles = 0
 
         # registers
-        # boot rom should set these to defaults
-        self.A = 0  # 0x01  # GB / SGB. FF=GBP, 11=GBC
-        self.B = 0  # 0x00
-        self.C = 0  # 0x13
-        self.D = 0  # 0x00
-        self.E = 0  # 0xD8
-        self.H = 0  # 0x01
-        self.L = 0  # 0x4D
+        self.A = 0
+        self.B = 0
+        self.C = 0
+        self.D = 0
+        self.E = 0
+        self.H = 0
+        self.L = 0
 
-        self.SP = 0x0000  # 0xFFFE
+        self.SP = 0x0000
         self.PC = 0x0000
 
-        # flags
-        # should be set by boot rom
-        self.FLAG_Z: bool = False  # True   # zero
-        self.FLAG_N: bool = False  # False  # subtract
-        self.FLAG_H: bool = False  # True   # half-carry
-        self.FLAG_C: bool = False  # True   # carry
+        self.FLAG_Z: bool = False
+        self.FLAG_N: bool = False
+        self.FLAG_H: bool = False
+        self.FLAG_C: bool = False
 
-        self.ops = [getattr(self, "op%02X" % n) for n in range(0x00, 0xFF + 1)]
-        self.cb_ops = [getattr(self, "opCB%02X" % n) for n in range(0x00, 0xFF + 1)]
-
-    def dump(self, pc: int, cmd_str: str) -> str:
-        ien = self.ram[Mem.IE]
-        ifl = self.ram[Mem.IF]
-
-        def flag(i: int, c: str) -> str:
-            if ien & i != 0:
-                if ifl & i != 0:
-                    return c.upper()
-                else:
-                    return c
-            else:
-                return "_"
-
-        v = flag(Interrupt.VBLANK, "v")
-        l = flag(Interrupt.STAT, "l")
-        t = flag(Interrupt.TIMER, "t")
-        s = flag(Interrupt.SERIAL, "s")
-        j = flag(Interrupt.JOYPAD, "j")
-
-        op = self.ram[pc + 1] if self.ram[pc] == 0xCB else self.ram[pc]
-
-        return "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:02X}{:02X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}".format(
-            self.AF,
-            self.BC,
-            self.DE,
-            self.HL,
-            self.SP,
-            self.ram[(self.SP + 1) & 0xFFFF],
-            self.ram[self.SP],
-            "Z" if self.FLAG_Z else "z",
-            "N" if self.FLAG_N else "n",
-            "H" if self.FLAG_H else "h",
-            "C" if self.FLAG_C else "c",
-            v,
-            l,
-            t,
-            s,
-            j,
-            pc,
-            op,
-            cmd_str,
-        )
-
-    def interrupt(self, i: int) -> None:
-        """
-        Set a given interrupt bit - on the next tick, if the interrupt
-        handler for this interrupt is enabled (and interrupts in general
-        are enabled), then the interrupt handler will be called.
-        """
-        self.ram[Mem.IF] |= i
-        self.halt = False  # interrupts interrupt HALT state
-
-    def tick(self) -> None:
-        self.tick_dma()
-        self.tick_clock()
-        self.tick_interrupts()
-        if self.halt:
-            return
-        if self.stop:
-            return
-        self.tick_instructions()
-
-    def tick_dma(self) -> None:
-        """
-        If there is a non-zero value in ram[Mem.DMA], eg 0x42, then
-        we should copy memory from eg 0x4200 to OAM space.
-        """
-        # TODO: DMA should take 26 cycles, during which main RAM is inaccessible
-        if self.ram[Mem.DMA]:
-            dma_src = self.ram[Mem.DMA] << 8
-            for i in range(0, 0xA0):
-                self.ram[Mem.OAM_BASE + i] = self.ram[dma_src + i]
-            self.ram[Mem.DMA] = 0x00
-
-    def tick_clock(self) -> None:
-        """
-        Increment the timer registers, and send an interrupt
-        when `ram[Mem.:TIMA]` wraps around.
-        """
-        self.cycle += 1
-
-        # TODO: writing any value to Mem.:DIV should reset it to 0x00
-        # increment at 16384Hz (each 64 cycles?)
-        if self.cycle % 64 == 0:
-            self.ram[Mem.DIV] = (self.ram[Mem.DIV] + 1) & 0xFF
-
-        if self.ram[Mem.TAC] & 1 << 2 == 1 << 2:
-            # timer enable
-            speeds = [256, 4, 16, 64]  # increment per X cycles
-            speed = speeds[self.ram[Mem.TAC] & 0x03]
-            if self.cycle % speed == 0:
-                if self.ram[Mem.TIMA] == 0xFF:
-                    self.ram[Mem.TIMA] = self.ram[
-                        Mem.TMA
-                    ]  # if timer overflows, load base
-                    self.interrupt(Interrupt.TIMER)
-                self.ram[Mem.TIMA] += 1
-
-    def check_interrupt(self, queue: u8, i: u8, handler: u16) -> bool:
-        if queue & i:
-            # TODO: wait two cycles
-            # TODO: push16(PC) should also take two cycles
-            # TODO: one more cycle to store new PC
-            self._push16(Reg.PC)
-            self.PC = handler
-            self.ram[Mem.IF] &= ~i
-            return True
-        return False
-
-    def tick_interrupts(self) -> None:
-        """
-        Compare Interrupt Enabled and Interrupt Flag registers - if
-        there are any interrupts which are both enabled and flagged,
-        clear the flag and call the handler for the first of them.
-        """
-        queue = self.ram[Mem.IE] & self.ram[Mem.IF]
-        if self.interrupts and queue:
-            if self._debug:
-                print(
-                    f"Handling interrupts: {self.ram[Mem.IE]:02X} & {self.ram[Mem.IF]:02X}"
-                )
-
-            # no nested interrupts, RETI will re-enable
-            self.interrupts = False
-
-            (
-                self.check_interrupt(queue, Interrupt.VBLANK, Mem.VBLANK_HANDLER)
-                or self.check_interrupt(queue, Interrupt.STAT, Mem.LCD_HANDLER)
-                or self.check_interrupt(queue, Interrupt.TIMER, Mem.TIMER_HANDLER)
-                or self.check_interrupt(queue, Interrupt.SERIAL, Mem.SERIAL_HANDLER)
-                or self.check_interrupt(queue, Interrupt.JOYPAD, Mem.JOYPAD_HANDLER)
-            )
-
-    def tick_instructions(self) -> None:
-        # TODO: extra cycles when conditional jumps are taken
-        if self._owed_cycles:
-            self._owed_cycles -= 4
-            return
-
-        src = self.ram
-
-        original_pc = self.PC
-
-        ins = src[self.PC]
-        if ins == 0xCB:
-            ins = src[self.PC + 1]
-            cmd = self.cb_ops[ins]
-            self.PC += 1
-        else:
-            cmd = self.ops[ins]
-
-        param: Optional[int]
-
-        if cmd.args == "B":
-            param = src[self.PC + 1]
-            cmd_str = cmd.name.replace("n", "$%02X" % param)
-            self.PC += 2
-        elif cmd.args == "b":
-            param = src[self.PC + 1]
-            if param > 128:
-                param -= 256
-                cmd_str = cmd.name.replace("n", "%d" % param)
-            else:
-                cmd_str = cmd.name.replace("n", "+%d" % param)
-            self.PC += 2
-        elif cmd.args == "H":
-            param = (src[self.PC + 1]) | (src[self.PC + 2] << 8)
-            cmd_str = cmd.name.replace("nn", "$%04X" % param)
-            self.PC += 3
-        else:
-            param = None
-            cmd_str = cmd.name
-            self.PC += 1
-        self._debug_str = f"[{self.PC:04X}({ins:02X})]: {cmd_str}"
-
-        if self._debug:
-            print(self.dump(original_pc, cmd_str))
-
-        if param is not None:
-            cmd(param)
-        else:
-            cmd()
-
-        self._owed_cycles = cmd.cycles - 4
-
-    # </editor-fold>
-
-    # <editor-fold description="Registers">
     @property
     def AF(self) -> int:
         """
@@ -363,1125 +284,835 @@ class CPU:
     def MEM_AT_HL(self, val: int) -> None:
         self.ram[self.HL] = val
 
-    # </editor-fold>
+    def dump_regs(self) -> None:
+        # stack
+        sp_val = self.ram[self.SP] | self.ram[(self.SP + 1) & 0xFFFF] << 8
 
-    # <editor-fold description="Empty Instructions">
-    @opcode("ERR CB", 4)
-    def opCB(self):
-        raise OpNotImplemented("CB is special cased, you shouldn't get here")
+        # interrupts
+        ien = self.ram[Mem.IE]
+        ifl = self.ram[Mem.IF]
 
-    def _err(self, op):
-        raise OpNotImplemented(f"Opcode {op} not implemented")
+        def flag(i: int, c: str) -> str:
+            if ien & i != 0:
+                if ifl & i != 0:
+                    return c.upper()
+                else:
+                    return c
+            else:
+                return "_"
 
-    opD3 = opcode("ERR D3", 4)(lambda self: self._err("D3"))
-    opDB = opcode("ERR DB", 4)(lambda self: self._err("DB"))
-    opDD = opcode("ERR DD", 4)(lambda self: self._err("DD"))
-    opE3 = opcode("ERR E3", 4)(lambda self: self._err("E3"))
-    opE4 = opcode("ERR E4", 4)(lambda self: self._err("E4"))
-    opEB = opcode("ERR EB", 4)(lambda self: self._err("EB"))
-    opEC = opcode("ERR EC", 4)(lambda self: self._err("EC"))
-    opED = opcode("ERR ED", 4)(lambda self: self._err("ED"))
-    opF4 = opcode("ERR F4", 4)(lambda self: self._err("F4"))
-    # opFC = opcode("ERR FC", 4)(lambda self: self._err("FC"))
-    # opFD = opcode("ERR FD", 4)(lambda self: self._err("FD"))
+        v = flag(Interrupt.VBLANK, "v")
+        l = flag(Interrupt.STAT, "l")
+        t = flag(Interrupt.TIMER, "t")
+        s = flag(Interrupt.SERIAL, "s")
+        j = flag(Interrupt.JOYPAD, "j")
 
-    @opcode("EXIT 0", 4)
-    def opFC(self):
-        raise UnitTestPassed()
+        # opcode & args
+        op = self.ram[self.PC]
+        if op == 0xCB:
+            op = self.ram[self.PC + 1]
+            op_str = OP_CB_NAMES[op]
+        else:
+            base = OP_NAMES[op]
+            arg = OpArg(self.ram, self.PC + 1, OP_TYPES[op])
+            match OP_TYPES[op]:
+                case 0:
+                    op_str = base
+                case 1:
+                    op_str = base.replace("u8", f"{arg.u8:02X}")
+                case 2:
+                    op_str = base.replace("u16", f"{arg.u16:04X}")
+                case 3:
+                    op_str = base.replace("i8", f"{arg.i8:+d}")
 
-    @opcode("EXIT 1", 4)
-    def opFD(self):
-        raise UnitTestFailed()
-
-    # </editor-fold>
-
-    # <editor-fold description="3.3.1 8-Bit Loads">
-    # ===================================
-    # 1. LD nn,n
-    for base, reg_to in enumerate(GEN_REGS):
-        cycles = 12 if "[HL]" in {reg_to} else 8
-        op = 0x06 + base * 8
-        reg_to_name = reg_to.replace("[HL]", "MEM_AT_HL")
-        exec(
-            dedent(
-                f"""
-            @opcode("LD {reg_to},n", {cycles}, "B")
-            def op{op:02X}(self, val):
-                self.{reg_to_name} = val
-        """
+        # print
+        print(
+            "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:04X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}".format(
+                self.AF,
+                self.BC,
+                self.DE,
+                self.HL,
+                self.SP,
+                sp_val,
+                "Z" if self.FLAG_Z else "z",
+                "N" if self.FLAG_N else "n",
+                "H" if self.FLAG_H else "h",
+                "C" if self.FLAG_C else "c",
+                v,
+                l,
+                t,
+                s,
+                j,
+                self.PC,
+                op,
+                op_str,
             )
         )
 
-    # ===================================
-    # 2. LD r1,r2
-    # Put r2 into r1
-    for base, reg_to in enumerate(GEN_REGS):
-        for offset, reg_from in enumerate(GEN_REGS):
-            if reg_from == "[HL]" and reg_to == "[HL]":
-                continue
+    def interrupt(self, i: int) -> None:
+        """
+        Set a given interrupt bit - on the next tick, if the interrupt
+        handler for this interrupt is enabled (and interrupts in general
+        are enabled), then the interrupt handler will be called.
+        """
+        self.ram[Mem.IF] |= i
+        self.halt = False  # interrupts interrupt HALT state
 
-            cycles = 8 if "[HL]" in {reg_from, reg_to} else 4
-            op = 0x40 + base * 8 + offset
-            reg_to_name = reg_to.replace("[HL]", "MEM_AT_HL")
-            reg_from_name = reg_from.replace("[HL]", "MEM_AT_HL")
-            exec(
-                dedent(
-                    f"""
-                @opcode("LD {reg_to},{reg_from}", {cycles})
-                def op{op:02X}(self):
-                    self.{reg_to_name} = self.{reg_from_name}
-            """
+    def tick(self) -> None:
+        self.tick_dma()
+        self.tick_clock()
+        self.tick_interrupts()
+        if self.halt:
+            return
+        if self.stop:
+            return
+        self.tick_instructions()
+
+    def tick_dma(self) -> None:
+        """
+        If there is a non-zero value in ram[Mem.DMA], eg 0x42, then
+        we should copy memory from eg 0x4200 to OAM space.
+        """
+        # TODO: DMA should take 26 cycles, during which main RAM is inaccessible
+        if self.ram[Mem.DMA]:
+            dma_src = self.ram[Mem.DMA] << 8
+            for i in range(0, 0xA0):
+                self.ram[Mem.OAM_BASE + i] = self.ram[dma_src + i]
+            self.ram[Mem.DMA] = 0x00
+
+    def tick_clock(self) -> None:
+        """
+        Increment the timer registers, and send an interrupt
+        when `ram[Mem.TIMA]` wraps around.
+        """
+        self.cycle += 1
+
+        # TODO: writing any value to Mem.:DIV should reset it to 0x00
+        # increment at 16384Hz (each 64 cycles?)
+        if self.cycle % 64 == 0:
+            self.ram[Mem.DIV] = (self.ram[Mem.DIV] + 1) & 0xFF
+
+        if self.ram[Mem.TAC] & 1 << 2 == 1 << 2:
+            # timer enable
+            speeds = [256, 4, 16, 64]  # increment per X cycles
+            speed = speeds[self.ram[Mem.TAC] & 0x03]
+            if self.cycle % speed == 0:
+                if self.ram[Mem.TIMA] == 0xFF:
+                    self.ram[Mem.TIMA] = self.ram[
+                        Mem.TMA
+                    ]  # if timer overflows, load base
+                    self.interrupt(Interrupt.TIMER)
+                self.ram[Mem.TIMA] += 1
+
+    def check_interrupt(self, queue: u8, i: u8, handler: u16) -> bool:
+        if queue & i:
+            # TODO: wait two cycles
+            # TODO: push(PC) should also take two cycles
+            # TODO: one more cycle to store new PC
+            self.push(self.PC)
+            self.PC = handler
+            self.ram[Mem.IF] &= ~i
+            return True
+        return False
+
+    def tick_interrupts(self) -> None:
+        """
+        Compare Interrupt Enabled and Interrupt Flag registers - if
+        there are any interrupts which are both enabled and flagged,
+        clear the flag and call the handler for the first of them.
+        """
+        queue = self.ram[Mem.IE] & self.ram[Mem.IF]
+        if self.interrupts and queue:
+            if self._debug:
+                print(
+                    f"Handling interrupts: {self.ram[Mem.IE]:02X} & {self.ram[Mem.IF]:02X}"
                 )
+
+            # no nested interrupts, RETI will re-enable
+            self.interrupts = False
+
+            (
+                self.check_interrupt(queue, Interrupt.VBLANK, Mem.VBLANK_HANDLER)
+                or self.check_interrupt(queue, Interrupt.STAT, Mem.LCD_HANDLER)
+                or self.check_interrupt(queue, Interrupt.TIMER, Mem.TIMER_HANDLER)
+                or self.check_interrupt(queue, Interrupt.SERIAL, Mem.SERIAL_HANDLER)
+                or self.check_interrupt(queue, Interrupt.JOYPAD, Mem.JOYPAD_HANDLER)
             )
 
-    # ===================================
-    # 3. LD A,n
-    # Put n into A
-    def _ld_val_to_a(self, val):
-        self.A = val
+    def tick_instructions(self) -> None:
+        # if the previous instruction was large, let's not run any
+        # more instructions until other subsystems have caught up
+        if self._owed_cycles > 0:
+            self._owed_cycles -= 1
+            return
 
-    op0A = opcode("LD A,[BC]", 8)(lambda self: self._ld_val_to_a(self.ram[self.BC]))
-    op1A = opcode("LD A,[DE]", 8)(lambda self: self._ld_val_to_a(self.ram[self.DE]))
-    opFA = opcode("LD A,[nn]", 16, "H")(
-        lambda self, val: self._ld_val_to_a(self.ram[val])
-    )
+        if self._debug:
+            self.dump_regs()
 
-    # ===================================
-    # 4. LD [nn],A
-    def _ld_a_to_mem(self, val):
-        self.ram[val] = self.A
-
-    op02 = opcode("LD [BC],A", 8)(lambda self: self._ld_a_to_mem(self.BC))
-    op12 = opcode("LD [DE],A", 8)(lambda self: self._ld_a_to_mem(self.DE))
-    opEA = opcode("LD [nn],A", 16, "H")(lambda self, val: self._ld_a_to_mem(val))
-
-    # ===================================
-    # 5. LD A,(C)
-    @opcode("LD A,[C]", 8)
-    def opF2(self):
-        self.A = self.ram[0xFF00 + self.C]
-
-    # ===================================
-    # 6. LD (C),A
-    @opcode("LDH [C],A", 8)
-    def opE2(self):
-        self.ram[0xFF00 + self.C] = self.A
-
-    # ===================================
-    # 7. LD A,[HLD]
-    # 8. LD A,[HL-]
-    # 9. LDD A,[HL]
-    @opcode("LD A,[HL-]", 8)
-    def op3A(self):
-        self.A = self.ram[self.HL]
-        self.HL -= 1
-
-    # ===================================
-    # 10. LD [HLD],A
-    # 11. LD [HL-],A
-    # 12. LDD [HL],A
-    @opcode("LD [HL-],A", 8)
-    def op32(self):
-        self.ram[self.HL] = self.A
-        self.HL -= 1
-
-    # ===================================
-    # 13. LD A,[HLI]
-    # 14. LD A,[HL+]
-    # 15. LDI A,[HL]
-    @opcode("LD A,[HL+]", 8)
-    def op2A(self):
-        self.A = self.ram[self.HL]
-        self.HL += 1
-
-    # ===================================
-    # 16. LD [HLI],A
-    # 17. LD [HL+],A
-    # 18. LDI [HL],A
-    @opcode("LD [HL+],A", 8)
-    def op22(self):
-        self.ram[self.HL] = self.A
-        self.HL += 1
-
-    # ===================================
-    # 19. LDH [n],A
-    @opcode("LDH [n],A", 12, "B")
-    def opE0(self, val):
-        if val == 0x01:
-            print(chr(self.A), end="")
-            # print("0xFF%02X = 0x%02X (%s)" % (val, self.A, chr(self.A)))
-            sys.stdout.flush()
-        self.ram[0xFF00 + val] = self.A
-
-    # ===================================
-    # 20. LDH A,[n]
-    @opcode("LDH A,[n]", 12, "B")
-    def opF0(self, val):
-        self.A = self.ram[0xFF00 + val]
-
-    # </editor-fold>
-
-    # <editor-fold description="3.3.2 16-Bit Loads">
-    # ===================================
-    # 1. LD n,nn
-    def _ld_val_to_reg(self, val, reg: Reg):
-        setattr(self, reg.value, val)
-
-    op01 = opcode("LD BC,nn", 12, "H")(
-        lambda self, val: self._ld_val_to_reg(val, Reg.BC)
-    )
-    op11 = opcode("LD DE,nn", 12, "H")(
-        lambda self, val: self._ld_val_to_reg(val, Reg.DE)
-    )
-    op21 = opcode("LD HL,nn", 12, "H")(
-        lambda self, val: self._ld_val_to_reg(val, Reg.HL)
-    )
-    op31 = opcode("LD SP,nn", 12, "H")(
-        lambda self, val: self._ld_val_to_reg(val, Reg.SP)
-    )
-
-    # ===================================
-    # 2. LD SP,HL
-
-    @opcode("LD SP,HL", 8)
-    def opF9(self):
-        self.SP = self.HL
-
-    # ===================================
-    # 3. LD HL,SP+n
-    # 4. LDHL SP,n
-    @opcode("LD HL,SPn", 12, "b")
-    def opF8(self, val):
-        if val >= 0:
-            self.FLAG_C = ((self.SP & 0xFF) + (val & 0xFF)) > 0xFF
-            self.FLAG_H = ((self.SP & 0x0F) + (val & 0x0F)) > 0x0F
+        op = self.ram[self.PC]
+        self.PC += 1
+        if op == 0xCB:
+            op = self.ram[self.PC]
+            self.PC += 1
+            self.tick_cb(op)
+            self._owed_cycles = OP_CB_CYCLES[op]
         else:
-            self.FLAG_C = ((self.SP + val) & 0xFF) <= (self.SP & 0xFF)
-            self.FLAG_H = ((self.SP + val) & 0x0F) <= (self.SP & 0x0F)
-        self.HL = self.SP + val
-        self.FLAG_Z = False
+            self.tick_main(op)
+            self._owed_cycles = OP_CYCLES[op]
+
+        # HALT has cycles=0
+        if self._owed_cycles > 0:
+            self._owed_cycles -= 1
+
+    def tick_main(self, op: int) -> None:
+        arg_type = OP_TYPES[op]
+        arg_len = OP_LENS[arg_type]
+        arg = OpArg(self.ram, self.PC, arg_type)
+        self.PC += arg_len
+        ram = self.ram
+
+        match op:
+            case 0x00:
+                pass  # NOP
+            case 0x01:
+                self.BC = arg.u16
+
+            case 0x02:
+                ram[self.BC] = self.A
+
+            case 0x03:
+                self.BC = (self.BC + 1) & 0xFFFF
+
+            case 0x08:
+                ram[arg.u16 + 1] = (self.SP >> 8) & 0xFF
+                ram[arg.u16] = self.SP & 0xFF
+
+            case 0x0A:
+                self.A = ram[self.BC]
+
+            case 0x0B:
+                self.BC = (self.BC - 1) & 0xFFFF
+
+            case 0x10:
+                self.stop = True
+
+            case 0x11:
+                self.DE = arg.u16
+
+            case 0x12:
+                ram[self.DE] = self.A
+
+            case 0x13:
+                self.DE = (self.DE + 1) & 0xFFFF
+
+            case 0x18:
+                self.PC = (self.PC + arg.i8) & 0xFFFF
+
+            case 0x1A:
+                self.A = ram[self.DE]
+
+            case 0x1B:
+                self.DE = (self.DE - 1) & 0xFFFF
+
+            case 0x20:
+                if not self.FLAG_Z:
+                    self.PC = (self.PC + arg.i8) & 0xFFFF
+
+            case 0x21:
+                self.HL = arg.u16
+
+            case 0x22:
+                ram[self.HL] = self.A
+                self.HL = (self.HL + 1) & 0xFFFF
+
+            case 0x23:
+                self.HL = (self.HL + 1) & 0xFFFF
+
+            case 0x27:
+                val16 = self.A
+                if not self.FLAG_N:
+                    if self.FLAG_H or (val16 & 0x0F) > 9:
+                        val16 = (val16 + 6) & 0xFFFF
+
+                    if self.FLAG_C or val16 > 0x9F:
+                        val16 = (val16 + 0x60) & 0xFFFF
+
+                else:
+                    if self.FLAG_H:
+                        val16 = (val16 - 6) & 0xFFFF
+                        if not self.FLAG_C:
+                            val16 &= 0xFF
+
+                    if self.FLAG_C:
+                        val16 = (val16 - 0x60) & 0xFFFF
+
+                self.FLAG_H = False
+                if val16 & 0x100 != 0:
+                    self.FLAG_C = True
+
+                self.A = val16 & 0xFF
+                self.FLAG_Z = self.A == 0
+
+            case 0x28:
+                if self.FLAG_Z:
+                    self.PC = (self.PC + arg.i8) & 0xFFFF
+
+            case 0x2A:
+                self.A = ram[self.HL]
+                self.HL = (self.HL + 1) & 0xFFFF
+
+            case 0x2B:
+                self.HL = (self.HL - 1) & 0xFFFF
+
+            case 0x2F:
+                self.A ^= 0xFF
+                self.FLAG_N = True
+                self.FLAG_H = True
+
+            case 0x30:
+                if not self.FLAG_C:
+                    self.PC = (self.PC + arg.i8) & 0xFFFF
+
+            case 0x31:
+                self.SP = arg.u16
+
+            case 0x32:
+                ram[self.HL] = self.A
+                self.HL = (self.HL - 1) & 0xFFFF
+            case 0x33:
+                self.SP = (self.SP + 1) & 0xFFFF
+
+            case 0x37:
+                self.FLAG_N = False
+                self.FLAG_H = False
+                self.FLAG_C = True
+
+            case 0x38:
+                if self.FLAG_C:
+                    self.PC = (self.PC + arg.i8) & 0xFFFF
+
+            case 0x3A:
+                self.A = ram[self.HL]
+                self.HL = (self.HL - 1) & 0xFFFF
+
+            case 0x3B:
+                self.SP = (self.SP - 1) & 0xFFFF
+
+            case 0x3F:
+                self.FLAG_C = not self.FLAG_C
+                self.FLAG_N = False
+                self.FLAG_H = False
+
+            # INC r
+            case 0x04 | 0x0C | 0x14 | 0x1C | 0x24 | 0x2C | 0x34 | 0x3C:
+                val = self.get_reg((op - 0x04) >> 3)
+                self.FLAG_H = (val & 0x0F) == 0x0F
+                self.FLAG_Z = (val + 1) & 0xFF == 0
+                self.FLAG_N = False
+                self.set_reg((op - 0x04) >> 3, (val + 1) & 0xFF)
+
+            # DEC r
+            case 0x05 | 0x0D | 0x15 | 0x1D | 0x25 | 0x2D | 0x35 | 0x3D:
+                val = self.get_reg((op - 0x05) >> 3)
+                self.FLAG_H = ((val - 1) & 0xFF & 0x0F) == 0x0F
+                self.FLAG_Z = (val - 1) & 0xFF == 0
+                self.FLAG_N = True
+                self.set_reg((op - 0x05) >> 3, (val - 1) & 0xFF)
+
+            # LD r,n
+            case 0x06 | 0x0E | 0x16 | 0x1E | 0x26 | 0x2E | 0x36 | 0x3E:
+                self.set_reg((op - 0x06) >> 3, arg.u8)
+
+            # RCLA, RLA, RRCA, RRA
+            case 0x07 | 0x17 | 0x0F | 0x1F:
+                carry = 1 if self.FLAG_C else 0
+                if op == 0x07:
+                    # RCLA
+                    self.FLAG_C = (self.A & 1 << 7) != 0
+                    self.A = (self.A << 1) | (self.A >> 7)
+
+                if op == 0x17:
+                    # RLA
+                    self.FLAG_C = (self.A & 1 << 7) != 0
+                    self.A = (self.A << 1) | carry
+
+                if op == 0x0F:
+                    # RRCA
+                    self.FLAG_C = (self.A & 1 << 0) != 0
+                    self.A = (self.A >> 1) | (self.A << 7)
+
+                if op == 0x1F:
+                    # RRA
+                    self.FLAG_C = (self.A & 1 << 0) != 0
+                    self.A = (self.A >> 1) | (carry << 7)
+
+                self.A &= 0xFF
+
+                self.FLAG_N = False
+                self.FLAG_H = False
+                self.FLAG_Z = False
+
+            # ADD HL,rr
+            case 0x09 | 0x19 | 0x29 | 0x39:
+                match op:
+                    case 0x09:
+                        val16 = self.BC
+                    case 0x19:
+                        val16 = self.DE
+                    case 0x29:
+                        val16 = self.HL
+                    case 0x39:
+                        val16 = self.SP
+
+                self.FLAG_H = (self.HL & 0x0FFF) + (val16 & 0x0FFF) > 0x0FFF
+                self.FLAG_C = (self.HL + val16) > 0xFFFF
+                self.HL = (self.HL + val16) & 0xFFFF
+                self.FLAG_N = False
+
+            case 0x40 | 0x41 | 0x42 | 0x43 | 0x44 | 0x45 | 0x46 | 0x47 | 0x48 | 0x49 | 0x4A | 0x4B | 0x4C | 0x4D | 0x4E | 0x4F | 0x50 | 0x51 | 0x52 | 0x53 | 0x54 | 0x55 | 0x56 | 0x57 | 0x58 | 0x59 | 0x5A | 0x5B | 0x5C | 0x5D | 0x5E | 0x5F | 0x60 | 0x61 | 0x62 | 0x63 | 0x64 | 0x65 | 0x66 | 0x67 | 0x68 | 0x69 | 0x6A | 0x6B | 0x6C | 0x6D | 0x6E | 0x6F | 0x70 | 0x71 | 0x72 | 0x73 | 0x74 | 0x75 | 0x76 | 0x77 | 0x78 | 0x79 | 0x7A | 0x7B | 0x7C | 0x7D | 0x7E | 0x7F:
+                # LD r,r
+                if op == 0x76:
+                    # FIXME: weird timing side effects
+                    self.halt = True
+
+                self.set_reg((op - 0x40) >> 3, self.get_reg(op - 0x40))
+
+            # <math> <reg>
+            case 0x80 | 0x81 | 0x82 | 0x83 | 0x84 | 0x85 | 0x86 | 0x87:
+                self._add(self.get_reg(op))
+            case 0x88 | 0x89 | 0x8A | 0x8B | 0x8C | 0x8D | 0x8E | 0x8F:
+                self._adc(self.get_reg(op))
+            case 0x90 | 0x91 | 0x92 | 0x93 | 0x94 | 0x95 | 0x96 | 0x97:
+                self._sub(self.get_reg(op))
+            case 0x98 | 0x99 | 0x9A | 0x9B | 0x9C | 0x9D | 0x9E | 0x9F:
+                self._sbc(self.get_reg(op))
+            case 0xA0 | 0xA1 | 0xA2 | 0xA3 | 0xA4 | 0xA5 | 0xA6 | 0xA7:
+                self._and(self.get_reg(op))
+            case 0xA8 | 0xA9 | 0xAA | 0xAB | 0xAC | 0xAD | 0xAE | 0xAF:
+                self._xor(self.get_reg(op))
+            case 0xB0 | 0xB1 | 0xB2 | 0xB3 | 0xB4 | 0xB5 | 0xB6 | 0xB7:
+                self._or(self.get_reg(op))
+            case 0xB8 | 0xB9 | 0xBA | 0xBB | 0xBC | 0xBD | 0xBE | 0xBF:
+                self._cp(self.get_reg(op))
+
+            case 0xC0:
+                if not self.FLAG_Z:
+                    self.PC = self.pop()
+
+            case 0xC1:
+                self.BC = self.pop()
+
+            case 0xC2:
+                if not self.FLAG_Z:
+                    self.PC = arg.u16
+
+            case 0xC3:
+                self.PC = arg.u16
+
+            case 0xC4:
+                if not self.FLAG_Z:
+                    self.push(self.PC)
+                    self.PC = arg.u16
+
+            case 0xC5:
+                self.push(self.BC)
+
+            case 0xC6:
+                self._add(arg.u8)
+
+            case 0xC7:
+                self.push(self.PC)
+                self.PC = 0x00
+
+            case 0xC8:
+                if self.FLAG_Z:
+                    self.PC = self.pop()
+
+            case 0xC9:
+                self.PC = self.pop()
+
+            case 0xCA:
+                if self.FLAG_Z:
+                    self.PC = arg.u16
+
+            case 0xCC:
+                if self.FLAG_Z:
+                    self.push(self.PC)
+                    self.PC = arg.u16
+
+            case 0xCD:
+                self.push(self.PC)
+                self.PC = arg.u16
+
+            case 0xCE:
+                self._adc(arg.u8)
+
+            case 0xCF:
+                self.push(self.PC)
+                self.PC = 0x08
+
+            case 0xD0:
+                if not self.FLAG_C:
+                    self.PC = self.pop()
+
+            case 0xD1:
+                self.DE = self.pop()
+
+            case 0xD2:
+                if not self.FLAG_C:
+                    self.PC = arg.u16
+
+            case 0xD4:
+                if not self.FLAG_C:
+                    self.push(self.PC)
+                    self.PC = arg.u16
+
+            case 0xD5:
+                self.push(self.DE)
+
+            case 0xD6:
+                self._sub(arg.u8)
+
+            case 0xD7:
+                self.push(self.PC)
+                self.PC = 0x10
+
+            case 0xD8:
+                if self.FLAG_C:
+                    self.PC = self.pop()
+
+            case 0xD9:
+                self.PC = self.pop()
+                self.interrupts = True
+
+            case 0xDA:
+                if self.FLAG_C:
+                    self.PC = arg.u16
+
+            case 0xDC:
+                if self.FLAG_C:
+                    self.push(self.PC)
+                    self.PC = arg.u16
+
+            case 0xDE:
+                self._sbc(arg.u8)
+
+            case 0xDF:
+                self.push(self.PC)
+                self.PC = 0x18
+
+            case 0xE0:
+                ram[0xFF00 + arg.u8] = self.A
+                if arg.u8 == 0x01:
+                    sys.stdout.write(chr(self.A))
+
+            case 0xE1:
+                self.HL = self.pop()
+
+            case 0xE2:
+                ram[0xFF00 + self.C] = self.A
+                if self.C == 0x01:
+                    sys.stdout.write(chr(self.A))
+
+            # 0xE3 => self._err(op),
+            # 0xE4 => self._err(op),
+            case 0xE5:
+                self.push(self.HL)
+
+            case 0xE6:
+                self._and(arg.u8)
+
+            case 0xE7:
+                self.push(self.PC)
+                self.PC = 0x20
+
+            case 0xE8:
+                val16 = (self.SP + arg.i8) & 0xFFFF
+                # self.FLAG_H = ((self.SP & 0x0FFF) + (arg.i8 & 0x0FFF) > 0x0FFF)
+                # self.FLAG_C = (self.SP + arg.i8 > 0xFFFF)
+                self.FLAG_H = ((self.SP ^ arg.i8 ^ val16) & 0x10) != 0
+                self.FLAG_C = ((self.SP ^ arg.i8 ^ val16) & 0x100) != 0
+                self.SP = (self.SP + arg.i8) & 0xFFFF
+
+                self.FLAG_Z = False
+                self.FLAG_N = False
+
+            case 0xE9:
+                self.PC = self.HL
+
+            case 0xEA:
+                ram[arg.u16] = self.A
+
+            case 0xEE:
+                self._xor(arg.u8)
+
+            case 0xEF:
+                self.push(self.PC)
+                self.PC = 0x28
+
+            case 0xF0:
+                self.A = ram[0xFF00 + arg.u8]
+
+            case 0xF1:
+                self.AF = self.pop() & 0xFFF0
+
+            case 0xF2:
+                self.A = ram[0xFF00 + self.C]
+
+            case 0xF3:
+                self.interrupts = False
+
+            case 0xF5:
+                self.push(self.AF)
+
+            case 0xF6:
+                self._or(arg.u8)
+            case 0xF7:
+                self.push(self.PC)
+                self.PC = 0x30
+
+            case 0xF8:
+                new_hl = (self.SP + arg.i8) & 0xFFFF
+                if arg.i8 >= 0:
+                    self.FLAG_C = ((self.SP & 0xFF) + arg.i8) > 0xFF
+                    self.FLAG_H = ((self.SP & 0x0F) + (arg.i8 & 0x0F)) > 0x0F
+                else:
+                    self.FLAG_C = (new_hl & 0xFF) <= (self.SP & 0xFF)
+                    self.FLAG_H = (new_hl & 0x0F) <= (self.SP & 0x0F)
+
+                self.HL = new_hl
+                self.FLAG_Z = False
+                self.FLAG_N = False
+
+            case 0xF9:
+                self.SP = self.HL
+            case 0xFA:
+                self.A = ram[arg.u16]
+            case 0xFB:
+                self.interrupts = True
+            case 0xFC:
+                raise UnitTestPassed()  # unofficial
+            case 0xFD:
+                raise UnitTestFailed()  # unofficial
+            case 0xFE:
+                self._cp(arg.u8)
+            case 0xFF:
+                self.push(self.PC)
+                self.PC = 0x38
+
+            case _:
+                raise InvalidOpcode(op)
+
+    def tick_cb(self, op: int) -> None:
+        val = self.get_reg(op)
+        match op & 0xF8:
+            # RLC
+            case 0x00 | 0x01 | 0x02 | 0x03 | 0x04 | 0x05 | 0x06 | 0x07:
+                self.FLAG_C = (val & 1 << 7) != 0
+                val <<= 1
+                if self.FLAG_C:
+                    val |= 1 << 0
+
+                self.FLAG_N = False
+                self.FLAG_H = False
+                self.FLAG_Z = val == 0
+
+            # RRC
+            case 0x08 | 0x09 | 0x0A | 0x0B | 0x0C | 0x0D | 0x0E | 0x0F:
+                self.FLAG_C = (val & 1 << 0) != 0
+                val >>= 1
+                if self.FLAG_C:
+                    val |= 1 << 7
+
+                self.FLAG_N = False
+                self.FLAG_H = False
+                self.FLAG_Z = val == 0
+
+            # RL
+            case 0x10 | 0x11 | 0x12 | 0x13 | 0x14 | 0x15 | 0x16 | 0x17:
+                orig_c = self.FLAG_C
+                self.FLAG_C = (val & 1 << 7) != 0
+                val <<= 1
+                if orig_c:
+                    val |= 1 << 0
+
+                self.FLAG_N = False
+                self.FLAG_H = False
+                self.FLAG_Z = val & 0xFF == 0
+
+            # RR
+            case 0x18 | 0x19 | 0x1A | 0x1B | 0x1C | 0x1D | 0x1E | 0x1F:
+                orig_c = self.FLAG_C
+                self.FLAG_C = (val & 1 << 0) != 0
+                val >>= 1
+                if orig_c:
+                    val |= 1 << 7
+
+                self.FLAG_N = False
+                self.FLAG_H = False
+                self.FLAG_Z = val == 0
+
+            # SLA
+            case 0x20 | 0x21 | 0x22 | 0x23 | 0x24 | 0x25 | 0x26 | 0x27:
+                self.FLAG_C = (val & 1 << 7) != 0
+                val <<= 1
+                val &= 0xFF
+                self.FLAG_N = False
+                self.FLAG_H = False
+                self.FLAG_Z = val == 0
+
+            # SRA
+            case 0x28 | 0x29 | 0x2A | 0x2B | 0x2C | 0x2D | 0x2E | 0x2F:
+                self.FLAG_C = (val & 1 << 0) != 0
+                val >>= 1
+                if val & 1 << 6 != 0:
+                    val |= 1 << 7
+
+                self.FLAG_N = False
+                self.FLAG_H = False
+                self.FLAG_Z = val == 0
+
+            # SWAP
+            case 0x30 | 0x31 | 0x32 | 0x33 | 0x34 | 0x35 | 0x36 | 0x37:
+                val = ((val & 0xF0) >> 4) | ((val & 0x0F) << 4)
+                self.FLAG_C = False
+                self.FLAG_N = False
+                self.FLAG_H = False
+                self.FLAG_Z = val == 0
+
+            # SRL
+            case 0x38 | 0x39 | 0x3A | 0x3B | 0x3C | 0x3D | 0x3E | 0x3F:
+                self.FLAG_C = (val & 1 << 0) != 0
+                val >>= 1
+                self.FLAG_N = False
+                self.FLAG_H = False
+                self.FLAG_Z = val == 0
+
+            # BIT
+            case 0x40 | 0x41 | 0x42 | 0x43 | 0x44 | 0x45 | 0x46 | 0x47 | 0x48 | 0x49 | 0x4A | 0x4B | 0x4C | 0x4D | 0x4E | 0x4F | 0x50 | 0x51 | 0x52 | 0x53 | 0x54 | 0x55 | 0x56 | 0x57 | 0x58 | 0x59 | 0x5A | 0x5B | 0x5C | 0x5D | 0x5E | 0x5F | 0x60 | 0x61 | 0x62 | 0x63 | 0x64 | 0x65 | 0x66 | 0x67 | 0x68 | 0x69 | 0x6A | 0x6B | 0x6C | 0x6D | 0x6E | 0x6F | 0x70 | 0x71 | 0x72 | 0x73 | 0x74 | 0x75 | 0x76 | 0x77 | 0x78 | 0x79 | 0x7A | 0x7B | 0x7C | 0x7D | 0x7E | 0x7F:
+                bit = (op & 0b00111000) >> 3
+                self.FLAG_Z = (val & (1 << bit)) == 0
+                self.FLAG_N = False
+                self.FLAG_H = True
+
+            # RES
+            case 0x80 | 0x81 | 0x82 | 0x83 | 0x84 | 0x85 | 0x86 | 0x87 | 0x88 | 0x89 | 0x8A | 0x8B | 0x8C | 0x8D | 0x8E | 0x8F | 0x90 | 0x91 | 0x92 | 0x93 | 0x94 | 0x95 | 0x96 | 0x97 | 0x98 | 0x99 | 0x9A | 0x9B | 0x9C | 0x9D | 0x9E | 0x9F | 0xA0 | 0xA1 | 0xA2 | 0xA3 | 0xA4 | 0xA5 | 0xA6 | 0xA7 | 0xA8 | 0xA9 | 0xAA | 0xAB | 0xAC | 0xAD | 0xAE | 0xAF | 0xB0 | 0xB1 | 0xB2 | 0xB3 | 0xB4 | 0xB5 | 0xB6 | 0xB7 | 0xB8 | 0xB9 | 0xBA | 0xBB | 0xBC | 0xBD | 0xBE | 0xBF:
+                bit = (op & 0b00111000) >> 3
+                val &= (1 << bit) ^ 0xFF
+
+            # SET
+            case 0xC0 | 0xC1 | 0xC2 | 0xC3 | 0xC4 | 0xC5 | 0xC6 | 0xC7 | 0xC8 | 0xC9 | 0xCA | 0xCB | 0xCC | 0xCD | 0xCE | 0xCF | 0xD0 | 0xD1 | 0xD2 | 0xD3 | 0xD4 | 0xD5 | 0xD6 | 0xD7 | 0xD8 | 0xD9 | 0xDA | 0xDB | 0xDC | 0xDD | 0xDE | 0xDF | 0xE0 | 0xE1 | 0xE2 | 0xE3 | 0xE4 | 0xE5 | 0xE6 | 0xE7 | 0xE8 | 0xE9 | 0xEA | 0xEB | 0xEC | 0xED | 0xEE | 0xEF | 0xF0 | 0xF1 | 0xF2 | 0xF3 | 0xF4 | 0xF5 | 0xF6 | 0xF7 | 0xF8 | 0xF9 | 0xFA | 0xFB | 0xFC | 0xFD | 0xFE | 0xFF:
+                bit = (op & 0b00111000) >> 3
+                val |= 1 << bit
+
+        self.set_reg(op, val & 0xFF)
+
+    def _xor(self, val: u8):
+        self.A ^= val
+
+        self.FLAG_Z = self.A == 0
         self.FLAG_N = False
+        self.FLAG_H = False
+        self.FLAG_C = False
 
-    # ===================================
-    # 5. LD [nn],SP
-    @opcode("LD [nn],SP", 20, "H")
-    def op08(self, val):
-        self.ram[val + 1] = (self.SP >> 8) & 0xFF
-        self.ram[val] = self.SP & 0xFF
+    def _or(self, val: u8):
+        self.A |= val
 
-    # ===================================
-    # 6. PUSH nn
-    def _push16(self, reg: Reg):
-        """
-        >>> c = CPU()
-        >>> c.BC = 1234
-        >>> c.opC5()
-        >>> c.opD1()
-        >>> c.DE
-        1234
-        """
-        val = getattr(self, reg.value)
-        self.ram[self.SP - 1] = (val & 0xFF00) >> 8
-        self.ram[self.SP - 2] = val & 0xFF
-        self.SP -= 2
-        # print("Pushing %r to stack at %r [%r]" % (val, self.SP, self.ram[-10:]))
+        self.FLAG_Z = self.A == 0
+        self.FLAG_N = False
+        self.FLAG_H = False
+        self.FLAG_C = False
 
-    opF5 = opcode("PUSH AF", 16)(lambda self: self._push16(Reg.AF))
-    opC5 = opcode("PUSH BC", 16)(lambda self: self._push16(Reg.BC))
-    opD5 = opcode("PUSH DE", 16)(lambda self: self._push16(Reg.DE))
-    opE5 = opcode("PUSH HL", 16)(lambda self: self._push16(Reg.HL))
+    def _and(self, val: u8):
+        self.A &= val
 
-    # ===================================
-    # 6. POP nn
-    def _pop16(self, reg: Reg):
-        val = (self.ram[self.SP + 1] << 8) | self.ram[self.SP]
-        # print("Set %r to %r from %r, %r" % (reg, val, self.SP, self.ram[-10:]))
-        setattr(self, reg.value, val)
-        self.SP += 2
+        self.FLAG_Z = self.A == 0
+        self.FLAG_N = False
+        self.FLAG_H = True
+        self.FLAG_C = False
 
-    opF1 = opcode("POP AF", 12)(lambda self: self._pop16(Reg.AF))
-    opC1 = opcode("POP BC", 12)(lambda self: self._pop16(Reg.BC))
-    opD1 = opcode("POP DE", 12)(lambda self: self._pop16(Reg.DE))
-    opE1 = opcode("POP HL", 12)(lambda self: self._pop16(Reg.HL))
+    def _cp(self, val: u8):
+        self.FLAG_Z = self.A == val
+        self.FLAG_N = True
+        self.FLAG_H = (self.A & 0x0F) < (val & 0x0F)
+        self.FLAG_C = self.A < val
 
-    # </editor-fold>
-
-    # <editor-fold description="3.3.3 8-Bit Arithmetic">
-
-    # ===================================
-    # 1. ADD A,n
-    def _add(self, val):
+    def _add(self, val: u8):
         self.FLAG_C = self.A + val > 0xFF
         self.FLAG_H = (self.A & 0x0F) + (val & 0x0F) > 0x0F
         self.FLAG_N = False
-        self.A += val
-        self.A &= 0xFF
+        self.A = (self.A + val) & 0xFF
         self.FLAG_Z = self.A == 0
 
-    op80 = opcode("ADD A,B", 4)(lambda self: self._add(self.B))
-    op81 = opcode("ADD A,C", 4)(lambda self: self._add(self.C))
-    op82 = opcode("ADD A,D", 4)(lambda self: self._add(self.D))
-    op83 = opcode("ADD A,E", 4)(lambda self: self._add(self.E))
-    op84 = opcode("ADD A,H", 4)(lambda self: self._add(self.H))
-    op85 = opcode("ADD A,L", 4)(lambda self: self._add(self.L))
-    op86 = opcode("ADD A,[HL]", 8)(lambda self: self._add(self.MEM_AT_HL))
-    op87 = opcode("ADD A,A", 4)(lambda self: self._add(self.A))
-
-    opC6 = opcode("ADD A,n", 8, "B")(lambda self, val: self._add(val))
-
-    # ===================================
-    # 2. ADC A,n
-    def _adc(self, val):
-        """
-        >>> c = CPU()
-        >>> c.FLAG_C = True
-        >>> c.A = 10
-        >>> c.B = 5
-        >>> c.op88()
-        >>> c.A
-        16
-        """
-        carry = int(self.FLAG_C)
-        self.FLAG_C = bool(self.A + val + int(self.FLAG_C) > 0xFF)
+    def _adc(self, val: u8):
+        carry: u8 = u8(self.FLAG_C)
+        self.FLAG_C = self.A + val + carry > 0xFF
         self.FLAG_H = (self.A & 0x0F) + (val & 0x0F) + carry > 0x0F
         self.FLAG_N = False
-        self.A += val + carry
-        self.A &= 0xFF
+        self.A = (self.A + val + carry) & 0xFF
         self.FLAG_Z = self.A == 0
 
-    op88 = opcode("ADC A,B", 4)(lambda self: self._adc(self.B))
-    op89 = opcode("ADC A,C", 4)(lambda self: self._adc(self.C))
-    op8A = opcode("ADC A,D", 4)(lambda self: self._adc(self.D))
-    op8B = opcode("ADC A,E", 4)(lambda self: self._adc(self.E))
-    op8C = opcode("ADC A,H", 4)(lambda self: self._adc(self.H))
-    op8D = opcode("ADC A,L", 4)(lambda self: self._adc(self.L))
-    op8E = opcode("ADC A,[HL]", 8)(lambda self: self._adc(self.MEM_AT_HL))
-    op8F = opcode("ADC A,A", 4)(lambda self: self._adc(self.A))
-
-    opCE = opcode("ADC A,n", 8, "B")(lambda self, val: self._adc(val))
-
-    # ===================================
-    # 3. SUB n
-    def _sub(self, val):
+    def _sub(self, val: u8):
         self.FLAG_C = self.A < val
         self.FLAG_H = (self.A & 0x0F) < (val & 0x0F)
-        self.A -= val
-        self.A &= 0xFF
+        self.A = (self.A - val) & 0xFF
         self.FLAG_Z = self.A == 0
         self.FLAG_N = True
 
-    op90 = opcode("SUB A,B", 4)(lambda self: self._sub(self.B))
-    op91 = opcode("SUB A,C", 4)(lambda self: self._sub(self.C))
-    op92 = opcode("SUB A,D", 4)(lambda self: self._sub(self.D))
-    op93 = opcode("SUB A,E", 4)(lambda self: self._sub(self.E))
-    op94 = opcode("SUB A,H", 4)(lambda self: self._sub(self.H))
-    op95 = opcode("SUB A,L", 4)(lambda self: self._sub(self.L))
-    op96 = opcode("SUB A,[HL]", 8)(lambda self: self._sub(self.MEM_AT_HL))
-    op97 = opcode("SUB A,A", 4)(lambda self: self._sub(self.A))
-
-    opD6 = opcode("SUB A,n", 8, "B")(lambda self, val: self._sub(val))
-
-    # ===================================
-    # 4. SBC n
-    def _sbc(self, val):
-        """
-        >>> c = CPU()
-        >>> c.FLAG_C = True
-        >>> c.A = 10
-        >>> c.B = 5
-        >>> c.op98()
-        >>> c.A
-        4
-        """
-        byte1 = self.A
-        byte2 = val
-        res = byte1 - byte2 - int(self.FLAG_C)
-        self._sub(val + int(self.FLAG_C))
-        self.FLAG_H = ((byte1 ^ byte2 ^ (res & 0xFF)) & (1 << 4)) != 0
-
-    op98 = opcode("SBC A,B", 4)(lambda self: self._sbc(self.B))
-    op99 = opcode("SBC A,C", 4)(lambda self: self._sbc(self.C))
-    op9A = opcode("SBC A,D", 4)(lambda self: self._sbc(self.D))
-    op9B = opcode("SBC A,E", 4)(lambda self: self._sbc(self.E))
-    op9C = opcode("SBC A,H", 4)(lambda self: self._sbc(self.H))
-    op9D = opcode("SBC A,L", 4)(lambda self: self._sbc(self.L))
-    op9E = opcode("SBC A,[HL]", 8)(lambda self: self._sbc(self.MEM_AT_HL))
-    op9F = opcode("SBC A,A", 4)(lambda self: self._sbc(self.A))
-
-    opDE = opcode("SBC A,n", 8, "B")(lambda self, val: self._sbc(val))
-
-    # ===================================
-    # 5. AND n
-    def _and(self, val):
-        """
-        >>> c = CPU()
-        >>> c.A = 0b0101
-        >>> c.B = 0b0011
-        >>> c.opA0()
-        >>> f"{c.A:04b}"
-        '0001'
-        """
-        self.A &= val
-        self.FLAG_Z = int(self.A == 0)
-        self.FLAG_N = False
-        self.FLAG_H = True
-        self.FLAG_C = False
-
-    opA0 = opcode("AND B", 4)(lambda self: self._and(self.B))
-    opA1 = opcode("AND C", 4)(lambda self: self._and(self.C))
-    opA2 = opcode("AND D", 4)(lambda self: self._and(self.D))
-    opA3 = opcode("AND E", 4)(lambda self: self._and(self.E))
-    opA4 = opcode("AND H", 4)(lambda self: self._and(self.H))
-    opA5 = opcode("AND L", 4)(lambda self: self._and(self.L))
-    opA6 = opcode("AND [HL]", 8)(lambda self: self._and(self.MEM_AT_HL))
-    opA7 = opcode("AND A", 4)(lambda self: self._and(self.A))
-
-    opE6 = opcode("AND n", 8, "B")(lambda self, n: self._and(n))
-
-    # ===================================
-    # 6. OR n
-    def _or(self, val):
-        """
-        >>> c = CPU()
-        >>> c.A = 0b0101
-        >>> c.B = 0b0011
-        >>> c.opB0()
-        >>> f"{c.A:04b}"
-        '0111'
-        """
-        self.A |= val
-        self.FLAG_Z = int(self.A == 0)
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_C = False
-
-    opB0 = opcode("OR B", 4)(lambda self: self._or(self.B))
-    opB1 = opcode("OR C", 4)(lambda self: self._or(self.C))
-    opB2 = opcode("OR D", 4)(lambda self: self._or(self.D))
-    opB3 = opcode("OR E", 4)(lambda self: self._or(self.E))
-    opB4 = opcode("OR H", 4)(lambda self: self._or(self.H))
-    opB5 = opcode("OR L", 4)(lambda self: self._or(self.L))
-    opB6 = opcode("OR [HL]", 8)(lambda self: self._or(self.MEM_AT_HL))
-    opB7 = opcode("OR A", 4)(lambda self: self._or(self.A))
-
-    opF6 = opcode("OR n", 8, "B")(lambda self, n: self._or(n))
-
-    # ===================================
-    # 7. XOR
-    def _xor(self, val):
-        """
-        >>> c = CPU()
-        >>> c.A = 0b0101
-        >>> c.B = 0b0011
-        >>> c.opA8()
-        >>> f"{c.A:04b}"
-        '0110'
-        """
-        self.A ^= val
-        self.FLAG_Z = int(self.A == 0)
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_C = False
-
-    opA8 = opcode("XOR B", 4)(lambda self: self._xor(self.B))
-    opA9 = opcode("XOR C", 4)(lambda self: self._xor(self.C))
-    opAA = opcode("XOR D", 4)(lambda self: self._xor(self.D))
-    opAB = opcode("XOR E", 4)(lambda self: self._xor(self.E))
-    opAC = opcode("XOR H", 4)(lambda self: self._xor(self.H))
-    opAD = opcode("XOR L", 4)(lambda self: self._xor(self.L))
-    opAE = opcode("XOR [HL]", 8)(lambda self: self._xor(self.MEM_AT_HL))
-    opAF = opcode("XOR A", 4)(lambda self: self._xor(self.A))
-
-    opEE = opcode("XOR n", 8, "B")(lambda self, n: self._xor(n))
-
-    # ===================================
-    # 8. CP
-    # Compare A with n
-    def _cp(self, n):
-        self.FLAG_Z = self.A == n
-        self.FLAG_N = True
-        self.FLAG_H = (self.A & 0x0F) < (n & 0x0F)
-        self.FLAG_C = self.A < n
-
-    opB8 = opcode("CP B", 4)(lambda self: self._cp(self.B))
-    opB9 = opcode("CP C", 4)(lambda self: self._cp(self.C))
-    opBA = opcode("CP D", 4)(lambda self: self._cp(self.D))
-    opBB = opcode("CP E", 4)(lambda self: self._cp(self.E))
-    opBC = opcode("CP H", 4)(lambda self: self._cp(self.H))
-    opBD = opcode("CP L", 4)(lambda self: self._cp(self.L))
-    opBE = opcode("CP [HL]", 8)(lambda self: self._cp(self.MEM_AT_HL))
-    opBF = opcode("CP A", 4)(lambda self: self._cp(self.A))
-
-    opFE = opcode("CP n", 8, "B")(lambda self, val: self._cp(val))
-
-    # ===================================
-    # 9. INC
-    def _inc8(self, reg: Reg):
-        val = getattr(self, reg.value)
-        self.FLAG_H = val & 0x0F == 0x0F
-        val = (val + 1) & 0xFF
-        setattr(self, reg.value, val)
-        self.FLAG_Z = val == 0
-        self.FLAG_N = False
-
-    op04 = opcode("INC B", 4)(lambda self: self._inc8(Reg.B))
-    op0C = opcode("INC C", 4)(lambda self: self._inc8(Reg.C))
-    op14 = opcode("INC D", 4)(lambda self: self._inc8(Reg.D))
-    op1C = opcode("INC E", 4)(lambda self: self._inc8(Reg.E))
-    op24 = opcode("INC H", 4)(lambda self: self._inc8(Reg.H))
-    op2C = opcode("INC L", 4)(lambda self: self._inc8(Reg.L))
-    op34 = opcode("INC [HL]", 12)(lambda self: self._inc8(Reg.MEM_AT_HL))
-    op3C = opcode("INC A", 4)(lambda self: self._inc8(Reg.A))
-
-    # ===================================
-    # 10. DEC
-    def _dec8(self, reg: Reg):
-        val = getattr(self, reg.value)
-        val = (val - 1) & 0xFF
-        self.FLAG_H = val & 0x0F == 0x0F
-        setattr(self, reg.value, val)
-        self.FLAG_Z = val == 0
+    def _sbc(self, val: u8):
+        carry: u8 = u8(self.FLAG_C)
+        res = self.A - val - carry
+        self.FLAG_H = ((self.A ^ val ^ (res & 0xFF)) & (1 << 4)) != 0
+        self.FLAG_C = res < 0
+        self.A = (self.A - val - carry) & 0xFF
+        self.FLAG_Z = self.A == 0
         self.FLAG_N = True
 
-    op05 = opcode("DEC B", 4)(lambda self: self._dec8(Reg.B))
-    op0D = opcode("DEC C", 4)(lambda self: self._dec8(Reg.C))
-    op15 = opcode("DEC D", 4)(lambda self: self._dec8(Reg.D))
-    op1D = opcode("DEC E", 4)(lambda self: self._dec8(Reg.E))
-    op25 = opcode("DEC H", 4)(lambda self: self._dec8(Reg.H))
-    op2D = opcode("DEC L", 4)(lambda self: self._dec8(Reg.L))
-    op35 = opcode("DEC [HL]", 12)(lambda self: self._dec8(Reg.MEM_AT_HL))
-    op3D = opcode("DEC A", 4)(lambda self: self._dec8(Reg.A))
-    # </editor-fold>
-
-    # <editor-fold description="3.3.4 16-Bit Arithmetic">
-
-    # ===================================
-    # 1. ADD HL,nn
-    def _add_hl(self, val):
-        self.FLAG_H = (self.HL & 0x0FFF) + (val & 0x0FFF) > 0x0FFF
-        self.FLAG_C = self.HL + val > 0xFFFF
-        self.HL += val
-        self.HL &= 0xFFFF
-        self.FLAG_N = False
-
-    op09 = opcode("ADD HL,BC", 8)(lambda self: self._add_hl(self.BC))
-    op19 = opcode("ADD HL,DE", 8)(lambda self: self._add_hl(self.DE))
-    op29 = opcode("ADD HL,HL", 8)(lambda self: self._add_hl(self.HL))
-    op39 = opcode("ADD HL,SP", 8)(lambda self: self._add_hl(self.SP))
-
-    # ===================================
-    # 2. ADD SP,n
-    @opcode("ADD SP n", 16, "b")
-    def opE8(self, val):
-        tmp = self.SP + val
-        self.FLAG_H = bool((self.SP ^ val ^ tmp) & 0x10)
-        self.FLAG_C = bool((self.SP ^ val ^ tmp) & 0x100)
-        self.SP += val
-        self.SP &= 0xFFFF
-        self.FLAG_Z = False
-        self.FLAG_N = False
-
-    # ===================================
-    # 3. INC nn
-    def _inc16(self, reg):
-        val = getattr(self, reg)
-        val = (val + 1) & 0xFFFF
-        setattr(self, reg, val)
-
-    op03 = opcode("INC BC", 8)(lambda self: self._inc16("BC"))
-    op13 = opcode("INC DE", 8)(lambda self: self._inc16("DE"))
-    op23 = opcode("INC HL", 8)(lambda self: self._inc16("HL"))
-    op33 = opcode("INC SP", 8)(lambda self: self._inc16("SP"))
-
-    # ===================================
-    # 4. DEC nn
-    def _dec16(self, reg):
-        val = getattr(self, reg)
-        val = (val - 1) & 0xFFFF
-        setattr(self, reg, val)
-
-    op0B = opcode("DEC BC", 8)(lambda self: self._dec16("BC"))
-    op1B = opcode("DEC DE", 8)(lambda self: self._dec16("DE"))
-    op2B = opcode("DEC HL", 8)(lambda self: self._dec16("HL"))
-    op3B = opcode("DEC SP", 8)(lambda self: self._dec16("SP"))
-
-    # </editor-fold>
-
-    # <editor-fold description="3.3.5 Miscellaneous">
-    # ===================================
-    # 1. SWAP
-    # FIXME: CB36 takes 16 cycles, not 8
-    def _swap(self, reg: Reg):
-        val = getattr(self, reg.value)
-        val = ((val & 0xF0) >> 4) | ((val & 0x0F) << 4)
-        setattr(self, reg.value, val)
-        self.FLAG_Z = val == 0
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_C = False
-
-    # ===================================
-    # 2. DAA
-    # A = Binary Coded Decimal of A
-    @opcode("DAA", 4)
-    def op27(self):
-        """
-        >>> c = CPU()
-        >>> c.A = 92
-        >>> c.op27()
-        >>> bin(c.A)
-        '0b11000010'
-        """
-        tmp = self.A
-
-        if self.FLAG_N == 0:
-            if self.FLAG_H or (tmp & 0x0F) > 9:
-                tmp += 6
-            if self.FLAG_C or tmp > 0x9F:
-                tmp += 0x60
-        else:
-            if self.FLAG_H:
-                tmp -= 6
-                if self.FLAG_C == 0:
-                    tmp &= 0xFF
-
-            if self.FLAG_C:
-                tmp -= 0x60
-
-        self.FLAG_H = False
-        self.FLAG_Z = False
-        if tmp & 0x100:
-            self.FLAG_C = True
-        self.A = tmp & 0xFF
-        if self.A == 0:
-            self.FLAG_Z = True
-
-    # ===================================
-    # 3. CPL
-    # Flip all bits in A
-    @opcode("CPL", 4)
-    def op2F(self):
-        """
-        >>> c = CPU()
-        >>> c.A = 0b10101010
-        >>> c.op2F()
-        >>> bin(c.A)
-        '0b1010101'
-        """
-        self.A ^= 0xFF
-        self.FLAG_N = True
-        self.FLAG_H = True
-
-    # ===================================
-    # 4. CCF
-    @opcode("CCF", 4)
-    def op3F(self):
-        """
-        >>> c = CPU()
-        >>> c.FLAG_C = False
-        >>> c.op3F()
-        >>> c.FLAG_C
-        True
-        >>> c.op3F()
-        >>> c.FLAG_C
-        False
-        """
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_C = not self.FLAG_C
-
-    # ===================================
-    # 5. SCF
-    @opcode("SCF", 4)
-    def op37(self):
-        """
-        >>> c = CPU()
-        >>> c.FLAG_C = False
-        >>> c.op37()
-        >>> c.FLAG_C
-        True
-        """
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_C = True
-
-    # ===================================
-    # 6. NOP
-    @opcode("NOP", 4)
-    def op00(self):
-        pass
-
-    # ===================================
-    # 7. HALT
-    # Power down CPU until interrupt occurs
-
-    @opcode("HALT", 4)
-    def op76(self):
-        self.halt = True
-        # FIXME: weird instruction skipping behaviour when interrupts are disabled
-
-    # ===================================
-    # 8. STOP
-    # Halt CPU & LCD until button pressed
-
-    @opcode("STOP", 4, "B")
-    def op10(self, sub):  # 10 00
-        if sub == 00:
-            self.stop = True
-        else:
-            raise OpNotImplemented("Missing sub-command 10:%02X" % sub)
-
-    # ===================================
-    # 9. DI
-    @opcode("DI", 4)
-    def opF3(self):
-        # FIXME: supposed to take effect after the following instruction
-        self.interrupts = False
-
-    # ===================================
-    # 10. EI
-    @opcode("EI", 4)
-    def opFB(self):
-        # FIXME: supposed to take effect after the following instruction
-        self.interrupts = True
-
-    # </editor-fold>
-
-    # <editor-fold description="3.3.6 Rotates & Shifts">
-    for base, ins in enumerate(["RLC", "RRC", "RL", "RR", "SLA", "SRA", "SWAP", "SRL"]):
-        for offset, reg in enumerate(GEN_REGS):
-            op = (base * 8) + offset
-            time = 16 if reg == "[HL]" else 8
-            regn = reg.replace("[HL]", "MEM_AT_HL")
-            exec(
-                dedent(
-                    f"""
-                @opcode("{ins} {reg}", {time})
-                def opCB{op:02X}(self):
-                    self._{ins.lower()}(Reg.{regn})
-            """
-                )
-            )
-
-    # ===================================
-    # 1. RCLA
-    @opcode("RCLA", 4)
-    def op07(self):
-        """
-        >>> c = CPU()
-        >>> c.A = 0b10101010
-        >>> c.FLAG_C = False
-        >>> c.op07()
-        >>> bin(c.A), c.FLAG_C
-        ('0b1010100', True)
-        """
-        self.FLAG_C = (self.A & 0b10000000) != 0
-        self.A = ((self.A << 1) | (self.A >> 7)) & 0xFF
-        self.FLAG_Z = False
-        self.FLAG_N = False
-        self.FLAG_H = False
-
-    # ===================================
-    # 2. RLA
-    @opcode("RLA", 4)
-    def op17(self):
-        """
-        >>> c = CPU()
-        >>> c.A = 0b10101010
-        >>> c.FLAG_C = True
-        >>> c.op17()
-        >>> bin(c.A), c.FLAG_C
-        ('0b1010101', True)
-        """
-        old_c = self.FLAG_C
-        self.FLAG_C = (self.A & 0b10000000) != 0
-        self.A = ((self.A << 1) | old_c) & 0xFF
-        self.FLAG_Z = False
-        self.FLAG_N = False
-        self.FLAG_H = False
-
-    # ===================================
-    # 3. RRCA
-    @opcode("RRCA", 4)
-    def op0F(self):
-        """
-        >>> c = CPU()
-        >>> c.A = 0b10101010
-        >>> c.FLAG_C = True
-        >>> c.op0F()
-        >>> bin(c.A), c.FLAG_C
-        ('0b1010101', False)
-        """
-        self.FLAG_C = (self.A & 0b00000001) != 0
-        self.A = ((self.A >> 1) | (self.A << 7)) & 0xFF
-        self.FLAG_Z = False
-        self.FLAG_N = False
-        self.FLAG_H = False
-
-    # ===================================
-    # 4. RRA
-    @opcode("RRA", 4)
-    def op1F(self):
-        """
-        >>> c = CPU()
-        >>> c.A = 0b10101010
-        >>> c.FLAG_C = True
-        >>> c.op1F()
-        >>> bin(c.A), c.FLAG_C
-        ('0b11010101', False)
-        """
-        old_c = self.FLAG_C
-        self.FLAG_C = (self.A & 0b00000001) != 0
-        self.A = (self.A >> 1) | (old_c << 7)
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_Z = False
-
-    # ===================================
-    # 5. RLC
-    def _rlc(self, reg: Reg):
-        val = getattr(self, reg.value)
-        self.FLAG_C = bool(val & 0b10000000)
-        val <<= 1
-        if self.FLAG_C:
-            val |= 1
-        val &= 0xFF
-        setattr(self, reg.value, val)
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_Z = val == 0
-
-    # ===================================
-    # 6. RL
-    def _rl(self, reg: Reg):
-        """
-        >>> c = CPU()
-        >>> c.A = 0xAA
-        >>> c.FLAG_C = True
-
-        >>> c._rl(Reg.A)
-        >>> hex(c.A), c.FLAG_C
-        ('0x55', True)
-        >>> c._rl(Reg.A)
-        >>> hex(c.A), c.FLAG_C
-        ('0xab', False)
-        >>> c._rl(Reg.A)
-        >>> hex(c.A), c.FLAG_C
-        ('0x56', True)
-        >>> c._rl(Reg.A)
-        >>> hex(c.A), c.FLAG_C
-        ('0xad', False)
-        """
-        orig_c = self.FLAG_C
-        val = getattr(self, reg.value)
-        self.FLAG_C = bool(val & 0b10000000)
-        val = ((val << 1) | orig_c) & 0xFF
-        setattr(self, reg.value, val)
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_Z = val == 0
-
-    # ===================================
-    # 7. RRC
-    def _rrc(self, reg: Reg):
-        val = getattr(self, reg.value)
-        self.FLAG_C = bool(val & 0x1)
-        val >>= 1
-        if self.FLAG_C:
-            val |= 0b10000000
-        setattr(self, reg.value, val)
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_Z = val == 0
-
-    # ===================================
-    # 8. RR
-    def _rr(self, reg: Reg):
-        orig_c = self.FLAG_C
-        val = getattr(self, reg.value)
-        self.FLAG_C = bool(val & 0x1)
-        val >>= 1
-        if orig_c:
-            val |= 1 << 7
-        setattr(self, reg.value, val)
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_Z = val == 0
-
-    # ===================================
-    # 9. SLA
-    def _sla(self, reg: Reg):
-        val = getattr(self, reg.value)
-        self.FLAG_C = bool(val & 0b10000000)
-        val <<= 1
-        val &= 0xFF
-        setattr(self, reg.value, val)
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_Z = val == 0
-
-    # ===================================
-    # 10. SRA
-    def _sra(self, reg: Reg):
-        val = getattr(self, reg.value)
-        self.FLAG_C = bool(val & 0x1)
-        val >>= 1
-        if val & 0b01000000:
-            val |= 0b10000000
-        setattr(self, reg.value, val)
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_Z = val == 0
-
-    # ===================================
-    # 11. SRL
-    def _srl(self, reg: Reg):
-        val = getattr(self, reg.value)
-        self.FLAG_C = bool(val & 0x1)
-        val >>= 1
-        setattr(self, reg.value, val)
-        self.FLAG_N = False
-        self.FLAG_H = False
-        self.FLAG_Z = val == 0
-
-    # </editor-fold>
-
-    # <editor-fold description="3.3.7 Bit Opcodes">
-    # ===================================
-    # 1. BIT b,r
-    def _test_bit(self):
-        """
-        >>> c = CPU()
-        >>> c.B = 0xFF
-        >>> c.opCB40()  # BIT 0,B
-        >>> c.FLAG_Z
-        True
-        >>> c.opCB78()  # BIT 7,B
-        >>> c.FLAG_Z
-        True
-        >>> c.B = 0x00
-        >>> c.opCB40()
-        >>> c.FLAG_Z
-        False
-        >>> c.opCB78()
-        >>> c.FLAG_Z
-        False
-        """
-
-    for b in range(8):
-        for offset, reg in enumerate(GEN_REGS):
-            op = 0x40 + b * 0x08 + offset
-            time = 16 if reg == "[HL]" else 8
-            arg = reg.replace("[HL]", "MEM_AT_HL")
-            exec(
-                dedent(
-                    f"""
-                @opcode("BIT {b},{reg}", {time})
-                def opCB{op:02X}(self):
-                    self.FLAG_Z = not bool(self.{arg} & (1 << {b}))
-                    self.FLAG_N = False
-                    self.FLAG_H = True
-            """
-                )
-            )
-
-    # ===================================
-    # 3. RES b,r
-    for b in range(8):
-        for offset, arg in enumerate(GEN_REGS):
-            op = 0x80 + b * 0x08 + offset
-            time = 16 if arg == "[HL]" else 8
-            arg = arg.replace("[HL]", "MEM_AT_HL")
-            exec(
-                dedent(
-                    f"""
-                @opcode("RES {b},{arg}", {time})
-                def opCB{op:02X}(self):
-                    self.{arg} &= ((0x01 << {b}) ^ 0xFF)
-            """
-                )
-            )
-
-    # ===================================
-    # 2. SET b,r
-    for b in range(8):
-        for offset, arg in enumerate(GEN_REGS):
-            op = 0xC0 + b * 0x08 + offset
-            time = 16 if arg == "[HL]" else 8
-            arg = arg.replace("[HL]", "MEM_AT_HL")
-            exec(
-                dedent(
-                    f"""
-                @opcode("SET {b},{arg}", {time})
-                def opCB{op:02X}(self):
-                    self.{arg} |= (0x01 << {b})
-            """
-                )
-            )
-
-    # </editor-fold>
-
-    # <editor-fold description="3.3.8 Jumps">
-    # ===================================
-    # 1. JP nn
-    @opcode("JP nn", 16, "H")  # doc says 12
-    def opC3(self, nn):
-        self.PC = nn
-
-    # ===================================
-    # 2. JP cc,nn
-    # Absolute jump if given flag is not set / set
-    @opcode("JP NZ,nn", 12, "H")
-    def opC2(self, n):
-        if not self.FLAG_Z:
-            self.PC = n
-
-    @opcode("JP Z,nn", 12, "H")
-    def opCA(self, n):
-        if self.FLAG_Z:
-            self.PC = n
-
-    @opcode("JP NC,nn", 12, "H")
-    def opD2(self, n):
-        if not self.FLAG_C:
-            self.PC = n
-
-    @opcode("JP C,nn", 12, "H")
-    def opDA(self, n):
-        if self.FLAG_C:
-            self.PC = n
-
-    # ===================================
-    # 3. JP [HL]
-    @opcode("JP HL", 4)
-    def opE9(self):
-        # ERROR: docs say this is [HL], not HL...
-        self.PC = self.HL
-
-    # ===================================
-    # 4. JR n
-    @opcode("JR n", 12, "b")  # doc says 8
-    def op18(self, n):
-        self.PC += n
-
-    # ===================================
-    # 5. JR cc,n
-    # Relative jump if given flag is not set / set
-    @opcode("JR NZ,n", 8, "b")
-    def op20(self, n):
-        if not self.FLAG_Z:
-            self.PC += n
-
-    @opcode("JR Z,n", 8, "b")
-    def op28(self, n):
-        if self.FLAG_Z:
-            self.PC += n
-
-    @opcode("JR NC,n", 8, "b")
-    def op30(self, n):
-        if not self.FLAG_C:
-            self.PC += n
-
-    @opcode("JR C,n", 8, "b")
-    def op38(self, n):
-        if self.FLAG_C:
-            self.PC += n
-
-    # </editor-fold>
-
-    # <editor-fold description="3.3.9 Calls">
-    # ===================================
-    # 1. CALL nn
-    @opcode("CALL nn", 24, "H")  # doc says 12
-    def opCD(self, nn):
-        self._push16(Reg.PC)
-        self.PC = nn
-
-    # ===================================
-    # 2. CALL cc,nn
-    # Absolute call if given flag is not set / set
-    @opcode("CALL NZ,nn", 12, "H")
-    def opC4(self, n):
-        if not self.FLAG_Z:
-            self._push16(Reg.PC)
-            self.PC = n
-
-    @opcode("CALL Z,nn", 12, "H")
-    def opCC(self, n):
-        if self.FLAG_Z:
-            self._push16(Reg.PC)
-            self.PC = n
-
-    @opcode("CALL NC,nn", 12, "H")
-    def opD4(self, n):
-        if not self.FLAG_C:
-            self._push16(Reg.PC)
-            self.PC = n
-
-    @opcode("CALL C,nn", 12, "H")
-    def opDC(self, n):
-        if self.FLAG_C:
-            self._push16(Reg.PC)
-            self.PC = n
-
-    # </editor-fold>
-
-    # <editor-fold description="3.3.10 Restarts">
-    # ===================================
-    # 1. RST n
-    # Push present address onto stack.
-    # Jump to address $0000 + n.
-    # n = $00,$08,$10,$18,$20,$28,$30,$38
-    def _rst(self, val):
-        self._push16(Reg.PC)
-        self.PC = val
-
-    # doc says 32 cycles, test says 16
-    opC7 = opcode("RST 00", 16)(lambda self: self._rst(0x00))
-    opCF = opcode("RST 08", 16)(lambda self: self._rst(0x08))
-    opD7 = opcode("RST 10", 16)(lambda self: self._rst(0x10))
-    opDF = opcode("RST 18", 16)(lambda self: self._rst(0x18))
-    opE7 = opcode("RST 20", 16)(lambda self: self._rst(0x20))
-    opEF = opcode("RST 28", 16)(lambda self: self._rst(0x28))
-    opF7 = opcode("RST 30", 16)(lambda self: self._rst(0x30))
-    opFF = opcode("RST 38", 16)(lambda self: self._rst(0x38))
-    # </editor-fold>
-
-    # <editor-fold description="3.3.11 Returns">
-
-    # ===================================
-    # 1. RET
-    @opcode("RET", 16)  # doc says 8
-    def opC9(self):
-        self._pop16(Reg.PC)
-
-    # ===================================
-    # 2. RET cc
-    @opcode("RET NZ", 8)
-    def opC0(self):
-        if not self.FLAG_Z:
-            self._pop16(Reg.PC)
-
-    @opcode("RET Z", 8)
-    def opC8(self):
-        if self.FLAG_Z:
-            self._pop16(Reg.PC)
-
-    @opcode("RET NC", 8)
-    def opD0(self):
-        if not self.FLAG_C:
-            self._pop16(Reg.PC)
-
-    @opcode("RET C", 8)
-    def opD8(self):
-        if self.FLAG_C:
-            self._pop16(Reg.PC)
-
-    # ===================================
-    # 3. RETI
-    @opcode("RETI", 16)  # doc says 8
-    def opD9(self):
-        self._pop16(Reg.PC)
-        self.interrupts = True
-
-    # </editor-fold>
+    def push(self, val: u16):
+        self.ram[self.SP - 1] = (val >> 8) & 0xFF
+        self.ram[self.SP - 2] = val & 0xFF
+        self.SP -= 2
+
+    def pop(self) -> u16:
+        val = (self.ram[self.SP + 1] << 8) | self.ram[self.SP]
+        self.SP += 2
+        return val
+
+    def get_reg(self, n: u8) -> u8:
+        match n & 0x07:
+            case 0:
+                return self.B
+            case 1:
+                return self.C
+            case 2:
+                return self.D
+            case 3:
+                return self.E
+            case 4:
+                return self.H
+            case 5:
+                return self.L
+            case 6:
+                return self.ram[self.HL]
+            case 7:
+                return self.A
+        raise Exception("This should never happen")
+
+    def set_reg(self, n: u8, val: u8) -> None:
+        match n & 0x07:
+            case 0:
+                self.B = val
+            case 1:
+                self.C = val
+            case 2:
+                self.D = val
+            case 3:
+                self.E = val
+            case 4:
+                self.H = val
+            case 5:
+                self.L = val
+            case 6:
+                self.ram[self.HL] = val
+            case 7:
+                self.A = val
