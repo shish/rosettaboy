@@ -267,7 +267,7 @@ func (cpu *CPU) tick_clock() {
 	// TODO: writing any value to IO_DIV should reset it to 0x00
 	// increment at 16384Hz (each 64 cycles?)
 	if cpu.cycle%64 == 0 {
-		cpu.ram._inc(IO_DIV)
+		cpu.ram.set(IO_DIV, cpu.ram.get(IO_DIV)+1)
 	}
 
 	if cpu.ram.get(IO_TAC)&(1<<2) > 0 { // timer enable
@@ -278,7 +278,7 @@ func (cpu *CPU) tick_clock() {
 				cpu.ram.set(IO_TIMA, cpu.ram.get(IO_TMA)) // if timer overflows, load base
 				cpu.interrupt(INT_TIMER)
 			}
-			cpu.ram._inc(IO_TIMA)
+			cpu.ram.set(IO_TIMA, cpu.ram.get(IO_TIMA)+1)
 		}
 	}
 }
@@ -290,7 +290,7 @@ func (cpu *CPU) check_interrupts(queue uint8, i uint8, handler uint16) bool {
 		// TODO: one more cycle to store new PC
 		cpu.push(cpu.PC)
 		cpu.PC = handler
-		cpu.ram._and(IO_IF, ^i)
+		cpu.ram.set(IO_IF, cpu.ram.get(IO_IF) & ^i)
 		return true
 	}
 	return false

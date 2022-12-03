@@ -20,8 +20,11 @@ $args = parse_args($argv);
 try {
     $gameboy = new GameBoy($args);
     $gameboy->run();
+} catch (UnitTestPassed $e) {
+    print("Unit test passed\n");
+    exit(0);
 } catch (UnitTestFailed $e) {
-    print($e);
+    print("Unit test failed\n");
     exit(2);
 } catch (Quit $e) {
     exit(0);

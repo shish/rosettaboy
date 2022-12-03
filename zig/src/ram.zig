@@ -321,16 +321,4 @@ pub const RAM = struct {
 
         self.data[addr] = val;
     }
-
-    pub fn _and(self: *RAM, addr: u16, val: u8) void {
-        self.set(addr, self.get(addr) & val);
-    }
-
-    pub fn _or(self: *RAM, addr: u16, val: u8) void {
-        self.set(addr, self.get(addr) | val);
-    }
-
-    pub fn _inc(self: *RAM, addr: u16) void {
-        self.set(addr, self.get(addr) +% 1);
-    }
 };

@@ -216,7 +216,7 @@ pub const CPU = struct {
     }
 
     pub fn interrupt(self: *CPU, i: u8) void {
-        self.ram._or(consts.Mem.IF, i);
+        self.ram.set(consts.Mem.IF, self.ram.get(consts.Mem.IF) | i);
         self.halt = false; // interrupts interrupt HALT state
     }
 
@@ -312,7 +312,7 @@ pub const CPU = struct {
         // TODO: writing any value to consts.Mem.DIV should reset it to 0x00
         // increment at 16384Hz (each 64 cycles?)
         if (self.cycle % 64 == 0) {
-            self.ram._inc(consts.Mem.DIV);
+            self.ram.set(consts.Mem.DIV, self.ram.get(consts.Mem.DIV) +% 1);
         }
 
         if (self.ram.get(consts.Mem.TAC) & 1 << 2 == 1 << 2) {
@@ -324,7 +324,7 @@ pub const CPU = struct {
                     self.ram.set(consts.Mem.TIMA, self.ram.get(consts.Mem.TMA)); // if timer overflows, load base
                     self.interrupt(consts.Interrupt.TIMER);
                 }
-                self.ram._inc(consts.Mem.TIMA);
+                self.ram.set(consts.Mem.TIMA, self.ram.get(consts.Mem.TIMA) +% 1);
             }
         }
     }
@@ -336,7 +336,7 @@ pub const CPU = struct {
             // TODO: one more cycle to store new PC
             self.push(self.pc);
             self.pc = handler;
-            self.ram._and(consts.Mem.IF, ~i);
+            self.ram.set(consts.Mem.IF, self.ram.get(consts.Mem.IF) & ~i);
             return true;
         }
         return false;

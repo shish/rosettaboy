@@ -272,12 +272,3 @@ proc set*(self: var RAM, address: uint16, val: uint8) =
             # IE Register
         else:
             self.data[address.int] = val;
-
-proc memAnd*(self: var RAM, address: uint16, val: uint8) =
-    self.set(address, bitops.bitand(self.get(address), val));
-
-proc memOr*(self: var RAM, address: uint16, val: uint8) =
-    self.set(address, bitops.bitor(self.get(address), val));
-
-proc memInc*(self: var RAM, address: uint16) =
-    self.set(address, self.get(address) + 1);

@@ -34,9 +34,6 @@ public:
 public:
     inline u8 get(u16 addr);
     inline void set(u16 addr, u8 val);
-    inline void _and(u16 addr, u8 val);
-    inline void _or(u16 addr, u8 val);
-    inline void _inc(u16 addr);
 };
 
 inline u8 RAM::get(u16 addr) {
@@ -205,9 +202,5 @@ inline void RAM::set(u16 addr, u8 val) {
 
     this->data[addr] = val;
 }
-
-inline void RAM::_and(u16 addr, u8 val) { this->set(addr, this->get(addr) & val); }
-inline void RAM::_or(u16 addr, u8 val) { this->set(addr, this->get(addr) | val); }
-inline void RAM::_inc(u16 addr) { this->set(addr, this->get(addr) + 1); }
 
 #endif // ROSETTABOY_RAM_H
