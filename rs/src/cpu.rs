@@ -217,7 +217,7 @@ impl CPU {
      * are enabled), then the interrupt handler will be called.
      */
     pub fn interrupt(&mut self, ram: &mut ram::RAM, i: Interrupt) {
-        ram._or(Mem::IF, i.bits());
+        ram.set(Mem::IF, ram.get(Mem::IF) | i.bits());
         self.halt = false; // interrupts interrupt HALT state
     }
 
@@ -345,7 +345,7 @@ impl CPU {
         // TODO: writing any value to Mem::DIV should reset it to 0x00
         // increment at 16384Hz (each 64 cycles?)
         if self.cycle % 64 == 0 {
-            ram._inc(Mem::DIV);
+            ram.set(Mem::DIV, ram.get(Mem::DIV).overflowing_add(1).0);
         }
 
         if ram.get(Mem::TAC) & 1 << 2 == 1 << 2 {
@@ -357,7 +357,7 @@ impl CPU {
                     ram.set(Mem::TIMA, ram.get(Mem::TMA)); // if timer overflows, load base
                     self.interrupt(ram, Interrupt::TIMER);
                 }
-                ram._inc(Mem::TIMA);
+                ram.set(Mem::TIMA, ram.get(Mem::TIMA).overflowing_add(1).0);
             }
         }
     }
@@ -375,7 +375,7 @@ impl CPU {
             // TODO: one more cycle to store new PC
             self.push(self.pc, ram);
             self.pc = handler as u16;
-            ram._and(Mem::IF, !i.bits());
+            ram.set(Mem::IF, ram.get(Mem::IF) & !i.bits());
             return true;
         }
         return false;

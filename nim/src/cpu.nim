@@ -193,7 +193,7 @@ proc create*(ram: ram.RAM, debug: bool): CPU =
     )
 
 proc interrupt*(cpu: var CPU, interrupt: uint8) =
-    cpu.ram.memOr(consts.MEM_IF, interrupt)
+    cpu.ram.set(consts.MEM_IF, bitor(cpu.ram.get(consts.MEM_IF), interrupt))
     cpu.halt = false # interrupts interrupt HALT state
 
 proc tickDma(self: var CPU) =
@@ -210,7 +210,7 @@ proc tickClock(self: var CPU) =
     # TODO: writing any value to consts.MEM_DIV should reset it to 0x00
     # increment at 16384Hz (each 64 cycles?)
     if self.cycle mod 64 == 0:
-        self.ram.memInc(consts.MEM_DIV)
+        self.ram.set(consts.MEM_DIV, self.ram.get(consts.MEM_DIV) + 1);
 
     if bitand(self.ram.get(consts.MEM_TAC), 1 shl 2) == 1 shl 2:
         # timer enable
@@ -220,7 +220,7 @@ proc tickClock(self: var CPU) =
             if self.ram.get(consts.MEM_TIMA) == 0xFF:
                 self.ram.set(consts.MEM_TIMA, self.ram.get(consts.MEM_TMA)) # if timer overflows, load base
                 self.interrupt(consts.INTERRUPT_TIMER)
-            self.ram.memInc(consts.MEM_TIMA)
+            self.ram.set(consts.MEM_TIMA, self.ram.get(consts.MEM_TIMA) + 1);
 
 proc push(self: var CPU, val: uint16) =
     self.ram.set(self.sp - 1, (bitand((bitand(val, 0xFF00)) shr 8, 0xFF)).uint8)
@@ -239,7 +239,7 @@ proc checkInterrupt(self: var CPU, queue: uint8, i: uint8, handler: uint16): boo
         # TODO: one more cycle to store new PC
         self.push(self.pc);
         self.pc = handler
-        self.ram.memAnd(consts.MEM_IF, bitnot(i))
+        self.ram.set(consts.MEM_IF, bitops.bitand(self.ram.get(consts.MEM_IF), bitnot(i)));
         return true
     return false
 

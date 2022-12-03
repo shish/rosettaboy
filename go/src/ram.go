@@ -243,13 +243,3 @@ func (ram *RAM) set(addr uint16, val uint8) {
 
 	ram.data[addr] = val
 }
-
-func (ram *RAM) _and(addr uint16, val uint8) {
-	ram.set(addr, ram.get(addr)&val)
-}
-func (ram *RAM) _or(addr uint16, val uint8) {
-	ram.set(addr, ram.get(addr)|val)
-}
-func (ram *RAM) _inc(addr uint16) {
-	ram.set(addr, ram.get(addr)+1)
-}

@@ -280,22 +280,4 @@ impl RAM {
 
         self.data[addr as usize] = val;
     }
-
-    #[inline(always)]
-    pub fn _and<T: Into<u16>>(&mut self, addr: T, val: u8) {
-        let addr = addr.into();
-        self.set(addr, self.get(addr) & val);
-    }
-
-    #[inline(always)]
-    pub fn _or<T: Into<u16>>(&mut self, addr: T, val: u8) {
-        let addr = addr.into();
-        self.set(addr, self.get(addr) | val);
-    }
-
-    #[inline(always)]
-    pub fn _inc<T: Into<u16>>(&mut self, addr: T) {
-        let addr = addr.into();
-        self.set(addr, self.get(addr).overflowing_add(1).0);
-    }
 }

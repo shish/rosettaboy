@@ -218,19 +218,4 @@ class RAM
 
         $this->data[$addr] = $val;
     }
-
-    public function _and($addr, $val)
-    {
-        $this->set($addr, $this->get($addr) & $val);
-    }
-
-    public function _or($addr, $val)
-    {
-        $this->set($addr, $this->get($addr) | $val);
-    }
-
-    public function _inc($addr)
-    {
-        $this->set($addr, ($this->get($addr) + 1) & 0xFF);
-    }
 }

@@ -71,7 +71,7 @@ void CPU::dump_regs() {
  * are enabled), then the interrupt handler will be called.
  */
 void CPU::interrupt(Interrupt::Interrupt i) {
-    this->ram->_or(Mem::IF, i);
+    this->ram->set(Mem::IF, this->ram->get(Mem::IF) | i);
     this->halt = false; // interrupts interrupt HALT state
 }
 
@@ -108,7 +108,7 @@ void CPU::tick_clock() {
 
     // TODO: writing any value to Mem::DIV should reset it to 0x00
     // increment at 16384Hz (each 64 cycles?)
-    if(cycle % 64 == 0) this->ram->_inc(Mem::DIV);
+    if(cycle % 64 == 0) this->ram->set(Mem::DIV, this->ram->get(Mem::DIV) + 1);
 
     if(this->ram->get(Mem::TAC) & (1 << 2)) { // timer enable
         u16 speeds[] = {256, 4, 16, 64};      // increment per X cycles
@@ -118,7 +118,7 @@ void CPU::tick_clock() {
                 this->ram->set(Mem::TIMA, this->ram->get(Mem::TMA)); // if timer overflows, load base
                 this->interrupt(Interrupt::TIMER);
             }
-            this->ram->_inc(Mem::TIMA);
+            this->ram->set(Mem::TIMA, this->ram->get(Mem::TIMA) + 1);
         }
     }
 }
@@ -130,7 +130,7 @@ bool CPU::check_interrupt(u8 queue, u8 i, u16 handler) {
         // TODO: one more cycle to store new PC
         this->push(this->PC);
         this->PC = handler;
-        this->ram->_and(Mem::IF, ~i);
+        this->ram->set(Mem::IF, this->ram->get(Mem::IF) & ~i);
         return true;
     }
     return false;

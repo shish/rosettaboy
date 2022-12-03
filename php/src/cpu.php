@@ -331,7 +331,7 @@ class CPU
         // TODO: writing any $value to Mem::$DIV should reset it to 0x00
         // increment at 16384Hz (each 64 cycles?)
         if ($this->cycle % 64 == 0) {
-            $this->ram->_inc(Mem::$DIV);
+            $this->ram->set(Mem::$DIV, ($this->ram->get(Mem::$DIV) + 1) & 0xFF);
         }
 
         if ($this->ram->get(Mem::$TAC) & (1 << 2) > 0) { // timer enable
@@ -342,7 +342,7 @@ class CPU
                     $this->ram->set(Mem::$TIMA, $this->ram->get(Mem::$TMA)); // if timer overflows, load base
                     $this->interrupt(Interrupt::TIMER);
                 }
-                $this->ram->_inc(Mem::$TIMA);
+                $this->ram->set(Mem::$TIMA, ($this->ram->get(Mem::$TIMA) + 1) & 0xFF);
             }
         }
     }
@@ -355,7 +355,7 @@ class CPU
             // TODO: one more cycle to store new PC
             $this->push($this->PC);
             $this->PC = $handler;
-            $this->ram->_and(Mem::$IF, ~$i->value);
+            $this->ram->set(Mem::$IF, $this->ram->get(Mem::$IF) & ~$i->value);
             return true;
         }
         return false;
