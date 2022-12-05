@@ -1,9 +1,13 @@
+import typing as t
+from .consts import u8
+
+
 class EmuError(Exception):
     exit_code = 1
 
 
 class UnsupportedCart(EmuError):
-    def __init__(self, cart_type):
+    def __init__(self, cart_type: t.Any) -> None:
         self.cart_type = cart_type
 
 
@@ -22,7 +26,7 @@ class Quit(ControlledExit):
 class Timeout(ControlledExit):
     exit_code = 0
 
-    def __init__(self, frames: int, duration: float):
+    def __init__(self, frames: int, duration: float) -> None:
         self.frames = frames
         self.duration = duration
 
@@ -56,7 +60,7 @@ class GameException(EmuError):
 
 
 class InvalidOpcode(GameException):
-    def __init__(self, opcode):
+    def __init__(self, opcode: u8) -> None:
         self.opcode = opcode
 
     def __str__(self) -> str:
@@ -64,7 +68,7 @@ class InvalidOpcode(GameException):
 
 
 class InvalidRamRead(GameException):
-    def __init__(self, ram_bank, offset, ram_size):
+    def __init__(self, ram_bank: int, offset: int, ram_size: int) -> None:
         self.ram_bank = ram_bank
         self.offset = offset
         self.ram_size = ram_size
@@ -74,7 +78,7 @@ class InvalidRamRead(GameException):
 
 
 class InvalidRamWrite(GameException):
-    def __init__(self, ram_bank, offset, ram_size):
+    def __init__(self, ram_bank: int, offset: int, ram_size: int) -> None:
         self.ram_bank = ram_bank
         self.offset = offset
         self.ram_size = ram_size
@@ -91,7 +95,7 @@ class UserException(EmuError):
 
 
 class RomMissing(UserException):
-    def __init__(self, filename, err):
+    def __init__(self, filename: str, err: Exception) -> None:
         self.filename = filename
         self.err = err
 
@@ -100,7 +104,7 @@ class RomMissing(UserException):
 
 
 class LogoChecksumFailed(UserException):
-    def __init__(self, logo_checksum):
+    def __init__(self, logo_checksum: int) -> None:
         self.logo_checksum = logo_checksum
 
     def __str__(self) -> str:
@@ -108,7 +112,7 @@ class LogoChecksumFailed(UserException):
 
 
 class HeaderChecksumFailed(UserException):
-    def __init_(self, header_checksum):
+    def __init__(self, header_checksum: int) -> None:
         self.header_checksum = header_checksum
 
     def __str__(self) -> str:
