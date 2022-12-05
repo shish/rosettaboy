@@ -1,9 +1,9 @@
-from typing import List
+import typing as t
 from .cart import Cart
-from .consts import *
+from .consts import Mem, u16, u8
 
-ROM_BANK_SIZE = 0x4000
-RAM_BANK_SIZE = 0x2000
+ROM_BANK_SIZE: t.Final[u16] = 0x4000
+RAM_BANK_SIZE: t.Final[u16] = 0x2000
 
 
 class RAM:
@@ -20,7 +20,7 @@ class RAM:
         self.rom_bank = 1
         self.ram_bank = 0
 
-    def get_boot(self) -> List[int]:
+    def get_boot(self) -> t.List[int]:
         try:
             # boot with the logo scroll if we have a boot rom
             with open("boot.gb", "rb") as fp:

@@ -1,21 +1,22 @@
 import sdl2
 import ctypes
+import typing as t
 from .consts import Interrupt, Mem
 from .cpu import CPU
 from .errors import Quit
 
 
 class Joypad:
-    MODE_BUTTONS = 1 << 5
-    MODE_DPAD = 1 << 4
-    DOWN = 1 << 3
-    START = 1 << 3
-    UP = 1 << 2
-    SELECT = 1 << 2
-    LEFT = 1 << 1
-    B = 1 << 1
-    RIGHT = 1 << 0
-    A = 1 << 0
+    MODE_BUTTONS: t.Final[int] = 1 << 5
+    MODE_DPAD: t.Final[int] = 1 << 4
+    DOWN: t.Final[int] = 1 << 3
+    START: t.Final[int] = 1 << 3
+    UP: t.Final[int] = 1 << 2
+    SELECT: t.Final[int] = 1 << 2
+    LEFT: t.Final[int] = 1 << 1
+    B: t.Final[int] = 1 << 1
+    RIGHT: t.Final[int] = 1 << 0
+    A: t.Final[int] = 1 << 0
 
 
 class Buttons:
