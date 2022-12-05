@@ -1,4 +1,6 @@
-#!/bin/sh -eu
+#!/usr/bin/env bash
+set -eu
+
 TARGET=$(rustc -vV | grep host: | sed 's/host: //')
 PGO_DATA=/tmp/pgo-rs-data
 

@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -eu
+
 cd $(dirname $0)/..
 for runner in */run.sh ; do
     $runner --frames 100 --silent --headless --turbo --debug-cpu --debug-ram "$1" \
