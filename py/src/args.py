@@ -1,7 +1,8 @@
+import typing as t
 import argparse
 
 
-def parse_args(args):
+def parse_args(args: t.List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("rom")
     parser.add_argument(

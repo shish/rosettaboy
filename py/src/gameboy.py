@@ -1,3 +1,5 @@
+import argparse
+
 from .cart import Cart
 from .cpu import CPU
 from .gpu import GPU
@@ -7,7 +9,7 @@ from .ram import RAM
 
 
 class GameBoy:
-    def __init__(self, args):
+    def __init__(self, args: argparse.Namespace) -> None:
         self.cart = Cart(args.rom)
         self.ram = RAM(self.cart, debug=args.debug_ram)
         self.cpu = CPU(self.ram, debug=args.debug_cpu)
@@ -15,11 +17,11 @@ class GameBoy:
         self.buttons = Buttons(self.cpu, headless=args.headless)
         self.clock = Clock(self.buttons, args.frames, args.profile, args.turbo)
 
-    def run(self):
+    def run(self) -> None:
         while True:
             self.tick()
 
-    def tick(self):
+    def tick(self) -> None:
         self.cpu.tick()
         self.gpu.tick()
         self.buttons.tick()

@@ -163,7 +163,7 @@ class OpArg:
 
 
 class CPU:
-    def __init__(self, ram: RAM, debug=False) -> None:
+    def __init__(self, ram: RAM, debug: bool = False) -> None:
         self.ram = ram
         self.interrupts = True
         self.halt = False
@@ -1007,7 +1007,7 @@ class CPU:
 
         self.set_reg(op, val & 0xFF)
 
-    def _xor(self, val: u8):
+    def _xor(self, val: u8) -> None:
         self.A ^= val
 
         self.FLAG_Z = self.A == 0
@@ -1015,7 +1015,7 @@ class CPU:
         self.FLAG_H = False
         self.FLAG_C = False
 
-    def _or(self, val: u8):
+    def _or(self, val: u8) -> None:
         self.A |= val
 
         self.FLAG_Z = self.A == 0
@@ -1023,7 +1023,7 @@ class CPU:
         self.FLAG_H = False
         self.FLAG_C = False
 
-    def _and(self, val: u8):
+    def _and(self, val: u8) -> None:
         self.A &= val
 
         self.FLAG_Z = self.A == 0
@@ -1031,20 +1031,20 @@ class CPU:
         self.FLAG_H = True
         self.FLAG_C = False
 
-    def _cp(self, val: u8):
+    def _cp(self, val: u8) -> None:
         self.FLAG_Z = self.A == val
         self.FLAG_N = True
         self.FLAG_H = (self.A & 0x0F) < (val & 0x0F)
         self.FLAG_C = self.A < val
 
-    def _add(self, val: u8):
+    def _add(self, val: u8) -> None:
         self.FLAG_C = self.A + val > 0xFF
         self.FLAG_H = (self.A & 0x0F) + (val & 0x0F) > 0x0F
         self.FLAG_N = False
         self.A = (self.A + val) & 0xFF
         self.FLAG_Z = self.A == 0
 
-    def _adc(self, val: u8):
+    def _adc(self, val: u8) -> None:
         carry: u8 = u8(self.FLAG_C)
         self.FLAG_C = self.A + val + carry > 0xFF
         self.FLAG_H = (self.A & 0x0F) + (val & 0x0F) + carry > 0x0F
@@ -1052,14 +1052,14 @@ class CPU:
         self.A = (self.A + val + carry) & 0xFF
         self.FLAG_Z = self.A == 0
 
-    def _sub(self, val: u8):
+    def _sub(self, val: u8) -> None:
         self.FLAG_C = self.A < val
         self.FLAG_H = (self.A & 0x0F) < (val & 0x0F)
         self.A = (self.A - val) & 0xFF
         self.FLAG_Z = self.A == 0
         self.FLAG_N = True
 
-    def _sbc(self, val: u8):
+    def _sbc(self, val: u8) -> None:
         carry: u8 = u8(self.FLAG_C)
         res = self.A - val - carry
         self.FLAG_H = ((self.A ^ val ^ (res & 0xFF)) & (1 << 4)) != 0
@@ -1068,7 +1068,7 @@ class CPU:
         self.FLAG_Z = self.A == 0
         self.FLAG_N = True
 
-    def push(self, val: u16):
+    def push(self, val: u16) -> None:
         self.ram[self.SP - 1] = (val >> 8) & 0xFF
         self.ram[self.SP - 2] = val & 0xFF
         self.SP -= 2

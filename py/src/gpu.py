@@ -38,7 +38,7 @@ class Sprite(t.NamedTuple):
     tile_id: int
     flags: int
 
-    def is_live(self):
+    def is_live(self) -> bool:
         return self.x > 0 and self.x < 168 and self.y > 0 and self.y < 160
 
     @property
