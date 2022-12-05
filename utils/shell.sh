@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -eu
+
 cd $(dirname $0)
 
 # If we are running in a terminal, then run docker in terminal mode

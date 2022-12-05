@@ -1,4 +1,5 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
+set -eu
 
 # I don't know how to add lld to the path in a generic way,
 # so I'm hardcoding something that works for me, pull requests

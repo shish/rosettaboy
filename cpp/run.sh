@@ -1,4 +1,6 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
+set -eu
+
 cd $(dirname $0)
 BUILDDIR=build/$(hostname)
 cmake -DCMAKE_BUILD_TYPE=Release -B $BUILDDIR .
