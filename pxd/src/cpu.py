@@ -315,15 +315,17 @@ class CPU:
         else:
             base = OP_NAMES[op]
             arg = OpArg(self.ram, self.PC + 1, OP_TYPES[op])
-            match OP_TYPES[op]:
-                case 0:
-                    op_str = base
-                case 1:
-                    op_str = base.replace("u8", f"{arg.u8:02X}")
-                case 2:
-                    op_str = base.replace("u16", f"{arg.u16:04X}")
-                case 3:
-                    op_str = base.replace("i8", f"{arg.i8:+d}")
+            _op_case = OP_TYPES[op]
+            if _op_case == 0:
+                op_str = base
+            elif _op_case == 1:
+                op_str = base.replace("u8", f"{arg.u8:02X}")
+            elif _op_case == 2:
+                op_str = base.replace("u16", f"{arg.u16:04X}")
+            elif _op_case == 3:
+                op_str = base.replace("i8", f"{arg.i8:+d}")
+            else:
+                raise ValueError(_op_case)
 
         # print
         print(
@@ -471,539 +473,972 @@ class CPU:
         self.PC += arg_len
         ram = self.ram
 
-        match op:
-            case 0x00:
-                pass  # NOP
-            case 0x01:
-                self.BC = arg.u16
+        if op == 0x00:
+            pass  # NOP
+        elif op == 0x01:
+            self.BC = arg.u16
 
-            case 0x02:
-                ram[self.BC] = self.A
+        elif op == 0x02:
+            ram[self.BC] = self.A
 
-            case 0x03:
-                self.BC = (self.BC + 1) & 0xFFFF
+        elif op == 0x03:
+            self.BC = (self.BC + 1) & 0xFFFF
 
-            case 0x08:
-                ram[arg.u16 + 1] = (self.SP >> 8) & 0xFF
-                ram[arg.u16] = self.SP & 0xFF
+        elif op == 0x08:
+            ram[arg.u16 + 1] = (self.SP >> 8) & 0xFF
+            ram[arg.u16] = self.SP & 0xFF
 
-            case 0x0A:
-                self.A = ram[self.BC]
+        elif op == 0x0A:
+            self.A = ram[self.BC]
 
-            case 0x0B:
-                self.BC = (self.BC - 1) & 0xFFFF
+        elif op == 0x0B:
+            self.BC = (self.BC - 1) & 0xFFFF
 
-            case 0x10:
-                self.stop = True
+        elif op == 0x10:
+            self.stop = True
 
-            case 0x11:
-                self.DE = arg.u16
+        elif op == 0x11:
+            self.DE = arg.u16
 
-            case 0x12:
-                ram[self.DE] = self.A
+        elif op == 0x12:
+            ram[self.DE] = self.A
 
-            case 0x13:
-                self.DE = (self.DE + 1) & 0xFFFF
+        elif op == 0x13:
+            self.DE = (self.DE + 1) & 0xFFFF
 
-            case 0x18:
+        elif op == 0x18:
+            self.PC = (self.PC + arg.i8) & 0xFFFF
+
+        elif op == 0x1A:
+            self.A = ram[self.DE]
+
+        elif op == 0x1B:
+            self.DE = (self.DE - 1) & 0xFFFF
+
+        elif op == 0x20:
+            if not self.FLAG_Z:
                 self.PC = (self.PC + arg.i8) & 0xFFFF
 
-            case 0x1A:
-                self.A = ram[self.DE]
+        elif op == 0x21:
+            self.HL = arg.u16
 
-            case 0x1B:
-                self.DE = (self.DE - 1) & 0xFFFF
+        elif op == 0x22:
+            ram[self.HL] = self.A
+            self.HL = (self.HL + 1) & 0xFFFF
 
-            case 0x20:
-                if not self.FLAG_Z:
-                    self.PC = (self.PC + arg.i8) & 0xFFFF
+        elif op == 0x23:
+            self.HL = (self.HL + 1) & 0xFFFF
 
-            case 0x21:
-                self.HL = arg.u16
+        elif op == 0x27:
+            val16 = self.A
+            if not self.FLAG_N:
+                if self.FLAG_H or (val16 & 0x0F) > 9:
+                    val16 = (val16 + 6) & 0xFFFF
 
-            case 0x22:
-                ram[self.HL] = self.A
-                self.HL = (self.HL + 1) & 0xFFFF
+                if self.FLAG_C or val16 > 0x9F:
+                    val16 = (val16 + 0x60) & 0xFFFF
 
-            case 0x23:
-                self.HL = (self.HL + 1) & 0xFFFF
+            else:
+                if self.FLAG_H:
+                    val16 = (val16 - 6) & 0xFFFF
+                    if not self.FLAG_C:
+                        val16 &= 0xFF
 
-            case 0x27:
-                val16 = self.A
-                if not self.FLAG_N:
-                    if self.FLAG_H or (val16 & 0x0F) > 9:
-                        val16 = (val16 + 6) & 0xFFFF
+                if self.FLAG_C:
+                    val16 = (val16 - 0x60) & 0xFFFF
 
-                    if self.FLAG_C or val16 > 0x9F:
-                        val16 = (val16 + 0x60) & 0xFFFF
-
-                else:
-                    if self.FLAG_H:
-                        val16 = (val16 - 6) & 0xFFFF
-                        if not self.FLAG_C:
-                            val16 &= 0xFF
-
-                    if self.FLAG_C:
-                        val16 = (val16 - 0x60) & 0xFFFF
-
-                self.FLAG_H = False
-                if val16 & 0x100 != 0:
-                    self.FLAG_C = True
-
-                self.A = val16 & 0xFF
-                self.FLAG_Z = self.A == 0
-
-            case 0x28:
-                if self.FLAG_Z:
-                    self.PC = (self.PC + arg.i8) & 0xFFFF
-
-            case 0x2A:
-                self.A = ram[self.HL]
-                self.HL = (self.HL + 1) & 0xFFFF
-
-            case 0x2B:
-                self.HL = (self.HL - 1) & 0xFFFF
-
-            case 0x2F:
-                self.A ^= 0xFF
-                self.FLAG_N = True
-                self.FLAG_H = True
-
-            case 0x30:
-                if not self.FLAG_C:
-                    self.PC = (self.PC + arg.i8) & 0xFFFF
-
-            case 0x31:
-                self.SP = arg.u16
-
-            case 0x32:
-                ram[self.HL] = self.A
-                self.HL = (self.HL - 1) & 0xFFFF
-            case 0x33:
-                self.SP = (self.SP + 1) & 0xFFFF
-
-            case 0x37:
-                self.FLAG_N = False
-                self.FLAG_H = False
+            self.FLAG_H = False
+            if val16 & 0x100 != 0:
                 self.FLAG_C = True
 
-            case 0x38:
-                if self.FLAG_C:
-                    self.PC = (self.PC + arg.i8) & 0xFFFF
+            self.A = val16 & 0xFF
+            self.FLAG_Z = self.A == 0
 
-            case 0x3A:
-                self.A = ram[self.HL]
-                self.HL = (self.HL - 1) & 0xFFFF
+        elif op == 0x28:
+            if self.FLAG_Z:
+                self.PC = (self.PC + arg.i8) & 0xFFFF
 
-            case 0x3B:
-                self.SP = (self.SP - 1) & 0xFFFF
+        elif op == 0x2A:
+            self.A = ram[self.HL]
+            self.HL = (self.HL + 1) & 0xFFFF
 
-            case 0x3F:
-                self.FLAG_C = not self.FLAG_C
-                self.FLAG_N = False
-                self.FLAG_H = False
+        elif op == 0x2B:
+            self.HL = (self.HL - 1) & 0xFFFF
 
-            # INC r
-            case 0x04 | 0x0C | 0x14 | 0x1C | 0x24 | 0x2C | 0x34 | 0x3C:
-                val = self.get_reg((op - 0x04) >> 3)
-                self.FLAG_H = (val & 0x0F) == 0x0F
-                self.FLAG_Z = (val + 1) & 0xFF == 0
-                self.FLAG_N = False
-                self.set_reg((op - 0x04) >> 3, (val + 1) & 0xFF)
+        elif op == 0x2F:
+            self.A ^= 0xFF
+            self.FLAG_N = True
+            self.FLAG_H = True
 
-            # DEC r
-            case 0x05 | 0x0D | 0x15 | 0x1D | 0x25 | 0x2D | 0x35 | 0x3D:
-                val = self.get_reg((op - 0x05) >> 3)
-                self.FLAG_H = ((val - 1) & 0xFF & 0x0F) == 0x0F
-                self.FLAG_Z = (val - 1) & 0xFF == 0
-                self.FLAG_N = True
-                self.set_reg((op - 0x05) >> 3, (val - 1) & 0xFF)
+        elif op == 0x30:
+            if not self.FLAG_C:
+                self.PC = (self.PC + arg.i8) & 0xFFFF
 
-            # LD r,n
-            case 0x06 | 0x0E | 0x16 | 0x1E | 0x26 | 0x2E | 0x36 | 0x3E:
-                self.set_reg((op - 0x06) >> 3, arg.u8)
+        elif op == 0x31:
+            self.SP = arg.u16
 
-            # RCLA, RLA, RRCA, RRA
-            case 0x07 | 0x17 | 0x0F | 0x1F:
-                carry = 1 if self.FLAG_C else 0
-                if op == 0x07:
-                    # RCLA
-                    self.FLAG_C = (self.A & 1 << 7) != 0
-                    self.A = (self.A << 1) | (self.A >> 7)
+        elif op == 0x32:
+            ram[self.HL] = self.A
+            self.HL = (self.HL - 1) & 0xFFFF
+        elif op == 0x33:
+            self.SP = (self.SP + 1) & 0xFFFF
 
-                if op == 0x17:
-                    # RLA
-                    self.FLAG_C = (self.A & 1 << 7) != 0
-                    self.A = (self.A << 1) | carry
+        elif op == 0x37:
+            self.FLAG_N = False
+            self.FLAG_H = False
+            self.FLAG_C = True
 
-                if op == 0x0F:
-                    # RRCA
-                    self.FLAG_C = (self.A & 1 << 0) != 0
-                    self.A = (self.A >> 1) | (self.A << 7)
+        elif op == 0x38:
+            if self.FLAG_C:
+                self.PC = (self.PC + arg.i8) & 0xFFFF
 
-                if op == 0x1F:
-                    # RRA
-                    self.FLAG_C = (self.A & 1 << 0) != 0
-                    self.A = (self.A >> 1) | (carry << 7)
+        elif op == 0x3A:
+            self.A = ram[self.HL]
+            self.HL = (self.HL - 1) & 0xFFFF
 
-                self.A &= 0xFF
+        elif op == 0x3B:
+            self.SP = (self.SP - 1) & 0xFFFF
 
-                self.FLAG_N = False
-                self.FLAG_H = False
-                self.FLAG_Z = False
+        elif op == 0x3F:
+            self.FLAG_C = not self.FLAG_C
+            self.FLAG_N = False
+            self.FLAG_H = False
 
-            # ADD HL,rr
-            case 0x09 | 0x19 | 0x29 | 0x39:
-                match op:
-                    case 0x09:
-                        val16 = self.BC
-                    case 0x19:
-                        val16 = self.DE
-                    case 0x29:
-                        val16 = self.HL
-                    case 0x39:
-                        val16 = self.SP
+        # INC r
+        elif (
+            op == 0x04
+            or op == 0x0C
+            or op == 0x14
+            or op == 0x1C
+            or op == 0x24
+            or op == 0x2C
+            or op == 0x34
+            or op == 0x3C
+        ):
+            val = self.get_reg((op - 0x04) >> 3)
+            self.FLAG_H = (val & 0x0F) == 0x0F
+            self.FLAG_Z = (val + 1) & 0xFF == 0
+            self.FLAG_N = False
+            self.set_reg((op - 0x04) >> 3, (val + 1) & 0xFF)
 
-                self.FLAG_H = (self.HL & 0x0FFF) + (val16 & 0x0FFF) > 0x0FFF
-                self.FLAG_C = (self.HL + val16) > 0xFFFF
-                self.HL = (self.HL + val16) & 0xFFFF
-                self.FLAG_N = False
+        # DEC r
+        elif (
+            op == 0x05
+            or op == 0x0D
+            or op == 0x15
+            or op == 0x1D
+            or op == 0x25
+            or op == 0x2D
+            or op == 0x35
+            or op == 0x3D
+        ):
+            val = self.get_reg((op - 0x05) >> 3)
+            self.FLAG_H = ((val - 1) & 0xFF & 0x0F) == 0x0F
+            self.FLAG_Z = (val - 1) & 0xFF == 0
+            self.FLAG_N = True
+            self.set_reg((op - 0x05) >> 3, (val - 1) & 0xFF)
 
-            case 0x40 | 0x41 | 0x42 | 0x43 | 0x44 | 0x45 | 0x46 | 0x47 | 0x48 | 0x49 | 0x4A | 0x4B | 0x4C | 0x4D | 0x4E | 0x4F | 0x50 | 0x51 | 0x52 | 0x53 | 0x54 | 0x55 | 0x56 | 0x57 | 0x58 | 0x59 | 0x5A | 0x5B | 0x5C | 0x5D | 0x5E | 0x5F | 0x60 | 0x61 | 0x62 | 0x63 | 0x64 | 0x65 | 0x66 | 0x67 | 0x68 | 0x69 | 0x6A | 0x6B | 0x6C | 0x6D | 0x6E | 0x6F | 0x70 | 0x71 | 0x72 | 0x73 | 0x74 | 0x75 | 0x76 | 0x77 | 0x78 | 0x79 | 0x7A | 0x7B | 0x7C | 0x7D | 0x7E | 0x7F:
-                # LD r,r
-                if op == 0x76:
-                    # FIXME: weird timing side effects
-                    self.halt = True
+        # LD r,n
+        elif (
+            op == 0x06
+            or op == 0x0E
+            or op == 0x16
+            or op == 0x1E
+            or op == 0x26
+            or op == 0x2E
+            or op == 0x36
+            or op == 0x3E
+        ):
+            self.set_reg((op - 0x06) >> 3, arg.u8)
 
-                self.set_reg((op - 0x40) >> 3, self.get_reg(op - 0x40))
+        # RCLA, RLA, RRCA, RRA
+        elif op == 0x07 or op == 0x17 or op == 0x0F or op == 0x1F:
+            carry = 1 if self.FLAG_C else 0
+            if op == 0x07:
+                # RCLA
+                self.FLAG_C = (self.A & 1 << 7) != 0
+                self.A = (self.A << 1) | (self.A >> 7)
 
-            # <math> <reg>
-            case 0x80 | 0x81 | 0x82 | 0x83 | 0x84 | 0x85 | 0x86 | 0x87:
-                self._add(self.get_reg(op))
-            case 0x88 | 0x89 | 0x8A | 0x8B | 0x8C | 0x8D | 0x8E | 0x8F:
-                self._adc(self.get_reg(op))
-            case 0x90 | 0x91 | 0x92 | 0x93 | 0x94 | 0x95 | 0x96 | 0x97:
-                self._sub(self.get_reg(op))
-            case 0x98 | 0x99 | 0x9A | 0x9B | 0x9C | 0x9D | 0x9E | 0x9F:
-                self._sbc(self.get_reg(op))
-            case 0xA0 | 0xA1 | 0xA2 | 0xA3 | 0xA4 | 0xA5 | 0xA6 | 0xA7:
-                self._and(self.get_reg(op))
-            case 0xA8 | 0xA9 | 0xAA | 0xAB | 0xAC | 0xAD | 0xAE | 0xAF:
-                self._xor(self.get_reg(op))
-            case 0xB0 | 0xB1 | 0xB2 | 0xB3 | 0xB4 | 0xB5 | 0xB6 | 0xB7:
-                self._or(self.get_reg(op))
-            case 0xB8 | 0xB9 | 0xBA | 0xBB | 0xBC | 0xBD | 0xBE | 0xBF:
-                self._cp(self.get_reg(op))
+            if op == 0x17:
+                # RLA
+                self.FLAG_C = (self.A & 1 << 7) != 0
+                self.A = (self.A << 1) | carry
 
-            case 0xC0:
-                if not self.FLAG_Z:
-                    self.PC = self.pop()
+            if op == 0x0F:
+                # RRCA
+                self.FLAG_C = (self.A & 1 << 0) != 0
+                self.A = (self.A >> 1) | (self.A << 7)
 
-            case 0xC1:
-                self.BC = self.pop()
+            if op == 0x1F:
+                # RRA
+                self.FLAG_C = (self.A & 1 << 0) != 0
+                self.A = (self.A >> 1) | (carry << 7)
 
-            case 0xC2:
-                if not self.FLAG_Z:
-                    self.PC = arg.u16
+            self.A &= 0xFF
 
-            case 0xC3:
-                self.PC = arg.u16
+            self.FLAG_N = False
+            self.FLAG_H = False
+            self.FLAG_Z = False
 
-            case 0xC4:
-                if not self.FLAG_Z:
-                    self.push(self.PC)
-                    self.PC = arg.u16
+        # ADD HL,rr
+        elif op == 0x09 or op == 0x19 or op == 0x29 or op == 0x39:
+            if op == 0x09:
+                val16 = self.BC
+            elif op == 0x19:
+                val16 = self.DE
+            elif op == 0x29:
+                val16 = self.HL
+            elif op == 0x39:
+                val16 = self.SP
+            else:
+                raise ValueError(op)
 
-            case 0xC5:
-                self.push(self.BC)
+            self.FLAG_H = (self.HL & 0x0FFF) + (val16 & 0x0FFF) > 0x0FFF
+            self.FLAG_C = (self.HL + val16) > 0xFFFF
+            self.HL = (self.HL + val16) & 0xFFFF
+            self.FLAG_N = False
 
-            case 0xC6:
-                self._add(arg.u8)
+        elif (
+            op == 0x40
+            or op == 0x41
+            or op == 0x42
+            or op == 0x43
+            or op == 0x44
+            or op == 0x45
+            or op == 0x46
+            or op == 0x47
+            or op == 0x48
+            or op == 0x49
+            or op == 0x4A
+            or op == 0x4B
+            or op == 0x4C
+            or op == 0x4D
+            or op == 0x4E
+            or op == 0x4F
+            or op == 0x50
+            or op == 0x51
+            or op == 0x52
+            or op == 0x53
+            or op == 0x54
+            or op == 0x55
+            or op == 0x56
+            or op == 0x57
+            or op == 0x58
+            or op == 0x59
+            or op == 0x5A
+            or op == 0x5B
+            or op == 0x5C
+            or op == 0x5D
+            or op == 0x5E
+            or op == 0x5F
+            or op == 0x60
+            or op == 0x61
+            or op == 0x62
+            or op == 0x63
+            or op == 0x64
+            or op == 0x65
+            or op == 0x66
+            or op == 0x67
+            or op == 0x68
+            or op == 0x69
+            or op == 0x6A
+            or op == 0x6B
+            or op == 0x6C
+            or op == 0x6D
+            or op == 0x6E
+            or op == 0x6F
+            or op == 0x70
+            or op == 0x71
+            or op == 0x72
+            or op == 0x73
+            or op == 0x74
+            or op == 0x75
+            or op == 0x76
+            or op == 0x77
+            or op == 0x78
+            or op == 0x79
+            or op == 0x7A
+            or op == 0x7B
+            or op == 0x7C
+            or op == 0x7D
+            or op == 0x7E
+            or op == 0x7F
+        ):
+            # LD r,r
+            if op == 0x76:
+                # FIXME: weird timing side effects
+                self.halt = True
 
-            case 0xC7:
-                self.push(self.PC)
-                self.PC = 0x00
+            self.set_reg((op - 0x40) >> 3, self.get_reg(op - 0x40))
 
-            case 0xC8:
-                if self.FLAG_Z:
-                    self.PC = self.pop()
+        # <math> <reg>
+        elif (
+            op == 0x80
+            or op == 0x81
+            or op == 0x82
+            or op == 0x83
+            or op == 0x84
+            or op == 0x85
+            or op == 0x86
+            or op == 0x87
+        ):
+            self._add(self.get_reg(op))
+        elif (
+            op == 0x88
+            or op == 0x89
+            or op == 0x8A
+            or op == 0x8B
+            or op == 0x8C
+            or op == 0x8D
+            or op == 0x8E
+            or op == 0x8F
+        ):
+            self._adc(self.get_reg(op))
+        elif (
+            op == 0x90
+            or op == 0x91
+            or op == 0x92
+            or op == 0x93
+            or op == 0x94
+            or op == 0x95
+            or op == 0x96
+            or op == 0x97
+        ):
+            self._sub(self.get_reg(op))
+        elif (
+            op == 0x98
+            or op == 0x99
+            or op == 0x9A
+            or op == 0x9B
+            or op == 0x9C
+            or op == 0x9D
+            or op == 0x9E
+            or op == 0x9F
+        ):
+            self._sbc(self.get_reg(op))
+        elif (
+            op == 0xA0
+            or op == 0xA1
+            or op == 0xA2
+            or op == 0xA3
+            or op == 0xA4
+            or op == 0xA5
+            or op == 0xA6
+            or op == 0xA7
+        ):
+            self._and(self.get_reg(op))
+        elif (
+            op == 0xA8
+            or op == 0xA9
+            or op == 0xAA
+            or op == 0xAB
+            or op == 0xAC
+            or op == 0xAD
+            or op == 0xAE
+            or op == 0xAF
+        ):
+            self._xor(self.get_reg(op))
+        elif (
+            op == 0xB0
+            or op == 0xB1
+            or op == 0xB2
+            or op == 0xB3
+            or op == 0xB4
+            or op == 0xB5
+            or op == 0xB6
+            or op == 0xB7
+        ):
+            self._or(self.get_reg(op))
+        elif (
+            op == 0xB8
+            or op == 0xB9
+            or op == 0xBA
+            or op == 0xBB
+            or op == 0xBC
+            or op == 0xBD
+            or op == 0xBE
+            or op == 0xBF
+        ):
+            self._cp(self.get_reg(op))
 
-            case 0xC9:
+        elif op == 0xC0:
+            if not self.FLAG_Z:
                 self.PC = self.pop()
 
-            case 0xCA:
-                if self.FLAG_Z:
-                    self.PC = arg.u16
+        elif op == 0xC1:
+            self.BC = self.pop()
 
-            case 0xCC:
-                if self.FLAG_Z:
-                    self.push(self.PC)
-                    self.PC = arg.u16
+        elif op == 0xC2:
+            if not self.FLAG_Z:
+                self.PC = arg.u16
 
-            case 0xCD:
+        elif op == 0xC3:
+            self.PC = arg.u16
+
+        elif op == 0xC4:
+            if not self.FLAG_Z:
                 self.push(self.PC)
                 self.PC = arg.u16
 
-            case 0xCE:
-                self._adc(arg.u8)
+        elif op == 0xC5:
+            self.push(self.BC)
 
-            case 0xCF:
-                self.push(self.PC)
-                self.PC = 0x08
+        elif op == 0xC6:
+            self._add(arg.u8)
 
-            case 0xD0:
-                if not self.FLAG_C:
-                    self.PC = self.pop()
+        elif op == 0xC7:
+            self.push(self.PC)
+            self.PC = 0x00
 
-            case 0xD1:
-                self.DE = self.pop()
-
-            case 0xD2:
-                if not self.FLAG_C:
-                    self.PC = arg.u16
-
-            case 0xD4:
-                if not self.FLAG_C:
-                    self.push(self.PC)
-                    self.PC = arg.u16
-
-            case 0xD5:
-                self.push(self.DE)
-
-            case 0xD6:
-                self._sub(arg.u8)
-
-            case 0xD7:
-                self.push(self.PC)
-                self.PC = 0x10
-
-            case 0xD8:
-                if self.FLAG_C:
-                    self.PC = self.pop()
-
-            case 0xD9:
+        elif op == 0xC8:
+            if self.FLAG_Z:
                 self.PC = self.pop()
-                self.interrupts = True
 
-            case 0xDA:
-                if self.FLAG_C:
-                    self.PC = arg.u16
+        elif op == 0xC9:
+            self.PC = self.pop()
 
-            case 0xDC:
-                if self.FLAG_C:
-                    self.push(self.PC)
-                    self.PC = arg.u16
+        elif op == 0xCA:
+            if self.FLAG_Z:
+                self.PC = arg.u16
 
-            case 0xDE:
-                self._sbc(arg.u8)
-
-            case 0xDF:
+        elif op == 0xCC:
+            if self.FLAG_Z:
                 self.push(self.PC)
-                self.PC = 0x18
+                self.PC = arg.u16
 
-            case 0xE0:
-                ram[0xFF00 + arg.u8] = self.A
-                if arg.u8 == 0x01:
-                    sys.stdout.write(chr(self.A))
+        elif op == 0xCD:
+            self.push(self.PC)
+            self.PC = arg.u16
 
-            case 0xE1:
-                self.HL = self.pop()
+        elif op == 0xCE:
+            self._adc(arg.u8)
 
-            case 0xE2:
-                ram[0xFF00 + self.C] = self.A
-                if self.C == 0x01:
-                    sys.stdout.write(chr(self.A))
+        elif op == 0xCF:
+            self.push(self.PC)
+            self.PC = 0x08
 
-            # 0xE3 => self._err(op),
-            # 0xE4 => self._err(op),
-            case 0xE5:
-                self.push(self.HL)
+        elif op == 0xD0:
+            if not self.FLAG_C:
+                self.PC = self.pop()
 
-            case 0xE6:
-                self._and(arg.u8)
+        elif op == 0xD1:
+            self.DE = self.pop()
 
-            case 0xE7:
+        elif op == 0xD2:
+            if not self.FLAG_C:
+                self.PC = arg.u16
+
+        elif op == 0xD4:
+            if not self.FLAG_C:
                 self.push(self.PC)
-                self.PC = 0x20
+                self.PC = arg.u16
 
-            case 0xE8:
-                val16 = (self.SP + arg.i8) & 0xFFFF
-                # self.FLAG_H = ((self.SP & 0x0FFF) + (arg.i8 & 0x0FFF) > 0x0FFF)
-                # self.FLAG_C = (self.SP + arg.i8 > 0xFFFF)
-                self.FLAG_H = ((self.SP ^ arg.i8 ^ val16) & 0x10) != 0
-                self.FLAG_C = ((self.SP ^ arg.i8 ^ val16) & 0x100) != 0
-                self.SP = (self.SP + arg.i8) & 0xFFFF
+        elif op == 0xD5:
+            self.push(self.DE)
 
-                self.FLAG_Z = False
-                self.FLAG_N = False
+        elif op == 0xD6:
+            self._sub(arg.u8)
 
-            case 0xE9:
-                self.PC = self.HL
+        elif op == 0xD7:
+            self.push(self.PC)
+            self.PC = 0x10
 
-            case 0xEA:
-                ram[arg.u16] = self.A
+        elif op == 0xD8:
+            if self.FLAG_C:
+                self.PC = self.pop()
 
-            case 0xEE:
-                self._xor(arg.u8)
+        elif op == 0xD9:
+            self.PC = self.pop()
+            self.interrupts = True
 
-            case 0xEF:
+        elif op == 0xDA:
+            if self.FLAG_C:
+                self.PC = arg.u16
+
+        elif op == 0xDC:
+            if self.FLAG_C:
                 self.push(self.PC)
-                self.PC = 0x28
+                self.PC = arg.u16
 
-            case 0xF0:
-                self.A = ram[0xFF00 + arg.u8]
+        elif op == 0xDE:
+            self._sbc(arg.u8)
 
-            case 0xF1:
-                self.AF = self.pop() & 0xFFF0
+        elif op == 0xDF:
+            self.push(self.PC)
+            self.PC = 0x18
 
-            case 0xF2:
-                self.A = ram[0xFF00 + self.C]
+        elif op == 0xE0:
+            ram[0xFF00 + arg.u8] = self.A
+            if arg.u8 == 0x01:
+                sys.stdout.write(chr(self.A))
 
-            case 0xF3:
-                self.interrupts = False
+        elif op == 0xE1:
+            self.HL = self.pop()
 
-            case 0xF5:
-                self.push(self.AF)
+        elif op == 0xE2:
+            ram[0xFF00 + self.C] = self.A
+            if self.C == 0x01:
+                sys.stdout.write(chr(self.A))
 
-            case 0xF6:
-                self._or(arg.u8)
-            case 0xF7:
-                self.push(self.PC)
-                self.PC = 0x30
+        # 0xE3 => self._err(op),
+        # 0xE4 => self._err(op),
+        elif op == 0xE5:
+            self.push(self.HL)
 
-            case 0xF8:
-                new_hl = (self.SP + arg.i8) & 0xFFFF
-                if arg.i8 >= 0:
-                    self.FLAG_C = ((self.SP & 0xFF) + arg.i8) > 0xFF
-                    self.FLAG_H = ((self.SP & 0x0F) + (arg.i8 & 0x0F)) > 0x0F
-                else:
-                    self.FLAG_C = (new_hl & 0xFF) <= (self.SP & 0xFF)
-                    self.FLAG_H = (new_hl & 0x0F) <= (self.SP & 0x0F)
+        elif op == 0xE6:
+            self._and(arg.u8)
 
-                self.HL = new_hl
-                self.FLAG_Z = False
-                self.FLAG_N = False
+        elif op == 0xE7:
+            self.push(self.PC)
+            self.PC = 0x20
 
-            case 0xF9:
-                self.SP = self.HL
-            case 0xFA:
-                self.A = ram[arg.u16]
-            case 0xFB:
-                self.interrupts = True
-            case 0xFC:
-                raise UnitTestPassed()  # unofficial
-            case 0xFD:
-                raise UnitTestFailed()  # unofficial
-            case 0xFE:
-                self._cp(arg.u8)
-            case 0xFF:
-                self.push(self.PC)
-                self.PC = 0x38
+        elif op == 0xE8:
+            val16 = (self.SP + arg.i8) & 0xFFFF
+            # self.FLAG_H = ((self.SP & 0x0FFF) + (arg.i8 & 0x0FFF) > 0x0FFF)
+            # self.FLAG_C = (self.SP + arg.i8 > 0xFFFF)
+            self.FLAG_H = ((self.SP ^ arg.i8 ^ val16) & 0x10) != 0
+            self.FLAG_C = ((self.SP ^ arg.i8 ^ val16) & 0x100) != 0
+            self.SP = (self.SP + arg.i8) & 0xFFFF
 
-            case _:
-                raise InvalidOpcode(op)
+            self.FLAG_Z = False
+            self.FLAG_N = False
+
+        elif op == 0xE9:
+            self.PC = self.HL
+
+        elif op == 0xEA:
+            ram[arg.u16] = self.A
+
+        elif op == 0xEE:
+            self._xor(arg.u8)
+
+        elif op == 0xEF:
+            self.push(self.PC)
+            self.PC = 0x28
+
+        elif op == 0xF0:
+            self.A = ram[0xFF00 + arg.u8]
+
+        elif op == 0xF1:
+            self.AF = self.pop() & 0xFFF0
+
+        elif op == 0xF2:
+            self.A = ram[0xFF00 + self.C]
+
+        elif op == 0xF3:
+            self.interrupts = False
+
+        elif op == 0xF5:
+            self.push(self.AF)
+
+        elif op == 0xF6:
+            self._or(arg.u8)
+        elif op == 0xF7:
+            self.push(self.PC)
+            self.PC = 0x30
+
+        elif op == 0xF8:
+            new_hl = (self.SP + arg.i8) & 0xFFFF
+            if arg.i8 >= 0:
+                self.FLAG_C = ((self.SP & 0xFF) + arg.i8) > 0xFF
+                self.FLAG_H = ((self.SP & 0x0F) + (arg.i8 & 0x0F)) > 0x0F
+            else:
+                self.FLAG_C = (new_hl & 0xFF) <= (self.SP & 0xFF)
+                self.FLAG_H = (new_hl & 0x0F) <= (self.SP & 0x0F)
+
+            self.HL = new_hl
+            self.FLAG_Z = False
+            self.FLAG_N = False
+
+        elif op == 0xF9:
+            self.SP = self.HL
+        elif op == 0xFA:
+            self.A = ram[arg.u16]
+        elif op == 0xFB:
+            self.interrupts = True
+        elif op == 0xFC:
+            raise UnitTestPassed()  # unofficial
+        elif op == 0xFD:
+            raise UnitTestFailed()  # unofficial
+        elif op == 0xFE:
+            self._cp(arg.u8)
+        elif op == 0xFF:
+            self.push(self.PC)
+            self.PC = 0x38
+
+        else:
+            raise InvalidOpcode(op)
 
     def tick_cb(self, op: int) -> None:
         val = self.get_reg(op)
-        match op & 0xF8:
-            # RLC
-            case 0x00 | 0x01 | 0x02 | 0x03 | 0x04 | 0x05 | 0x06 | 0x07:
-                self.FLAG_C = (val & 1 << 7) != 0
-                val <<= 1
-                if self.FLAG_C:
-                    val |= 1 << 0
+        _op_case = op & 0xF8
+        # RLC
+        if (
+            _op_case == 0x00
+            or _op_case == 0x01
+            or _op_case == 0x02
+            or _op_case == 0x03
+            or _op_case == 0x04
+            or _op_case == 0x05
+            or _op_case == 0x06
+            or _op_case == 0x07
+        ):
+            self.FLAG_C = (val & 1 << 7) != 0
+            val <<= 1
+            if self.FLAG_C:
+                val |= 1 << 0
 
-                self.FLAG_N = False
-                self.FLAG_H = False
-                self.FLAG_Z = val == 0
+            self.FLAG_N = False
+            self.FLAG_H = False
+            self.FLAG_Z = val == 0
 
-            # RRC
-            case 0x08 | 0x09 | 0x0A | 0x0B | 0x0C | 0x0D | 0x0E | 0x0F:
-                self.FLAG_C = (val & 1 << 0) != 0
-                val >>= 1
-                if self.FLAG_C:
-                    val |= 1 << 7
+        # RRC
+        elif (
+            _op_case == 0x08
+            or _op_case == 0x09
+            or _op_case == 0x0A
+            or _op_case == 0x0B
+            or _op_case == 0x0C
+            or _op_case == 0x0D
+            or _op_case == 0x0E
+            or _op_case == 0x0F
+        ):
+            self.FLAG_C = (val & 1 << 0) != 0
+            val >>= 1
+            if self.FLAG_C:
+                val |= 1 << 7
 
-                self.FLAG_N = False
-                self.FLAG_H = False
-                self.FLAG_Z = val == 0
+            self.FLAG_N = False
+            self.FLAG_H = False
+            self.FLAG_Z = val == 0
 
-            # RL
-            case 0x10 | 0x11 | 0x12 | 0x13 | 0x14 | 0x15 | 0x16 | 0x17:
-                orig_c = self.FLAG_C
-                self.FLAG_C = (val & 1 << 7) != 0
-                val <<= 1
-                if orig_c:
-                    val |= 1 << 0
+        # RL
+        elif (
+            _op_case == 0x10
+            or _op_case == 0x11
+            or _op_case == 0x12
+            or _op_case == 0x13
+            or _op_case == 0x14
+            or _op_case == 0x15
+            or _op_case == 0x16
+            or _op_case == 0x17
+        ):
+            orig_c = self.FLAG_C
+            self.FLAG_C = (val & 1 << 7) != 0
+            val <<= 1
+            if orig_c:
+                val |= 1 << 0
 
-                self.FLAG_N = False
-                self.FLAG_H = False
-                self.FLAG_Z = val & 0xFF == 0
+            self.FLAG_N = False
+            self.FLAG_H = False
+            self.FLAG_Z = val & 0xFF == 0
 
-            # RR
-            case 0x18 | 0x19 | 0x1A | 0x1B | 0x1C | 0x1D | 0x1E | 0x1F:
-                orig_c = self.FLAG_C
-                self.FLAG_C = (val & 1 << 0) != 0
-                val >>= 1
-                if orig_c:
-                    val |= 1 << 7
+        # RR
+        elif (
+            _op_case == 0x18
+            or _op_case == 0x19
+            or _op_case == 0x1A
+            or _op_case == 0x1B
+            or _op_case == 0x1C
+            or _op_case == 0x1D
+            or _op_case == 0x1E
+            or _op_case == 0x1F
+        ):
+            orig_c = self.FLAG_C
+            self.FLAG_C = (val & 1 << 0) != 0
+            val >>= 1
+            if orig_c:
+                val |= 1 << 7
 
-                self.FLAG_N = False
-                self.FLAG_H = False
-                self.FLAG_Z = val == 0
+            self.FLAG_N = False
+            self.FLAG_H = False
+            self.FLAG_Z = val == 0
 
-            # SLA
-            case 0x20 | 0x21 | 0x22 | 0x23 | 0x24 | 0x25 | 0x26 | 0x27:
-                self.FLAG_C = (val & 1 << 7) != 0
-                val <<= 1
-                val &= 0xFF
-                self.FLAG_N = False
-                self.FLAG_H = False
-                self.FLAG_Z = val == 0
+        # SLA
+        elif (
+            _op_case == 0x20
+            or _op_case == 0x21
+            or _op_case == 0x22
+            or _op_case == 0x23
+            or _op_case == 0x24
+            or _op_case == 0x25
+            or _op_case == 0x26
+            or _op_case == 0x27
+        ):
+            self.FLAG_C = (val & 1 << 7) != 0
+            val <<= 1
+            val &= 0xFF
+            self.FLAG_N = False
+            self.FLAG_H = False
+            self.FLAG_Z = val == 0
 
-            # SRA
-            case 0x28 | 0x29 | 0x2A | 0x2B | 0x2C | 0x2D | 0x2E | 0x2F:
-                self.FLAG_C = (val & 1 << 0) != 0
-                val >>= 1
-                if val & 1 << 6 != 0:
-                    val |= 1 << 7
+        # SRA
+        elif (
+            _op_case == 0x28
+            or _op_case == 0x29
+            or _op_case == 0x2A
+            or _op_case == 0x2B
+            or _op_case == 0x2C
+            or _op_case == 0x2D
+            or _op_case == 0x2E
+            or _op_case == 0x2F
+        ):
+            self.FLAG_C = (val & 1 << 0) != 0
+            val >>= 1
+            if val & 1 << 6 != 0:
+                val |= 1 << 7
 
-                self.FLAG_N = False
-                self.FLAG_H = False
-                self.FLAG_Z = val == 0
+            self.FLAG_N = False
+            self.FLAG_H = False
+            self.FLAG_Z = val == 0
 
-            # SWAP
-            case 0x30 | 0x31 | 0x32 | 0x33 | 0x34 | 0x35 | 0x36 | 0x37:
-                val = ((val & 0xF0) >> 4) | ((val & 0x0F) << 4)
-                self.FLAG_C = False
-                self.FLAG_N = False
-                self.FLAG_H = False
-                self.FLAG_Z = val == 0
+        # SWAP
+        elif (
+            _op_case == 0x30
+            or _op_case == 0x31
+            or _op_case == 0x32
+            or _op_case == 0x33
+            or _op_case == 0x34
+            or _op_case == 0x35
+            or _op_case == 0x36
+            or _op_case == 0x37
+        ):
+            val = ((val & 0xF0) >> 4) | ((val & 0x0F) << 4)
+            self.FLAG_C = False
+            self.FLAG_N = False
+            self.FLAG_H = False
+            self.FLAG_Z = val == 0
 
-            # SRL
-            case 0x38 | 0x39 | 0x3A | 0x3B | 0x3C | 0x3D | 0x3E | 0x3F:
-                self.FLAG_C = (val & 1 << 0) != 0
-                val >>= 1
-                self.FLAG_N = False
-                self.FLAG_H = False
-                self.FLAG_Z = val == 0
+        # SRL
+        elif (
+            _op_case == 0x38
+            or _op_case == 0x39
+            or _op_case == 0x3A
+            or _op_case == 0x3B
+            or _op_case == 0x3C
+            or _op_case == 0x3D
+            or _op_case == 0x3E
+            or _op_case == 0x3F
+        ):
+            self.FLAG_C = (val & 1 << 0) != 0
+            val >>= 1
+            self.FLAG_N = False
+            self.FLAG_H = False
+            self.FLAG_Z = val == 0
 
-            # BIT
-            case 0x40 | 0x41 | 0x42 | 0x43 | 0x44 | 0x45 | 0x46 | 0x47 | 0x48 | 0x49 | 0x4A | 0x4B | 0x4C | 0x4D | 0x4E | 0x4F | 0x50 | 0x51 | 0x52 | 0x53 | 0x54 | 0x55 | 0x56 | 0x57 | 0x58 | 0x59 | 0x5A | 0x5B | 0x5C | 0x5D | 0x5E | 0x5F | 0x60 | 0x61 | 0x62 | 0x63 | 0x64 | 0x65 | 0x66 | 0x67 | 0x68 | 0x69 | 0x6A | 0x6B | 0x6C | 0x6D | 0x6E | 0x6F | 0x70 | 0x71 | 0x72 | 0x73 | 0x74 | 0x75 | 0x76 | 0x77 | 0x78 | 0x79 | 0x7A | 0x7B | 0x7C | 0x7D | 0x7E | 0x7F:
-                bit = (op & 0b00111000) >> 3
-                self.FLAG_Z = (val & (1 << bit)) == 0
-                self.FLAG_N = False
-                self.FLAG_H = True
+        # BIT
+        elif (
+            _op_case == 0x40
+            or _op_case == 0x41
+            or _op_case == 0x42
+            or _op_case == 0x43
+            or _op_case == 0x44
+            or _op_case == 0x45
+            or _op_case == 0x46
+            or _op_case == 0x47
+            or _op_case == 0x48
+            or _op_case == 0x49
+            or _op_case == 0x4A
+            or _op_case == 0x4B
+            or _op_case == 0x4C
+            or _op_case == 0x4D
+            or _op_case == 0x4E
+            or _op_case == 0x4F
+            or _op_case == 0x50
+            or _op_case == 0x51
+            or _op_case == 0x52
+            or _op_case == 0x53
+            or _op_case == 0x54
+            or _op_case == 0x55
+            or _op_case == 0x56
+            or _op_case == 0x57
+            or _op_case == 0x58
+            or _op_case == 0x59
+            or _op_case == 0x5A
+            or _op_case == 0x5B
+            or _op_case == 0x5C
+            or _op_case == 0x5D
+            or _op_case == 0x5E
+            or _op_case == 0x5F
+            or _op_case == 0x60
+            or _op_case == 0x61
+            or _op_case == 0x62
+            or _op_case == 0x63
+            or _op_case == 0x64
+            or _op_case == 0x65
+            or _op_case == 0x66
+            or _op_case == 0x67
+            or _op_case == 0x68
+            or _op_case == 0x69
+            or _op_case == 0x6A
+            or _op_case == 0x6B
+            or _op_case == 0x6C
+            or _op_case == 0x6D
+            or _op_case == 0x6E
+            or _op_case == 0x6F
+            or _op_case == 0x70
+            or _op_case == 0x71
+            or _op_case == 0x72
+            or _op_case == 0x73
+            or _op_case == 0x74
+            or _op_case == 0x75
+            or _op_case == 0x76
+            or _op_case == 0x77
+            or _op_case == 0x78
+            or _op_case == 0x79
+            or _op_case == 0x7A
+            or _op_case == 0x7B
+            or _op_case == 0x7C
+            or _op_case == 0x7D
+            or _op_case == 0x7E
+            or _op_case == 0x7F
+        ):
+            bit = (op & 0b00111000) >> 3
+            self.FLAG_Z = (val & (1 << bit)) == 0
+            self.FLAG_N = False
+            self.FLAG_H = True
 
-            # RES
-            case 0x80 | 0x81 | 0x82 | 0x83 | 0x84 | 0x85 | 0x86 | 0x87 | 0x88 | 0x89 | 0x8A | 0x8B | 0x8C | 0x8D | 0x8E | 0x8F | 0x90 | 0x91 | 0x92 | 0x93 | 0x94 | 0x95 | 0x96 | 0x97 | 0x98 | 0x99 | 0x9A | 0x9B | 0x9C | 0x9D | 0x9E | 0x9F | 0xA0 | 0xA1 | 0xA2 | 0xA3 | 0xA4 | 0xA5 | 0xA6 | 0xA7 | 0xA8 | 0xA9 | 0xAA | 0xAB | 0xAC | 0xAD | 0xAE | 0xAF | 0xB0 | 0xB1 | 0xB2 | 0xB3 | 0xB4 | 0xB5 | 0xB6 | 0xB7 | 0xB8 | 0xB9 | 0xBA | 0xBB | 0xBC | 0xBD | 0xBE | 0xBF:
-                bit = (op & 0b00111000) >> 3
-                val &= (1 << bit) ^ 0xFF
+        # RES
+        elif (
+            _op_case == 0x80
+            or _op_case == 0x81
+            or _op_case == 0x82
+            or _op_case == 0x83
+            or _op_case == 0x84
+            or _op_case == 0x85
+            or _op_case == 0x86
+            or _op_case == 0x87
+            or _op_case == 0x88
+            or _op_case == 0x89
+            or _op_case == 0x8A
+            or _op_case == 0x8B
+            or _op_case == 0x8C
+            or _op_case == 0x8D
+            or _op_case == 0x8E
+            or _op_case == 0x8F
+            or _op_case == 0x90
+            or _op_case == 0x91
+            or _op_case == 0x92
+            or _op_case == 0x93
+            or _op_case == 0x94
+            or _op_case == 0x95
+            or _op_case == 0x96
+            or _op_case == 0x97
+            or _op_case == 0x98
+            or _op_case == 0x99
+            or _op_case == 0x9A
+            or _op_case == 0x9B
+            or _op_case == 0x9C
+            or _op_case == 0x9D
+            or _op_case == 0x9E
+            or _op_case == 0x9F
+            or _op_case == 0xA0
+            or _op_case == 0xA1
+            or _op_case == 0xA2
+            or _op_case == 0xA3
+            or _op_case == 0xA4
+            or _op_case == 0xA5
+            or _op_case == 0xA6
+            or _op_case == 0xA7
+            or _op_case == 0xA8
+            or _op_case == 0xA9
+            or _op_case == 0xAA
+            or _op_case == 0xAB
+            or _op_case == 0xAC
+            or _op_case == 0xAD
+            or _op_case == 0xAE
+            or _op_case == 0xAF
+            or _op_case == 0xB0
+            or _op_case == 0xB1
+            or _op_case == 0xB2
+            or _op_case == 0xB3
+            or _op_case == 0xB4
+            or _op_case == 0xB5
+            or _op_case == 0xB6
+            or _op_case == 0xB7
+            or _op_case == 0xB8
+            or _op_case == 0xB9
+            or _op_case == 0xBA
+            or _op_case == 0xBB
+            or _op_case == 0xBC
+            or _op_case == 0xBD
+            or _op_case == 0xBE
+            or _op_case == 0xBF
+        ):
+            bit = (op & 0b00111000) >> 3
+            val &= (1 << bit) ^ 0xFF
 
-            # SET
-            case 0xC0 | 0xC1 | 0xC2 | 0xC3 | 0xC4 | 0xC5 | 0xC6 | 0xC7 | 0xC8 | 0xC9 | 0xCA | 0xCB | 0xCC | 0xCD | 0xCE | 0xCF | 0xD0 | 0xD1 | 0xD2 | 0xD3 | 0xD4 | 0xD5 | 0xD6 | 0xD7 | 0xD8 | 0xD9 | 0xDA | 0xDB | 0xDC | 0xDD | 0xDE | 0xDF | 0xE0 | 0xE1 | 0xE2 | 0xE3 | 0xE4 | 0xE5 | 0xE6 | 0xE7 | 0xE8 | 0xE9 | 0xEA | 0xEB | 0xEC | 0xED | 0xEE | 0xEF | 0xF0 | 0xF1 | 0xF2 | 0xF3 | 0xF4 | 0xF5 | 0xF6 | 0xF7 | 0xF8 | 0xF9 | 0xFA | 0xFB | 0xFC | 0xFD | 0xFE | 0xFF:
-                bit = (op & 0b00111000) >> 3
-                val |= 1 << bit
+        # SET
+        elif (
+            _op_case == 0xC0
+            or _op_case == 0xC1
+            or _op_case == 0xC2
+            or _op_case == 0xC3
+            or _op_case == 0xC4
+            or _op_case == 0xC5
+            or _op_case == 0xC6
+            or _op_case == 0xC7
+            or _op_case == 0xC8
+            or _op_case == 0xC9
+            or _op_case == 0xCA
+            or _op_case == 0xCB
+            or _op_case == 0xCC
+            or _op_case == 0xCD
+            or _op_case == 0xCE
+            or _op_case == 0xCF
+            or _op_case == 0xD0
+            or _op_case == 0xD1
+            or _op_case == 0xD2
+            or _op_case == 0xD3
+            or _op_case == 0xD4
+            or _op_case == 0xD5
+            or _op_case == 0xD6
+            or _op_case == 0xD7
+            or _op_case == 0xD8
+            or _op_case == 0xD9
+            or _op_case == 0xDA
+            or _op_case == 0xDB
+            or _op_case == 0xDC
+            or _op_case == 0xDD
+            or _op_case == 0xDE
+            or _op_case == 0xDF
+            or _op_case == 0xE0
+            or _op_case == 0xE1
+            or _op_case == 0xE2
+            or _op_case == 0xE3
+            or _op_case == 0xE4
+            or _op_case == 0xE5
+            or _op_case == 0xE6
+            or _op_case == 0xE7
+            or _op_case == 0xE8
+            or _op_case == 0xE9
+            or _op_case == 0xEA
+            or _op_case == 0xEB
+            or _op_case == 0xEC
+            or _op_case == 0xED
+            or _op_case == 0xEE
+            or _op_case == 0xEF
+            or _op_case == 0xF0
+            or _op_case == 0xF1
+            or _op_case == 0xF2
+            or _op_case == 0xF3
+            or _op_case == 0xF4
+            or _op_case == 0xF5
+            or _op_case == 0xF6
+            or _op_case == 0xF7
+            or _op_case == 0xF8
+            or _op_case == 0xF9
+            or _op_case == 0xFA
+            or _op_case == 0xFB
+            or _op_case == 0xFC
+            or _op_case == 0xFD
+            or _op_case == 0xFE
+            or _op_case == 0xFF
+        ):
+            bit = (op & 0b00111000) >> 3
+            val |= 1 << bit
+        else:
+            raise ValueError(_op_case)
 
         self.set_reg(op, val & 0xFF)
 
@@ -1079,40 +1514,40 @@ class CPU:
         return val
 
     def get_reg(self, n: u8) -> u8:
-        match n & 0x07:
-            case 0:
-                return self.B
-            case 1:
-                return self.C
-            case 2:
-                return self.D
-            case 3:
-                return self.E
-            case 4:
-                return self.H
-            case 5:
-                return self.L
-            case 6:
-                return self.ram[self.HL]
-            case 7:
-                return self.A
+        _n_case = n & 0x07
+        if _n_case == 0:
+            return self.B
+        elif _n_case == 1:
+            return self.C
+        elif _n_case == 2:
+            return self.D
+        elif _n_case == 3:
+            return self.E
+        elif _n_case == 4:
+            return self.H
+        elif _n_case == 5:
+            return self.L
+        elif _n_case == 6:
+            return self.ram[self.HL]
+        elif _n_case == 7:
+            return self.A
         raise Exception("This should never happen")
 
     def set_reg(self, n: u8, val: u8) -> None:
-        match n & 0x07:
-            case 0:
-                self.B = val
-            case 1:
-                self.C = val
-            case 2:
-                self.D = val
-            case 3:
-                self.E = val
-            case 4:
-                self.H = val
-            case 5:
-                self.L = val
-            case 6:
-                self.ram[self.HL] = val
-            case 7:
-                self.A = val
+        _n_case = n & 0x07
+        if _n_case == 0:
+            self.B = val
+        elif _n_case == 1:
+            self.C = val
+        elif _n_case == 2:
+            self.D = val
+        elif _n_case == 3:
+            self.E = val
+        elif _n_case == 4:
+            self.H = val
+        elif _n_case == 5:
+            self.L = val
+        elif _n_case == 6:
+            self.ram[self.HL] = val
+        elif _n_case == 7:
+            self.A = val
