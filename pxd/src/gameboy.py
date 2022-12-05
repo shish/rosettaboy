@@ -1,11 +1,14 @@
 import argparse
 
-from .cart import Cart
-from .cpu import CPU
-from .gpu import GPU
-from .clock import Clock
-from .buttons import Buttons
-from .ram import RAM
+import cython
+
+if not cython.compiled:
+    from .cart import Cart
+    from .cpu import CPU
+    from .gpu import GPU
+    from .clock import Clock
+    from .buttons import Buttons
+    from .ram import RAM
 
 
 class GameBoy:

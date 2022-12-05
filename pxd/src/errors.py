@@ -1,5 +1,9 @@
 import typing as t
-from .consts import u8
+
+import cython
+
+if not cython.compiled:
+    from .consts import u8
 
 
 class EmuError(Exception):
