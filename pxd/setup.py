@@ -16,5 +16,6 @@ setup(
             "profile": True,
             "annotation_typing": True,
         },
+        include_path=["src"],
     ),
 )

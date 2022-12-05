@@ -1,9 +1,13 @@
 import typing as t
 import sys
 
+import cython
+
 from .errors import UnitTestPassed, UnitTestFailed, InvalidOpcode
-from .ram import RAM
-from .consts import *
+
+if not cython.compiled:
+    from .ram import RAM
+    from .consts import *
 
 
 # fmt: off
@@ -143,23 +147,36 @@ OP_CB_NAMES: t.Final[t.List[str]] = [
 
 
 class OpArg:
-    def __init__(self, ram: RAM, addr: u16, arg_type: int):
+    def __init__(self, ram: RAM, addr: u16, arg_type: cython.int):
+        if not cython.compiled:
+            self.__cinit__(ram, addr, arg_type)
+
+    def __cinit__(self, ram: RAM, addr: u16, arg_type: cython.int):
+        self._init(ram, addr, arg_type)
+
+    def _init(self, ram: RAM, addr: u16, arg_type: cython.int):
         self.u8: u8 = 0
         self.i8: i8 = 0
         self.u16: u16 = 0
-
         if arg_type == 0:
             pass
         elif arg_type == 1:
-            self.u8 = ram[addr]
+            self.u8 = ram.get(addr)
         elif arg_type == 2:
-            self.u16 = ram[addr] | ram[addr + 1] << 8
+            self.u16 = ram.get(addr) | ram.get(addr + 1) << 8
         elif arg_type == 3:
-            self.i8 = ram[addr]
+            self.i8 = ram.get(addr)
             if self.i8 > 127:
                 self.i8 -= 256
         else:
             raise Exception(f"Unknown arg type: {arg_type}")
+
+    @staticmethod
+    def create(ram: RAM, addr: u16, arg_type: cython.int):
+        if cython.compiled:
+            return OpArg.__new__(OpArg, ram, addr, arg_type)
+        else:
+            return OpArg(ram, addr, arg_type)
 
 
 class CPU:
@@ -191,8 +208,7 @@ class CPU:
         self.FLAG_H: bool = False
         self.FLAG_C: bool = False
 
-    @property
-    def AF(self) -> int:
+    def AF(self) -> cython.int:
         """
         >>> cpu = CPU()
         >>> cpu.A = 0x01
@@ -200,7 +216,7 @@ class CPU:
         >>> cpu.FLAG_N = True
         >>> cpu.FLAG_H = True
         >>> cpu.FLAG_C = True
-        >>> cpu.AF
+        >>> cpu.AF()
         496
         """
         return (
@@ -211,86 +227,77 @@ class CPU:
             | (self.FLAG_C or 0) << 4
         )
 
-    @AF.setter
-    def AF(self, val: int) -> None:
+    def setAF(self, val: cython.int) -> None:
         self.A = val >> 8 & 0xFF
-        self.FLAG_Z = bool(val & 0b10000000)
-        self.FLAG_N = bool(val & 0b01000000)
-        self.FLAG_H = bool(val & 0b00100000)
-        self.FLAG_C = bool(val & 0b00010000)
+        self.FLAG_Z = as_bool(val & 0b10000000)
+        self.FLAG_N = as_bool(val & 0b01000000)
+        self.FLAG_H = as_bool(val & 0b00100000)
+        self.FLAG_C = as_bool(val & 0b00010000)
 
-    @property
-    def BC(self) -> int:
+    def BC(self) -> cython.int:
         """
         >>> cpu = CPU()
-        >>> cpu.BC = 0x1234
+        >>> cpu.setBC(0x1234)
         >>> cpu.B, cpu.C
         (18, 52)
 
         >>> cpu.B, cpu.C = 1, 2
-        >>> cpu.BC
+        >>> cpu.BC()
         258
         """
         return self.B << 8 | self.C
 
-    @BC.setter
-    def BC(self, val: int) -> None:
+    def setBC(self, val: cython.int) -> None:
         self.B = val >> 8 & 0xFF
         self.C = val & 0xFF
 
-    @property
-    def DE(self) -> int:
+    def DE(self) -> cython.int:
         """
         >>> cpu = CPU()
-        >>> cpu.DE = 0x1234
+        >>> cpu.setDE(0x1234)
         >>> cpu.D, cpu.E
         (18, 52)
 
         >>> cpu.D, cpu.E = 1, 2
-        >>> cpu.DE
+        >>> cpu.DE()
         258
         """
         return self.D << 8 | self.E
 
-    @DE.setter
-    def DE(self, val: int) -> None:
+    def setDE(self, val: cython.int) -> None:
         self.D = val >> 8 & 0xFF
         self.E = val & 0xFF
 
-    @property
-    def HL(self) -> int:
+    def HL(self) -> cython.int:
         """
         >>> cpu = CPU()
-        >>> cpu.HL = 0x1234
+        >>> cpu.setHL(0x1234)
         >>> cpu.H, cpu.L
         (18, 52)
 
         >>> cpu.H, cpu.L = 1, 2
-        >>> cpu.HL
+        >>> cpu.HL()
         258
         """
         return self.H << 8 | self.L
 
-    @HL.setter
-    def HL(self, val: int) -> None:
+    def setHL(self, val: cython.int) -> None:
         self.H = val >> 8 & 0xFF
         self.L = val & 0xFF
 
-    @property
-    def MEM_AT_HL(self) -> int:
-        return self.ram[self.HL]
+    def MEM_AT_HL(self) -> cython.int:
+        return self.ram.get(self.HL())
 
-    @MEM_AT_HL.setter
-    def MEM_AT_HL(self, val: int) -> None:
-        self.ram[self.HL] = val
+    def setMEM_AT_HL(self, val: cython.int) -> None:
+        self.ram.set(self.HL(), val)
 
     def dump_regs(self) -> None:
         # stack
-        sp_val = self.ram[self.SP] | self.ram[(self.SP + 1) & 0xFFFF] << 8
+        sp_val = self.ram.get(self.SP) | self.ram.get((self.SP + 1) & 0xFFFF) << 8
 
         # interrupts
-        ien = self.ram[Mem.IE]
-        ifl = self.ram[Mem.IF]
+        ien = self.ram.get(Mem.IE)
+        ifl = self.ram.get(Mem.IF_)
 
         def flag(i: int, c: str) -> str:
             if ien & i != 0:
@@ -308,14 +315,14 @@ class CPU:
         j = flag(Interrupt.JOYPAD, "j")
 
         # opcode & args
-        op = self.ram[self.PC]
+        op = self.ram.get(self.PC)
         if op == 0xCB:
-            op = self.ram[self.PC + 1]
+            op = self.ram.get(self.PC + 1)
             op_str = OP_CB_NAMES[op]
         else:
             base = OP_NAMES[op]
-            arg = OpArg(self.ram, self.PC + 1, OP_TYPES[op])
-            _op_case = OP_TYPES[op]
+            arg: OpArg = OpArg.create(self.ram, self.PC + 1, OP_TYPES[op])
+            _op_case: u8 = OP_TYPES[op]
             if _op_case == 0:
                 op_str = base
             elif _op_case == 1:
@@ -324,16 +331,14 @@ class CPU:
                 op_str = base.replace("u16", f"{arg.u16:04X}")
             elif _op_case == 3:
                 op_str = base.replace("i8", f"{arg.i8:+d}")
-            else:
-                raise ValueError(_op_case)
 
         # print
         print(
             "{:04X} {:04X} {:04X} {:04X} : {:04X} = {:04X} : {}{}{}{} : {}{}{}{}{} : {:04X} = {:02X} : {}".format(
-                self.AF,
-                self.BC,
-                self.DE,
-                self.HL,
+                self.AF(),
+                self.BC(),
+                self.DE(),
+                self.HL(),
                 self.SP,
                 sp_val,
                 "Z" if self.FLAG_Z else "z",
@@ -351,13 +356,13 @@ class CPU:
             )
         )
 
-    def interrupt(self, i: int) -> None:
+    def interrupt(self, i: cython.int) -> None:
         """
         Set a given interrupt bit - on the next tick, if the interrupt
         handler for this interrupt is enabled (and interrupts in general
         are enabled), then the interrupt handler will be called.
         """
-        self.ram[Mem.IF] |= i
+        self.ram.set(Mem.IF_, self.ram.get(Mem.IF_) | i)
         self.halt = False  # interrupts interrupt HALT state
 
     def tick(self) -> None:
@@ -372,39 +377,40 @@ class CPU:
 
     def tick_dma(self) -> None:
         """
-        If there is a non-zero value in ram[Mem.DMA], eg 0x42, then
+        If there is a non-zero value in ram.get(Mem.DMA), eg 0x42, then
         we should copy memory from eg 0x4200 to OAM space.
         """
         # TODO: DMA should take 26 cycles, during which main RAM is inaccessible
-        if self.ram[Mem.DMA]:
-            dma_src = self.ram[Mem.DMA] << 8
+        if self.ram.get(Mem.DMA):
+            dma_src: cython.int = self.ram.get(Mem.DMA) << 8
+            i: cython.int
             for i in range(0, 0xA0):
-                self.ram[Mem.OAM_BASE + i] = self.ram[dma_src + i]
-            self.ram[Mem.DMA] = 0x00
+                self.ram.set(Mem.OAM_BASE + i, self.ram.get(dma_src + i))
+            self.ram.set(Mem.DMA, 0x00)
 
     def tick_clock(self) -> None:
         """
         Increment the timer registers, and send an interrupt
-        when `ram[Mem.TIMA]` wraps around.
+        when `ram.get(Mem.TIMA)` wraps around.
         """
         self.cycle += 1
 
         # TODO: writing any value to Mem.:DIV should reset it to 0x00
         # increment at 16384Hz (each 64 cycles?)
         if self.cycle % 64 == 0:
-            self.ram[Mem.DIV] = (self.ram[Mem.DIV] + 1) & 0xFF
+            self.ram.set(Mem.DIV, (self.ram.get(Mem.DIV) + 1) & 0xFF)
 
-        if self.ram[Mem.TAC] & 1 << 2 == 1 << 2:
+        if self.ram.get(Mem.TAC) & 1 << 2 == 1 << 2:
             # timer enable
-            speeds = [256, 4, 16, 64]  # increment per X cycles
-            speed = speeds[self.ram[Mem.TAC] & 0x03]
+            speeds: cython.int[4] = [256, 4, 16, 64]  # increment per X cycles
+            speed: cython.int = speeds[self.ram.get(Mem.TAC) & 0x03]
             if self.cycle % speed == 0:
-                if self.ram[Mem.TIMA] == 0xFF:
-                    self.ram[Mem.TIMA] = self.ram[
-                        Mem.TMA
-                    ]  # if timer overflows, load base
+                if self.ram.get(Mem.TIMA) == 0xFF:
+                    self.ram.set(
+                        Mem.TIMA, self.ram.get(Mem.TMA)
+                    )  # if timer overflows, load base
                     self.interrupt(Interrupt.TIMER)
-                self.ram[Mem.TIMA] += 1
+                self.ram.set(Mem.TIMA, self.ram.get(Mem.TIMA) + 1)
 
     def check_interrupt(self, queue: u8, i: u8, handler: u16) -> bool:
         if queue & i:
@@ -413,7 +419,7 @@ class CPU:
             # TODO: one more cycle to store new PC
             self.push(self.PC)
             self.PC = handler
-            self.ram[Mem.IF] &= ~i
+            self.ram.set(Mem.IF_, self.ram.get(Mem.IF_) & ~i)
             return True
         return False
 
@@ -423,11 +429,11 @@ class CPU:
         there are any interrupts which are both enabled and flagged,
         clear the flag and call the handler for the first of them.
         """
-        queue = self.ram[Mem.IE] & self.ram[Mem.IF]
+        queue = self.ram.get(Mem.IE) & self.ram.get(Mem.IF_)
         if self.interrupts and queue:
             if self._debug:
                 print(
-                    f"Handling interrupts: {self.ram[Mem.IE]:02X} & {self.ram[Mem.IF]:02X}"
+                    f"Handling interrupts: {self.ram.get(Mem.IE):02X} & {self.ram.get(Mem.IF_):02X}"
                 )
 
             # no nested interrupts, RETI will re-enable
@@ -446,15 +452,15 @@ class CPU:
         # more instructions until other subsystems have caught up
         if self._owed_cycles > 0:
             self._owed_cycles -= 1
-            return
+            return 0
 
         if self._debug:
             self.dump_regs()
 
-        op = self.ram[self.PC]
+        op = self.ram.get(self.PC)
         self.PC += 1
         if op == 0xCB:
-            op = self.ram[self.PC]
+            op = self.ram.get(self.PC)
             self.PC += 1
             self.tick_cb(op)
             self._owed_cycles = OP_CB_CYCLES[op]
@@ -466,68 +472,72 @@ class CPU:
         if self._owed_cycles > 0:
             self._owed_cycles -= 1
 
-    def tick_main(self, op: int) -> None:
-        arg_type = OP_TYPES[op]
-        arg_len = OP_LENS[arg_type]
-        arg = OpArg(self.ram, self.PC, arg_type)
+    def tick_main(self, op: cython.int) -> None:
+        arg_type: cython.int = OP_TYPES[op]
+        arg_len: cython.int = OP_LENS[arg_type]
+        arg: OpArg = OpArg.create(self.ram, self.PC, arg_type)
         self.PC += arg_len
-        ram = self.ram
+        ram: RAM = self.ram
+
+        val16: u16
+        val: u8
+        carry: cython.int
 
         if op == 0x00:
             pass  # NOP
         elif op == 0x01:
-            self.BC = arg.u16
+            self.setBC(arg.u16)
 
         elif op == 0x02:
-            ram[self.BC] = self.A
+            ram.set(self.BC(), self.A)
 
         elif op == 0x03:
-            self.BC = (self.BC + 1) & 0xFFFF
+            self.setBC((self.BC() + 1) & 0xFFFF)
 
         elif op == 0x08:
-            ram[arg.u16 + 1] = (self.SP >> 8) & 0xFF
-            ram[arg.u16] = self.SP & 0xFF
+            ram.set(arg.u16 + 1, (self.SP >> 8) & 0xFF)
+            ram.set(arg.u16, self.SP & 0xFF)
 
         elif op == 0x0A:
-            self.A = ram[self.BC]
+            self.A = ram.get(self.BC())
 
         elif op == 0x0B:
-            self.BC = (self.BC - 1) & 0xFFFF
+            self.setBC((self.BC() - 1) & 0xFFFF)
 
         elif op == 0x10:
             self.stop = True
 
         elif op == 0x11:
-            self.DE = arg.u16
+            self.setDE(arg.u16)
 
         elif op == 0x12:
-            ram[self.DE] = self.A
+            ram.set(self.DE(), self.A)
 
         elif op == 0x13:
-            self.DE = (self.DE + 1) & 0xFFFF
+            self.setDE((self.DE() + 1) & 0xFFFF)
 
         elif op == 0x18:
             self.PC = (self.PC + arg.i8) & 0xFFFF
 
         elif op == 0x1A:
-            self.A = ram[self.DE]
+            self.A = ram.get(self.DE())
 
         elif op == 0x1B:
-            self.DE = (self.DE - 1) & 0xFFFF
+            self.setDE((self.DE() - 1) & 0xFFFF)
 
         elif op == 0x20:
             if not self.FLAG_Z:
                 self.PC = (self.PC + arg.i8) & 0xFFFF
 
         elif op == 0x21:
-            self.HL = arg.u16
+            self.setHL(arg.u16)
 
         elif op == 0x22:
-            ram[self.HL] = self.A
-            self.HL = (self.HL + 1) & 0xFFFF
+            ram.set(self.HL(), self.A)
+            self.setHL((self.HL() + 1) & 0xFFFF)
 
         elif op == 0x23:
-            self.HL = (self.HL + 1) & 0xFFFF
+            self.setHL((self.HL() + 1) & 0xFFFF)
 
         elif op == 0x27:
             val16 = self.A
@@ -559,11 +569,11 @@ class CPU:
                 self.PC = (self.PC + arg.i8) & 0xFFFF
 
         elif op == 0x2A:
-            self.A = ram[self.HL]
-            self.HL = (self.HL + 1) & 0xFFFF
+            self.A = ram.get(self.HL())
+            self.setHL((self.HL() + 1) & 0xFFFF)
 
         elif op == 0x2B:
-            self.HL = (self.HL - 1) & 0xFFFF
+            self.setHL((self.HL() - 1) & 0xFFFF)
 
         elif op == 0x2F:
             self.A ^= 0xFF
@@ -578,8 +588,8 @@ class CPU:
             self.SP = arg.u16
 
         elif op == 0x32:
-            ram[self.HL] = self.A
-            self.HL = (self.HL - 1) & 0xFFFF
+            ram.set(self.HL(), self.A)
+            self.setHL((self.HL() - 1) & 0xFFFF)
         elif op == 0x33:
             self.SP = (self.SP + 1) & 0xFFFF
 
@@ -593,8 +603,8 @@ class CPU:
                 self.PC = (self.PC + arg.i8) & 0xFFFF
 
         elif op == 0x3A:
-            self.A = ram[self.HL]
-            self.HL = (self.HL - 1) & 0xFFFF
+            self.A = ram.get(self.HL())
+            self.setHL((self.HL() - 1) & 0xFFFF)
 
         elif op == 0x3B:
             self.SP = (self.SP - 1) & 0xFFFF
@@ -683,19 +693,17 @@ class CPU:
         # ADD HL,rr
         elif op == 0x09 or op == 0x19 or op == 0x29 or op == 0x39:
             if op == 0x09:
-                val16 = self.BC
+                val16 = self.BC()
             elif op == 0x19:
-                val16 = self.DE
+                val16 = self.DE()
             elif op == 0x29:
-                val16 = self.HL
+                val16 = self.HL()
             elif op == 0x39:
                 val16 = self.SP
-            else:
-                raise ValueError(op)
 
-            self.FLAG_H = (self.HL & 0x0FFF) + (val16 & 0x0FFF) > 0x0FFF
-            self.FLAG_C = (self.HL + val16) > 0xFFFF
-            self.HL = (self.HL + val16) & 0xFFFF
+            self.FLAG_H = (self.HL() & 0x0FFF) + (val16 & 0x0FFF) > 0x0FFF
+            self.FLAG_C = (self.HL() + val16) > 0xFFFF
+            self.setHL((self.HL() + val16) & 0xFFFF)
             self.FLAG_N = False
 
         elif (
@@ -866,7 +874,7 @@ class CPU:
                 self.PC = self.pop()
 
         elif op == 0xC1:
-            self.BC = self.pop()
+            self.setBC(self.pop())
 
         elif op == 0xC2:
             if not self.FLAG_Z:
@@ -881,7 +889,7 @@ class CPU:
                 self.PC = arg.u16
 
         elif op == 0xC5:
-            self.push(self.BC)
+            self.push(self.BC())
 
         elif op == 0xC6:
             self._add(arg.u8)
@@ -922,7 +930,7 @@ class CPU:
                 self.PC = self.pop()
 
         elif op == 0xD1:
-            self.DE = self.pop()
+            self.setDE(self.pop())
 
         elif op == 0xD2:
             if not self.FLAG_C:
@@ -934,7 +942,7 @@ class CPU:
                 self.PC = arg.u16
 
         elif op == 0xD5:
-            self.push(self.DE)
+            self.push(self.DE())
 
         elif op == 0xD6:
             self._sub(arg.u8)
@@ -968,22 +976,22 @@ class CPU:
             self.PC = 0x18
 
         elif op == 0xE0:
-            ram[0xFF00 + arg.u8] = self.A
+            ram.set(0xFF00 + arg.u8, self.A)
             if arg.u8 == 0x01:
                 sys.stdout.write(chr(self.A))
 
         elif op == 0xE1:
-            self.HL = self.pop()
+            self.setHL(self.pop())
 
         elif op == 0xE2:
-            ram[0xFF00 + self.C] = self.A
+            ram.set(0xFF00 + self.C, self.A)
             if self.C == 0x01:
                 sys.stdout.write(chr(self.A))
 
         # 0xE3 => self._err(op),
         # 0xE4 => self._err(op),
         elif op == 0xE5:
-            self.push(self.HL)
+            self.push(self.HL())
 
         elif op == 0xE6:
             self._and(arg.u8)
@@ -1004,10 +1012,10 @@ class CPU:
             self.FLAG_N = False
 
         elif op == 0xE9:
-            self.PC = self.HL
+            self.PC = self.HL()
 
         elif op == 0xEA:
-            ram[arg.u16] = self.A
+            ram.set(arg.u16, self.A)
 
         elif op == 0xEE:
             self._xor(arg.u8)
@@ -1017,19 +1025,19 @@ class CPU:
             self.PC = 0x28
 
         elif op == 0xF0:
-            self.A = ram[0xFF00 + arg.u8]
+            self.A = ram.get(0xFF00 + arg.u8)
 
         elif op == 0xF1:
-            self.AF = self.pop() & 0xFFF0
+            self.setAF(self.pop() & 0xFFF0)
 
         elif op == 0xF2:
-            self.A = ram[0xFF00 + self.C]
+            self.A = ram.get(0xFF00 + self.C)
 
         elif op == 0xF3:
             self.interrupts = False
 
         elif op == 0xF5:
-            self.push(self.AF)
+            self.push(self.AF())
 
         elif op == 0xF6:
             self._or(arg.u8)
@@ -1046,14 +1054,14 @@ class CPU:
                 self.FLAG_C = (new_hl & 0xFF) <= (self.SP & 0xFF)
                 self.FLAG_H = (new_hl & 0x0F) <= (self.SP & 0x0F)
 
-            self.HL = new_hl
+            self.setHL(new_hl)
             self.FLAG_Z = False
             self.FLAG_N = False
 
         elif op == 0xF9:
-            self.SP = self.HL
+            self.SP = self.HL()
         elif op == 0xFA:
-            self.A = ram[arg.u16]
+            self.A = ram.get(arg.u16)
         elif op == 0xFB:
             self.interrupts = True
         elif op == 0xFC:
@@ -1069,9 +1077,10 @@ class CPU:
         else:
             raise InvalidOpcode(op)
 
-    def tick_cb(self, op: int) -> None:
-        val = self.get_reg(op)
-        _op_case = op & 0xF8
+    def tick_cb(self, op: cython.int) -> None:
+        val: u8 = self.get_reg(op)
+        bit: u8
+        _op_case: u8 = op & 0xF8
         # RLC
         if (
             _op_case == 0x00
@@ -1480,7 +1489,7 @@ class CPU:
         self.FLAG_Z = self.A == 0
 
     def _adc(self, val: u8) -> None:
-        carry: u8 = u8(self.FLAG_C)
+        carry: u8 = as_u8(self.FLAG_C)
         self.FLAG_C = self.A + val + carry > 0xFF
         self.FLAG_H = (self.A & 0x0F) + (val & 0x0F) + carry > 0x0F
         self.FLAG_N = False
@@ -1495,7 +1504,7 @@ class CPU:
         self.FLAG_N = True
 
     def _sbc(self, val: u8) -> None:
-        carry: u8 = u8(self.FLAG_C)
+        carry: u8 = as_u8(self.FLAG_C)
         res = self.A - val - carry
         self.FLAG_H = ((self.A ^ val ^ (res & 0xFF)) & (1 << 4)) != 0
         self.FLAG_C = res < 0
@@ -1504,17 +1513,17 @@ class CPU:
         self.FLAG_N = True
 
     def push(self, val: u16) -> None:
-        self.ram[self.SP - 1] = (val >> 8) & 0xFF
-        self.ram[self.SP - 2] = val & 0xFF
+        self.ram.set(self.SP - 1, (val >> 8) & 0xFF)
+        self.ram.set(self.SP - 2, val & 0xFF)
         self.SP -= 2
 
     def pop(self) -> u16:
-        val = (self.ram[self.SP + 1] << 8) | self.ram[self.SP]
+        val = (self.ram.get(self.SP + 1) << 8) | self.ram.get(self.SP)
         self.SP += 2
         return val
 
     def get_reg(self, n: u8) -> u8:
-        _n_case = n & 0x07
+        _n_case: u8 = n & 0x07
         if _n_case == 0:
             return self.B
         elif _n_case == 1:
@@ -1528,13 +1537,13 @@ class CPU:
         elif _n_case == 5:
             return self.L
         elif _n_case == 6:
-            return self.ram[self.HL]
+            return self.ram.get(self.HL())
         elif _n_case == 7:
             return self.A
         raise Exception("This should never happen")
 
     def set_reg(self, n: u8, val: u8) -> None:
-        _n_case = n & 0x07
+        _n_case: u8 = n & 0x07
         if _n_case == 0:
             self.B = val
         elif _n_case == 1:
@@ -1548,6 +1557,6 @@ class CPU:
         elif _n_case == 5:
             self.L = val
         elif _n_case == 6:
-            self.ram[self.HL] = val
+            self.ram.set(self.HL(), val)
         elif _n_case == 7:
             self.A = val

@@ -1,16 +1,28 @@
 import typing as t
-from .cart import Cart
-from .consts import Mem, u16, u8
 
-ROM_BANK_SIZE: t.Final[u16] = 0x4000
-RAM_BANK_SIZE: t.Final[u16] = 0x2000
+import cython
+
+if cython.compiled:
+    from cython.cimports.cpython.mem import PyMem_RawMalloc, PyMem_RawFree
+else:
+    from .cart import Cart
+    from .consts import Mem, u16, u8
+
+ROM_BANK_SIZE: u16 = 0x4000
+RAM_BANK_SIZE: u16 = 0x2000
 
 
+@cython.cclass
 class RAM:
     def __init__(self, cart: Cart, debug: bool = False) -> None:
         self.cart = cart
         self.boot = self.get_boot()
-        self.data = [0] * (0xFFFF + 1)
+        if cython.compiled:
+            for i in range(65536):
+                self.data[i] = 0
+            # self.data = PyMem_RawMalloc()
+        else:
+            self.data = [0] * (0xFFFF + 1)
         self.debug = debug
 
         self.ram_enable = True
@@ -19,6 +31,11 @@ class RAM:
         self.rom_bank_high = 0
         self.rom_bank = 1
         self.ram_bank = 0
+
+    # if cython.compiled:
+    #     def __dealloc__(self):
+    #         if self.data:
+    #             PyMem_RawFree(self)
 
     def get_boot(self) -> t.List[int]:
         try:
@@ -69,7 +86,10 @@ class RAM:
         assert len(BOOT) == 0x100, f"Bootloader must be 256 bytes ({len(BOOT)})"
         return BOOT
 
-    def __getitem__(self, addr: u16) -> u8:
+    def get(self, addr: u16) -> u8:
+        val: cython.int
+        bank: u16
+        offset: u16
         val = self.data[addr]
         if addr < 0x4000:
             # ROM bank 0
@@ -92,8 +112,8 @@ class RAM:
                 raise Exception(
                     "Reading from external ram while disabled: {:04X}", addr
                 )
-            bank = self.ram_bank * RAM_BANK_SIZE
-            offset = addr - 0xA000
+            bank: u16 = self.ram_bank * RAM_BANK_SIZE
+            offset: u16 = addr - 0xA000
             if bank + offset >= self.cart.ram_size:
                 # this should never happen because we die on ram_bank being
                 # set to a too-large value
@@ -130,12 +150,12 @@ class RAM:
             pass
 
         if self.debug:
-            print(f"ram[{addr:04X}] -> {val:02X}")
+            print(f"ram.get({addr:04X}) -> {val:02X}")
         return val
 
-    def __setitem__(self, addr: u16, val: u8) -> None:
+    def set(self, addr: u16, val: u8) -> None:
         if self.debug:
-            print(f"ram[{addr:04X}] <- {val:02X}")
+            print(f"ram.get({addr:04X}) <- {val:02X}")
         if addr < 0x2000:
             self.ram_enable = val != 0
         elif addr < 0x4000:
@@ -185,8 +205,8 @@ class RAM:
                 raise Exception(
                     "Writing to external ram while disabled: {:04x}={:02x}", addr, val
                 )
-            bank = self.ram_bank * RAM_BANK_SIZE
-            offset = addr - 0xA000
+            bank: cython.int = self.ram_bank * RAM_BANK_SIZE
+            offset: u16 = addr - 0xA000
             if self.debug:
                 print(
                     "Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",

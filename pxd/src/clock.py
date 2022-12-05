@@ -1,11 +1,21 @@
 import sdl2
 import time
-from .buttons import Buttons
 from .errors import Timeout
+
+import cython
+
+if not cython.compiled:
+    from .buttons import Buttons
 
 
 class Clock:
-    def __init__(self, buttons: Buttons, frames: int, profile: int, turbo: bool):
+    def __init__(
+        self,
+        buttons: Buttons,
+        frames: cython.longlong,
+        profile: cython.longlong,
+        turbo: bool,
+    ):
         self.buttons = buttons
         self.cycle = 0
         self.frame = 0
@@ -21,7 +31,7 @@ class Clock:
         # Do a whole frame's worth of sleeping at the start of each frame
         if self.cycle % 17556 == 20:
             # Sleep if we have time left over
-            time_spent = sdl2.SDL_GetTicks() - self.last_frame_start
+            time_spent: cython.int = sdl2.SDL_GetTicks() - self.last_frame_start
             sleep_for = (1000 / 60) - time_spent
             if sleep_for > 0 and not self.turbo and not self.buttons.turbo:
                 sdl2.SDL_Delay(int(sleep_for))

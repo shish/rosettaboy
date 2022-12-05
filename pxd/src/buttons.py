@@ -1,22 +1,30 @@
 import sdl2
 import ctypes
 import typing as t
-from .consts import Interrupt, Mem
-from .cpu import CPU
 from .errors import Quit
 
+import cython
 
-class Joypad:
-    MODE_BUTTONS: t.Final[int] = 1 << 5
-    MODE_DPAD: t.Final[int] = 1 << 4
-    DOWN: t.Final[int] = 1 << 3
-    START: t.Final[int] = 1 << 3
-    UP: t.Final[int] = 1 << 2
-    SELECT: t.Final[int] = 1 << 2
-    LEFT: t.Final[int] = 1 << 1
-    B: t.Final[int] = 1 << 1
-    RIGHT: t.Final[int] = 1 << 0
-    A: t.Final[int] = 1 << 0
+if not cython.compiled:
+    from .cpu import CPU
+    from .consts import Interrupt, Mem, u8, booli
+
+
+class _Joypad:
+    def __init__(self):
+        self.MODE_BUTTONS: cython.int = 1 << 5
+        self.MODE_DPAD: cython.int = 1 << 4
+        self.DOWN: cython.int = 1 << 3
+        self.START: cython.int = 1 << 3
+        self.UP: cython.int = 1 << 2
+        self.SELECT: cython.int = 1 << 2
+        self.LEFT: cython.int = 1 << 1
+        self.B: cython.int = 1 << 1
+        self.RIGHT: cython.int = 1 << 0
+        self.A: cython.int = 1 << 0
+
+
+Joypad = _Joypad()
 
 
 class Buttons:
@@ -47,7 +55,8 @@ class Buttons:
                 self.cpu.interrupt(Interrupt.JOYPAD)
 
     def update_buttons(self) -> None:
-        JOYP = ~self.cpu.ram[Mem.JOYP]
+        JOYP: u8
+        JOYP = ~self.cpu.ram.get(Mem.JOYP)
         JOYP &= 0x30
         if JOYP & Joypad.MODE_DPAD:
             if self.up:
@@ -68,10 +77,11 @@ class Buttons:
             if self.select:
                 JOYP |= Joypad.SELECT
 
-        self.cpu.ram[Mem.JOYP] = ~JOYP & 0x3F
+        self.cpu.ram.set(Mem.JOYP, ~JOYP & 0x3F)
 
     def handle_inputs(self) -> bool:
         need_interrupt = False
+        key: cython.int
 
         event = sdl2.SDL_Event()
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
