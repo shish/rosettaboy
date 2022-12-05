@@ -1,0 +1,15 @@
+.idea
+.venv
+__pycache__
+.mypy_cache
+build
+
+Makefile
+*.gb
+*.asm
+*.o
+*.so
+
+*.swp
+*.txt
+*.sav
