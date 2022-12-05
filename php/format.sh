@@ -1,3 +1,6 @@
 #!/bin/bash -eu
 cd $(dirname $0)
-./vendor/bin/php-cs-fixer fix
+
+PATH="$(realpath -m './vendor/bin'):$PATH"
+
+php-cs-fixer fix
