@@ -1,5 +1,11 @@
+cimport CySDL2 as sdl2
+
 from .consts cimport *
 from .cpu cimport CPU
+
+
+cdef sdl2.SDL_Rect* make_SDL_Rect(int x, int y, int w, int h)
+cdef sdl2.SDL_Point make_SDL_Point(int x, int y)
 
 cdef class _LCDC:
     cdef public u8 ENABLED
@@ -52,24 +58,24 @@ cdef class GPU:
     cdef public bint debug
     cdef public long long cycle
     cdef public str title
-    cdef public object hw_window
-    cdef public object hw_renderer
-    cdef public object hw_buffer
-    cdef public object buffer
-    cdef public object renderer
-    cdef public list colors
+    cdef sdl2.SDL_Window* hw_window
+    cdef sdl2.SDL_Renderer* hw_renderer
+    cdef sdl2.SDL_Texture* hw_buffer
+    cdef sdl2.SDL_Surface* buffer
+    cdef sdl2.SDL_Renderer* renderer
+    cdef public sdl2.SDL_Color[4] colors
 
-    cdef public list bgp
-    cdef public list obp0
-    cdef public list obp1
+    cdef public sdl2.SDL_Color[4] bgp
+    cdef public sdl2.SDL_Color[4] obp0
+    cdef public sdl2.SDL_Color[4] obp1
 
-    cpdef void tick(self)
+    cpdef int tick(self) except? -1
 
     cpdef void update_palettes(self)
     cpdef void draw_debug(self)
     cpdef void draw_line(self, int ly)
-    cpdef void paint_tile(self, int tile_id, object offset, object palette, bint flip_x, bint flip_y)
-    cpdef void paint_tile_line(self, int tile_id, object offset, object palette, bint flip_x, bint flip_y, int y)
+    cdef void paint_tile(self, int tile_id, sdl2.SDL_Point offset, sdl2.SDL_Color[4] palette, bint flip_x, bint flip_y)
+    cdef void paint_tile_line(self, int tile_id, sdl2.SDL_Point offset, sdl2.SDL_Color[4] palette, bint flip_x, bint flip_y, int y)
 
 
-cpdef object gen_hue(int n)
+cpdef sdl2.SDL_Color gen_hue(int n)

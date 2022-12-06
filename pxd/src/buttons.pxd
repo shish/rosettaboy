@@ -1,3 +1,5 @@
+cimport CySDL2 as sdl2
+
 from .cpu cimport CPU
 from .consts cimport Interrupt, Mem, u8, booli
 

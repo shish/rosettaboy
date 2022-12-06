@@ -1,13 +1,38 @@
-import sdl2
-import typing as t
-
 import cython
 
 if not cython.compiled:
+    import sdl2
+
+import typing as t
+
+if cython.compiled:
+    from cython.cimports.cpython.mem import PyMem_Malloc, PyMem_Free
+else:
     from .consts import *
     from .cpu import CPU
 
 SCALE = 2
+
+
+def make_SDL_Rect(x, y, w, h):
+    if cython.compiled:
+        q: cython.pointer(sdl2.SDL_Rect)
+        q = cython.cast(
+            cython.pointer(sdl2.SDL_Rect), PyMem_Malloc(cython.sizeof(sdl2.SDL_Rect))
+        )
+        q.x, q.y, q.w, q.h = x, y, w, h
+    else:
+        q = sdl2.SDL_Rect(x=x, y=y, w=w, h=h)
+    return q
+
+
+def make_SDL_Point(x, y):
+    if cython.compiled:
+        p: sdl2.SDL_Point
+        p.x, p.y = x, y
+    else:
+        p = sdl2.SDL_Point(x=x, y=y)
+    return p
 
 
 class _LCDC:
@@ -124,12 +149,14 @@ class GPU:
             sdl2.SDL_RenderSetLogicalSize(self.hw_renderer, size[0], size[1])
             self.hw_buffer = sdl2.SDL_CreateTexture(
                 self.hw_renderer,
-                sdl2.SDL_PIXELFORMAT_ABGR8888,
+                sdl2.SDL_PixelFormatEnum.SDL_PIXELFORMAT_ABGR8888
+                if cython.compiled
+                else sdl2.SDL_PIXELFORMAT_ABGR8888,
                 sdl2.SDL_TEXTUREACCESS_STREAMING,
                 size[0],
                 size[1],
             )
-        else:
+        elif not cython.compiled:
             self.hw_window = None
             self.hw_renderer = None
             self.hw_buffer = None
@@ -158,7 +185,7 @@ class GPU:
 
         # CPU STOP stops all LCD activity until a button is pressed
         if self.cpu.stop:
-            return
+            return 0
 
         # Check if LCD enabled at all
         lcdc = self.cpu.ram.get(Mem.LCDC)
@@ -167,7 +194,7 @@ class GPU:
             # Does it become 0 as soon as disabled??
             self.cpu.ram.set(Mem.LY, 0)
             if not self.debug:
-                return
+                return 0
 
         lx = self.cycle % 114
         ly = (self.cycle // 114) % 154
@@ -208,11 +235,20 @@ class GPU:
                 if self.hw_renderer:
                     sdl2.SDL_UpdateTexture(
                         self.hw_buffer,
-                        None,
-                        self.buffer.contents.pixels,
-                        self.buffer.contents.pitch,
+                        cython.NULL if cython.compiled else None,
+                        self.buffer.pixels
+                        if cython.compiled
+                        else self.buffer.contents.pixels,
+                        self.buffer.pitch
+                        if cython.compiled
+                        else self.buffer.contents.pitch,
                     )
-                    sdl2.SDL_RenderCopy(self.hw_renderer, self.hw_buffer, None, None)
+                    sdl2.SDL_RenderCopy(
+                        self.hw_renderer,
+                        self.hw_buffer,
+                        cython.NULL if cython.compiled else None,
+                        cython.NULL if cython.compiled else None,
+                    )
                     sdl2.SDL_RenderPresent(self.hw_renderer)
 
         elif lx == 63 and ly < 144:
@@ -237,7 +273,7 @@ class GPU:
             self.colors[(raw_bgp >> 6) & 0x3],
         ]
 
-        raw_obp0 = self.cpu.ram.get(Mem.OBP0)
+        raw_obp0: cython.int = self.cpu.ram.get(Mem.OBP0)
         self.obp0 = [
             self.colors[(raw_obp0 >> 0) & 0x3],
             self.colors[(raw_obp0 >> 2) & 0x3],
@@ -245,7 +281,7 @@ class GPU:
             self.colors[(raw_obp0 >> 6) & 0x3],
         ]
 
-        raw_obp1 = self.cpu.ram.get(Mem.OBP1)
+        raw_obp1: cython.int = self.cpu.ram.get(Mem.OBP1)
         self.obp1 = [
             self.colors[(raw_obp1 >> 0) & 0x3],
             self.colors[(raw_obp1 >> 2) & 0x3],
@@ -260,7 +296,7 @@ class GPU:
         tile_display_width: cython.int = 32
         tile_id: cython.int
         for tile_id in range(0, 384):
-            xy = sdl2.SDL_Point(
+            xy = make_SDL_Point(
                 x=160 + (tile_id % tile_display_width) * 8,
                 y=(tile_id // tile_display_width) * 8,
             )
@@ -269,17 +305,21 @@ class GPU:
 
         # Background scroll border
         if lcdc & LCDC.BG_WIN_ENABLED:
-            rect = sdl2.SDL_Rect(x=0, y=0, w=160, h=144)
+            rect = make_SDL_Rect(x=0, y=0, w=160, h=144)
             sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 0xFF)
             sdl2.SDL_RenderDrawRect(self.renderer, rect)
+            if cython.compiled:
+                PyMem_Free(rect)
 
         # Window tiles
         if lcdc & LCDC.WINDOW_ENABLED:
             wnd_y = self.cpu.ram.get(Mem.WY)
             wnd_x: cython.int = self.cpu.ram.get(Mem.WX)
-            rect = sdl2.SDL_Rect(x=wnd_x - 7, y=wnd_y, w=160, h=144)
+            rect = make_SDL_Rect(x=wnd_x - 7, y=wnd_y, w=160, h=144)
             sdl2.SDL_SetRenderDrawColor(self.renderer, 0, 0, 255, 0xFF)
             sdl2.SDL_RenderDrawRect(self.renderer, rect)
+            if cython.compiled:
+                PyMem_Free(rect)
 
     def draw_line(self, ly: cython.int) -> None:
         lcdc = self.cpu.ram.get(Mem.LCDC)
@@ -292,7 +332,7 @@ class GPU:
             tile_map: cython.int = Mem.MAP_1 if (lcdc & LCDC.BG_MAP) else Mem.MAP_0
 
             if self.debug:
-                xy = sdl2.SDL_Point(x=256 - scroll_x, y=ly)
+                xy = make_SDL_Point(x=256 - scroll_x, y=ly)
                 sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 0xFF)
                 sdl2.SDL_RenderDrawPoint(self.renderer, xy.x, xy.y)
 
@@ -310,7 +350,7 @@ class GPU:
                 if tile_offset and tile_id < 0x80:
                     tile_id += 0x100
 
-                xy = sdl2.SDL_Point(
+                xy = make_SDL_Point(
                     x=lx - tile_sub_x,
                     y=ly - tile_sub_y,
                 )
@@ -325,7 +365,7 @@ class GPU:
             tile_map = Mem.MAP_1 if (lcdc & LCDC.WINDOW_MAP) else Mem.MAP_0
 
             # blank out the background
-            rect = sdl2.SDL_Rect(
+            rect = make_SDL_Rect(
                 x=wnd_x - 7,
                 y=wnd_y,
                 w=160,
@@ -335,6 +375,8 @@ class GPU:
             c = self.bgp[0]
             sdl2.SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
             sdl2.SDL_RenderFillRect(self.renderer, rect)
+            if cython.compiled:
+                PyMem_Free(rect)
 
             y_in_bgmap: cython.int = ly - wnd_y
             tile_y = y_in_bgmap // 8
@@ -345,7 +387,7 @@ class GPU:
                 if tile_offset and tile_id < 0x80:
                     tile_id += 0x100
 
-                xy = sdl2.SDL_Point(
+                xy = make_SDL_Point(
                     x=tile_x * 8 + wnd_x - 7,
                     y=tile_y * 8 + wnd_y,
                 )
@@ -370,15 +412,32 @@ class GPU:
                 )
 
                 if sprite.is_live():
-                    palette = self.obp1 if sprite.palette() else self.obp0
+                    if cython.compiled:
+                        palette = (
+                            cython.cast(
+                                cython.pointer(cython.pointer(sdl2.SDL_Color)),
+                                self.obp1,
+                            )
+                            if sprite.palette()
+                            else cython.cast(
+                                cython.pointer(cython.pointer(sdl2.SDL_Color)),
+                                self.obp0,
+                            )
+                        )
+                    else:
+                        palette = self.obp1 if sprite.palette else self.obp0
                     # printf("Drawing sprite %d (from %04X) at %d,%d\n", tile_id, OAM_BASE + (sprite_id * 4) + 0, x, y)
-                    xy = sdl2.SDL_Point(
+                    xy = make_SDL_Point(
                         x=sprite.x - 8,
                         y=sprite.y - 16,
                     )
 
                     self.paint_tile(
-                        sprite.tile_id, xy, palette, sprite.x_flip(), sprite.y_flip()
+                        sprite.tile_id,
+                        xy,
+                        cython.cast(cython.pointer(sdl2.SDL_Color), palette),
+                        sprite.x_flip(),
+                        sprite.y_flip(),
                     )
 
                     if dbl:
@@ -386,7 +445,7 @@ class GPU:
                         self.paint_tile(
                             sprite.tile_id + 1,
                             xy,
-                            palette,
+                            cython.cast(cython.pointer(sdl2.SDL_Color), palette),
                             sprite.x_flip(),
                             sprite.y_flip(),
                         )
@@ -395,7 +454,7 @@ class GPU:
         self,
         tile_id: cython.int,
         offset: sdl2.SDL_Point,
-        palette: sdl2.SDL_Color,
+        palette: cython.array(sdl2.SDL_Color, 4),
         flip_x: bool,
         flip_y: bool,
     ) -> None:
@@ -403,7 +462,7 @@ class GPU:
             self.paint_tile_line(tile_id, offset, palette, flip_x, flip_y, y)
 
         if self.debug:
-            rect = sdl2.SDL_Rect(
+            rect = make_SDL_Rect(
                 x=offset.x,
                 y=offset.y,
                 w=8,
@@ -414,11 +473,14 @@ class GPU:
             sdl2.SDL_SetRenderDrawColor(self.renderer, c.r, c.g, c.b, c.a)
             sdl2.SDL_RenderDrawRect(self.renderer, rect)
 
+            if cython.compiled:
+                PyMem_Free(rect)
+
     def paint_tile_line(
         self,
         tile_id: cython.int,
         offset: sdl2.SDL_Point,
-        palette: sdl2.SDL_Color,
+        palette: cython.array(sdl2.SDL_Color, 4),
         flip_x: bool,
         flip_y: bool,
         y: cython.int,
@@ -433,7 +495,7 @@ class GPU:
             px: cython.int = (high_bit << 1) | low_bit
             # pallette #0 = transparent, so don't draw anything
             if px > 0:
-                xy = sdl2.SDL_Point(
+                xy = make_SDL_Point(
                     x=offset.x + (7 - x if flip_x else x),
                     y=offset.y + (7 - y if flip_y else y),
                 )
