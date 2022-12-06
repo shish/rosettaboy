@@ -5,5 +5,5 @@
 		SDL2
 		
 		rustfmt
-	];
+	] ++ (pkgs.lib.optional pkgs.targetPlatform.isMacOS pkgs.libiconv);
 }
