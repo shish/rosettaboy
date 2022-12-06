@@ -43,6 +43,8 @@ RUN git clone https://github.com/shish/php-sdl ~/php-sdl && \
 ARG PYTHON_VERSION
 USER root
 RUN apt update && apt install -y python${PYTHON_VERSION} python${PYTHON_VERSION}-venv black
+RUN mkdir -p /home/dev/.local/bin && ln -s /usr/bin/python3.11 /home/dev/.local/bin/python3
+ENV PATH="/home/dev/.local/bin:$PATH"
 
 # Install Rust tools
 ARG RUST_VERSION
