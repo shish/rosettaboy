@@ -3,15 +3,7 @@ let
 	langShell = lang: (import (./. + ("/" + lang + "/shell.nix")) { inherit pkgs; });
 	# We need this mess of no-op concatenations because Debian 11/Bullseye Stable is stuck on Nix 2.3.7 from 2020, which apparently doesn't always handle literals and antiquotation well:
 	# https://gist.github.com/CMCDragonkai/de84aece83f8521d087416fa21e34df4/fde9346664741a18d2748a578d9a1b648ee42dbd
-	combineShells = shells: pkgs.mkShell (builtins.foldl'
-		(shellA: shellB: 
-			{
-				buildInputs = shellA.buildInputs ++ shellB.buildInputs;
-			}
-		)
-		(pkgs.mkShell { inherit pkgs; })
-		shells
-	);
+	combineShells = shells: pkgs.mkShell { inputsFrom = shells; };
 in
 combineShells (
 	map (langShell) [
