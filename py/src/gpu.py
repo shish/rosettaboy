@@ -1,6 +1,6 @@
 import sdl2
+import typing as t
 
-from typing import NamedTuple
 from .consts import *
 from .cpu import CPU
 
@@ -8,37 +8,37 @@ SCALE = 2
 
 
 class LCDC:
-    ENABLED = 1 << 7
-    WINDOW_MAP = 1 << 6
-    WINDOW_ENABLED = 1 << 5
-    DATA_SRC = 1 << 4
-    BG_MAP = 1 << 3
-    OBJ_SIZE = 1 << 2
-    OBJ_ENABLED = 1 << 1
-    BG_WIN_ENABLED = 1 << 0
+    ENABLED: t.Final[u8] = 1 << 7
+    WINDOW_MAP: t.Final[u8] = 1 << 6
+    WINDOW_ENABLED: t.Final[u8] = 1 << 5
+    DATA_SRC: t.Final[u8] = 1 << 4
+    BG_MAP: t.Final[u8] = 1 << 3
+    OBJ_SIZE: t.Final[u8] = 1 << 2
+    OBJ_ENABLED: t.Final[u8] = 1 << 1
+    BG_WIN_ENABLED: t.Final[u8] = 1 << 0
 
 
 class Stat:
-    LYC_INTERRUPT = 1 << 6
-    OAM_INTERRUPT = 1 << 5
-    VBLANK_INTERRUPT = 1 << 4
-    HBLANK_INTERRUPT = 1 << 3
-    LYC_EQUAL = 1 << 2
-    MODE_BITS = 1 << 1 | 1 << 0
+    LYC_INTERRUPT: t.Final[u8] = 1 << 6
+    OAM_INTERRUPT: t.Final[u8] = 1 << 5
+    VBLANK_INTERRUPT: t.Final[u8] = 1 << 4
+    HBLANK_INTERRUPT: t.Final[u8] = 1 << 3
+    LYC_EQUAL: t.Final[u8] = 1 << 2
+    MODE_BITS: t.Final[u8] = 1 << 1 | 1 << 0
 
-    HBLANK = 0x00
-    VBLANK = 0x01
-    OAM = 0x02
-    DRAWING = 0x03
+    HBLANK: t.Final[u8] = 0x00
+    VBLANK: t.Final[u8] = 0x01
+    OAM: t.Final[u8] = 0x02
+    DRAWING: t.Final[u8] = 0x03
 
 
-class Sprite(NamedTuple):
+class Sprite(t.NamedTuple):
     y: int
     x: int
     tile_id: int
     flags: int
 
-    def is_live(self):
+    def is_live(self) -> bool:
         return self.x > 0 and self.x < 168 and self.y > 0 and self.y < 160
 
     @property
@@ -58,10 +58,10 @@ class Sprite(NamedTuple):
         return self.flags & (1 << 7) != 0
 
 
-rmask = 0x000000FF
-gmask = 0x0000FF00
-bmask = 0x00FF0000
-amask = 0xFF000000
+rmask: t.Final[int] = 0x000000FF
+gmask: t.Final[int] = 0x0000FF00
+bmask: t.Final[int] = 0x00FF0000
+amask: t.Final[int] = 0xFF000000
 
 
 class GPU:

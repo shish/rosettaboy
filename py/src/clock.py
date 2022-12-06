@@ -15,7 +15,7 @@ class Clock:
         self.turbo = turbo
         self.last_frame_start = 0
 
-    def tick(self):
+    def tick(self) -> None:
         self.cycle += 1
 
         # Do a whole frame's worth of sleeping at the start of each frame

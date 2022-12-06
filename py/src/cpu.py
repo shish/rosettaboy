@@ -7,7 +7,7 @@ from .consts import *
 
 
 # fmt: off
-OP_CYCLES: t.List[int] = [
+OP_CYCLES: t.Final[t.List[int]] = [
     # 1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
     1, 3, 2, 2, 1, 1, 2, 1, 5, 2, 2, 2, 1, 1, 2, 1, # 0
     0, 3, 2, 2, 1, 1, 2, 1, 3, 2, 2, 2, 1, 1, 2, 1, # 1
@@ -27,7 +27,7 @@ OP_CYCLES: t.List[int] = [
     3, 3, 2, 1, 0, 4, 2, 4, 3, 2, 4, 1, 0, 0, 2, 4, # F
 ]
 
-OP_CB_CYCLES: t.List[int] = [
+OP_CB_CYCLES: t.Final[t.List[int]] = [
     # 1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
     2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # 0
     2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # 1
@@ -47,7 +47,7 @@ OP_CB_CYCLES: t.List[int] = [
     2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, # F
 ]
 
-OP_TYPES: t.List[int] = [
+OP_TYPES: t.Final[t.List[int]] = [
     # 1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
     0, 2, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 1, 0, # 0
     1, 2, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 0, 0, 1, 0, # 1
@@ -68,9 +68,9 @@ OP_TYPES: t.List[int] = [
 ]
 
 # no arg, u8, u16, i8
-OP_LENS: t.List[int] = [0, 1, 2, 1]
+OP_LENS: t.Final[t.List[int]] = [0, 1, 2, 1]
 
-OP_NAMES: t.List[str] = [
+OP_NAMES: t.Final[t.List[str]] = [
     "NOP",          "LD BC,$u16", "LD [BC],A",   "INC BC",    "INC B",        "DEC B",     "LD B,$u8",    "RCLA",
     "LD [$u16],SP", "ADD HL,BC",  "LD A,[BC]",   "DEC BC",    "INC C",        "DEC C",     "LD C,$u8",    "RRCA",
     "STOP",         "LD DE,$u16", "LD [DE],A",   "INC DE",    "INC D",        "DEC D",     "LD D,$u8",    "RLA",
@@ -105,7 +105,7 @@ OP_NAMES: t.List[str] = [
     "LD HL,SPi8",   "LD SP,HL",   "LD A,[$u16]", "EI",        "ERR FC",       "ERR FD",    "CP $u8",      "RST 38",
 ]
 
-OP_CB_NAMES: t.List[str] = [
+OP_CB_NAMES: t.Final[t.List[str]] = [
     "RLC B", "RLC C", "RLC D", "RLC E", "RLC H", "RLC L", "RLC [HL]", "RLC A",
     "RRC B", "RRC C", "RRC D", "RRC E", "RRC H", "RRC L", "RRC [HL]", "RRC A",
     "RL B", "RL C", "RL D", "RL E", "RL H", "RL L", "RL [HL]", "RL A",
@@ -163,7 +163,7 @@ class OpArg:
 
 
 class CPU:
-    def __init__(self, ram: RAM, debug=False) -> None:
+    def __init__(self, ram: RAM, debug: bool = False) -> None:
         self.ram = ram
         self.interrupts = True
         self.halt = False
@@ -1007,7 +1007,7 @@ class CPU:
 
         self.set_reg(op, val & 0xFF)
 
-    def _xor(self, val: u8):
+    def _xor(self, val: u8) -> None:
         self.A ^= val
 
         self.FLAG_Z = self.A == 0
@@ -1015,7 +1015,7 @@ class CPU:
         self.FLAG_H = False
         self.FLAG_C = False
 
-    def _or(self, val: u8):
+    def _or(self, val: u8) -> None:
         self.A |= val
 
         self.FLAG_Z = self.A == 0
@@ -1023,7 +1023,7 @@ class CPU:
         self.FLAG_H = False
         self.FLAG_C = False
 
-    def _and(self, val: u8):
+    def _and(self, val: u8) -> None:
         self.A &= val
 
         self.FLAG_Z = self.A == 0
@@ -1031,20 +1031,20 @@ class CPU:
         self.FLAG_H = True
         self.FLAG_C = False
 
-    def _cp(self, val: u8):
+    def _cp(self, val: u8) -> None:
         self.FLAG_Z = self.A == val
         self.FLAG_N = True
         self.FLAG_H = (self.A & 0x0F) < (val & 0x0F)
         self.FLAG_C = self.A < val
 
-    def _add(self, val: u8):
+    def _add(self, val: u8) -> None:
         self.FLAG_C = self.A + val > 0xFF
         self.FLAG_H = (self.A & 0x0F) + (val & 0x0F) > 0x0F
         self.FLAG_N = False
         self.A = (self.A + val) & 0xFF
         self.FLAG_Z = self.A == 0
 
-    def _adc(self, val: u8):
+    def _adc(self, val: u8) -> None:
         carry: u8 = u8(self.FLAG_C)
         self.FLAG_C = self.A + val + carry > 0xFF
         self.FLAG_H = (self.A & 0x0F) + (val & 0x0F) + carry > 0x0F
@@ -1052,14 +1052,14 @@ class CPU:
         self.A = (self.A + val + carry) & 0xFF
         self.FLAG_Z = self.A == 0
 
-    def _sub(self, val: u8):
+    def _sub(self, val: u8) -> None:
         self.FLAG_C = self.A < val
         self.FLAG_H = (self.A & 0x0F) < (val & 0x0F)
         self.A = (self.A - val) & 0xFF
         self.FLAG_Z = self.A == 0
         self.FLAG_N = True
 
-    def _sbc(self, val: u8):
+    def _sbc(self, val: u8) -> None:
         carry: u8 = u8(self.FLAG_C)
         res = self.A - val - carry
         self.FLAG_H = ((self.A ^ val ^ (res & 0xFF)) & (1 << 4)) != 0
@@ -1068,7 +1068,7 @@ class CPU:
         self.FLAG_Z = self.A == 0
         self.FLAG_N = True
 
-    def push(self, val: u16):
+    def push(self, val: u16) -> None:
         self.ram[self.SP - 1] = (val >> 8) & 0xFF
         self.ram[self.SP - 2] = val & 0xFF
         self.SP -= 2
