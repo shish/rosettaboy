@@ -10,5 +10,6 @@
 		])).out
 		
 		hostname
+		SDL2
 	];
 }

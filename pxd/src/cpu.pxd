@@ -1,3 +1,5 @@
+cimport CySDL2 as sdl2
+
 from .ram cimport RAM
 from .consts cimport *
 

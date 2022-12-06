@@ -2,9 +2,7 @@ import typing as t
 
 import cython
 
-if cython.compiled:
-    from cython.cimports.cpython.mem import PyMem_RawMalloc, PyMem_RawFree
-else:
+if not cython.compiled:
     from .cart import Cart
     from .consts import Mem, u16, u8
 
@@ -20,7 +18,6 @@ class RAM:
         if cython.compiled:
             for i in range(65536):
                 self.data[i] = 0
-            # self.data = PyMem_RawMalloc()
         else:
             self.data = [0] * (0xFFFF + 1)
         self.debug = debug
@@ -31,11 +28,6 @@ class RAM:
         self.rom_bank_high = 0
         self.rom_bank = 1
         self.ram_bank = 0
-
-    # if cython.compiled:
-    #     def __dealloc__(self):
-    #         if self.data:
-    #             PyMem_RawFree(self)
 
     def get_boot(self) -> t.List[int]:
         try:

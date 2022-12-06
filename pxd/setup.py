@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from setuptools import setup
+from setuptools import setup, Extension
 from Cython.Build import cythonize
 
 import os
@@ -8,7 +8,7 @@ import os
 setup(
     scripts=["main.py"],
     ext_modules=cythonize(
-        module_list=["src/*.py"],
+        module_list=[Extension(name="*", sources=["src/*.py"], libraries=["SDL2"])],
         nthreads=os.cpu_count(),
         annotate=True,
         compiler_directives={
@@ -16,6 +16,6 @@ setup(
             "profile": True,
             "annotation_typing": True,
         },
-        include_path=["src"],
+        include_path=["src", "include"],
     ),
 )

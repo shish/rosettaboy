@@ -1,11 +1,15 @@
-import sdl2
+import cython
+
+if not cython.compiled:
+    import sdl2
+
 import ctypes
 import typing as t
 from .errors import Quit
 
-import cython
-
-if not cython.compiled:
+if cython.compiled:
+    from cython.cimports.cpython.mem import PyMem_Malloc, PyMem_Free
+else:
     from .cpu import CPU
     from .consts import Interrupt, Mem, u8, booli
 
@@ -83,8 +87,17 @@ class Buttons:
         need_interrupt = False
         key: cython.int
 
-        event = sdl2.SDL_Event()
-        while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
+        if cython.compiled:
+            event: cython.pointer(sdl2.SDL_Event)
+            event = cython.cast(
+                cython.pointer(sdl2.SDL_Event),
+                PyMem_Malloc(cython.sizeof(sdl2.SDL_Event)),
+            )
+        else:
+            event = sdl2.SDL_Event()
+        while (
+            sdl2.SDL_PollEvent(event if cython.compiled else ctypes.byref(event)) != 0
+        ):
             if event.type == sdl2.SDL_QUIT:
                 raise Quit()
             elif event.type == sdl2.SDL_KEYDOWN:
@@ -133,5 +146,8 @@ class Buttons:
                     self.left = False
                 elif key == sdl2.SDLK_RIGHT:
                     self.right = False
+
+        if cython.compiled:
+            PyMem_Free(event)
 
         return need_interrupt

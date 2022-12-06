@@ -1,8 +1,10 @@
-import sdl2
+import cython
+
+if not cython.compiled:
+    import sdl2
+
 import time
 from .errors import Timeout
-
-import cython
 
 if not cython.compiled:
     from .buttons import Buttons

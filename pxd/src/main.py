@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
-import sdl2
+import cython
+
+if not cython.compiled:
+    import sdl2
+
 import sys
 from typing import List
 from traceback import print_exception

@@ -1,3 +1,5 @@
+cimport CySDL2 as sdl2
+
 from .consts cimport booli
 from .buttons cimport Buttons
 
