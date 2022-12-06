@@ -6,7 +6,6 @@ Make sure you fetch the GIT submodules if you didn't clone recursively:
 ```
 $ git submodule update --recursive
 ```
-<!-- PR Author: Would this get the right commits? -->
 
 Thoughts on Zig
 ===============
