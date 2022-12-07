@@ -1,23 +1,23 @@
-RosettaBoy Python
+RosettaBoy Cython
 =================
-My first ever attempt at an emulator
+Cythonized version of the Python implementation.
 
 Usage
 -----
 ```
-python3 -m venv venv
-./venv/bin/pip install pysdl2 pysdl2-dll
-./venv/bin/python3 main.py game.gb
+./run.sh game.gb
 ```
 
 Requirements
 ------------
-- Python 3.6+
+- Python 3.10
+- Cython 3.0.0a11
 - PySDL2
+- SDL2
 
 Formatting
 ----------
 Automated with Black:
 ```
-./venv/bin/black src/*.py
+black src/*.py
 ```
