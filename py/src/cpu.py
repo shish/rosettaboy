@@ -324,6 +324,8 @@ class CPU:
                     op_str = base.replace("u16", f"{arg.u16:04X}")
                 case 3:
                     op_str = base.replace("i8", f"{arg.i8:+d}")
+                case _:
+                    raise Exception("Unreachable")
 
         # print
         print(
@@ -663,6 +665,8 @@ class CPU:
                         val16 = self.HL
                     case 0x39:
                         val16 = self.SP
+                    case _:
+                        raise Exception("Unreachable")
 
                 self.FLAG_H = (self.HL & 0x0FFF) + (val16 & 0x0FFF) > 0x0FFF
                 self.FLAG_C = (self.HL + val16) > 0xFFFF
