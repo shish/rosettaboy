@@ -37,12 +37,12 @@ cdef public _Stat Stat
 
 
 cdef class Sprite:
-    cdef public int x
-    cdef public int y
-    cdef public int tile_id
-    cdef public int flags
+    cdef public u8 x
+    cdef public u8 y
+    cdef public u8 tile_id
+    cdef public u8 flags
     @staticmethod
-    cdef Sprite create(int x, int y, int tile_id, int flags)
+    cdef Sprite create(u8 x, u8 y, u8 tile_id, u8 flags)
 
     cpdef booli is_live(self)
 
@@ -74,8 +74,8 @@ cdef class GPU:
     cpdef void update_palettes(self)
     cpdef void draw_debug(self)
     cpdef void draw_line(self, int ly)
-    cdef void paint_tile(self, int tile_id, sdl2.SDL_Point offset, sdl2.SDL_Color[4] palette, bint flip_x, bint flip_y)
-    cdef void paint_tile_line(self, int tile_id, sdl2.SDL_Point offset, sdl2.SDL_Color[4] palette, bint flip_x, bint flip_y, int y)
+    cdef void paint_tile(self, u8 tile_id, sdl2.SDL_Point offset, sdl2.SDL_Color[4] palette, bint flip_x, bint flip_y)
+    cdef void paint_tile_line(self, u8 tile_id, sdl2.SDL_Point offset, sdl2.SDL_Color[4] palette, bint flip_x, bint flip_y, int y)
 
 
-cpdef sdl2.SDL_Color gen_hue(int n)
+cpdef sdl2.SDL_Color gen_hue(u8 n)
