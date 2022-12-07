@@ -147,14 +147,14 @@ OP_CB_NAMES: t.Final[t.List[str]] = [
 
 
 class OpArg:
-    def __init__(self, ram: RAM, addr: u16, arg_type: cython.int):
+    def __init__(self, ram: RAM, addr: u16, arg_type: u8):
         if not cython.compiled:
             self.__cinit__(ram, addr, arg_type)
 
-    def __cinit__(self, ram: RAM, addr: u16, arg_type: cython.int):
+    def __cinit__(self, ram: RAM, addr: u16, arg_type: u8):
         self._init(ram, addr, arg_type)
 
-    def _init(self, ram: RAM, addr: u16, arg_type: cython.int):
+    def _init(self, ram: RAM, addr: u16, arg_type: u8):
         self.u8: u8 = 0
         self.i8: i8 = 0
         self.u16: u16 = 0
@@ -172,7 +172,7 @@ class OpArg:
             raise Exception(f"Unknown arg type: {arg_type}")
 
     @staticmethod
-    def create(ram: RAM, addr: u16, arg_type: cython.int):
+    def create(ram: RAM, addr: u16, arg_type: u8):
         if cython.compiled:
             return OpArg.__new__(OpArg, ram, addr, arg_type)
         else:
@@ -208,7 +208,7 @@ class CPU:
         self.FLAG_H: bool = False
         self.FLAG_C: bool = False
 
-    def AF(self) -> cython.int:
+    def AF(self) -> u16:
         """
         >>> cpu = CPU()
         >>> cpu.A = 0x01
@@ -227,14 +227,14 @@ class CPU:
             | (self.FLAG_C or 0) << 4
         )
 
-    def setAF(self, val: cython.int) -> None:
+    def setAF(self, val: u16) -> None:
         self.A = val >> 8 & 0xFF
         self.FLAG_Z = as_bool(val & 0b10000000)
         self.FLAG_N = as_bool(val & 0b01000000)
         self.FLAG_H = as_bool(val & 0b00100000)
         self.FLAG_C = as_bool(val & 0b00010000)
 
-    def BC(self) -> cython.int:
+    def BC(self) -> u16:
         """
         >>> cpu = CPU()
         >>> cpu.setBC(0x1234)
@@ -247,11 +247,11 @@ class CPU:
         """
         return self.B << 8 | self.C
 
-    def setBC(self, val: cython.int) -> None:
+    def setBC(self, val: u16) -> None:
         self.B = val >> 8 & 0xFF
         self.C = val & 0xFF
 
-    def DE(self) -> cython.int:
+    def DE(self) -> u16:
         """
         >>> cpu = CPU()
         >>> cpu.setDE(0x1234)
@@ -264,11 +264,11 @@ class CPU:
         """
         return self.D << 8 | self.E
 
-    def setDE(self, val: cython.int) -> None:
+    def setDE(self, val: u16) -> None:
         self.D = val >> 8 & 0xFF
         self.E = val & 0xFF
 
-    def HL(self) -> cython.int:
+    def HL(self) -> u16:
         """
         >>> cpu = CPU()
         >>> cpu.setHL(0x1234)
@@ -281,14 +281,14 @@ class CPU:
         """
         return self.H << 8 | self.L
 
-    def setHL(self, val: cython.int) -> None:
+    def setHL(self, val: u16) -> None:
         self.H = val >> 8 & 0xFF
         self.L = val & 0xFF
 
-    def MEM_AT_HL(self) -> cython.int:
+    def MEM_AT_HL(self) -> u16:
         return self.ram.get(self.HL())
 
-    def setMEM_AT_HL(self, val: cython.int) -> None:
+    def setMEM_AT_HL(self, val: u16) -> None:
         self.ram.set(self.HL(), val)
 
     def dump_regs(self) -> None:
@@ -356,7 +356,7 @@ class CPU:
             )
         )
 
-    def interrupt(self, i: cython.int) -> None:
+    def interrupt(self, i: u8) -> None:
         """
         Set a given interrupt bit - on the next tick, if the interrupt
         handler for this interrupt is enabled (and interrupts in general
@@ -382,8 +382,8 @@ class CPU:
         """
         # TODO: DMA should take 26 cycles, during which main RAM is inaccessible
         if self.ram.get(Mem.DMA):
-            dma_src: cython.int = self.ram.get(Mem.DMA) << 8
-            i: cython.int
+            dma_src: u16 = self.ram.get(Mem.DMA) << 8
+            i: u8
             for i in range(0, 0xA0):
                 self.ram.set(Mem.OAM_BASE + i, self.ram.get(dma_src + i))
             self.ram.set(Mem.DMA, 0x00)
@@ -472,16 +472,16 @@ class CPU:
         if self._owed_cycles > 0:
             self._owed_cycles -= 1
 
-    def tick_main(self, op: cython.int) -> None:
-        arg_type: cython.int = OP_TYPES[op]
-        arg_len: cython.int = OP_LENS[arg_type]
+    def tick_main(self, op: u8) -> None:
+        arg_type: u8 = OP_TYPES[op]
+        arg_len: u8 = OP_LENS[arg_type]
         arg: OpArg = OpArg.create(self.ram, self.PC, arg_type)
         self.PC += arg_len
         ram: RAM = self.ram
 
         val16: u16
         val: u8
-        carry: cython.int
+        carry: u8
 
         if op == 0x00:
             pass  # NOP
@@ -1077,7 +1077,7 @@ class CPU:
         else:
             raise InvalidOpcode(op)
 
-    def tick_cb(self, op: cython.int) -> None:
+    def tick_cb(self, op: u8) -> None:
         val: u8 = self.get_reg(op)
         bit: u8
         _op_case: u8 = op & 0xF8

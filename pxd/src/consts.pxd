@@ -3,6 +3,13 @@ import cython
 ctypedef cython.uchar u8
 ctypedef cython.ushort u16
 ctypedef cython.char i8
+# ctypedef cython.short i16
+
+# Making everything ints is measurably faster on my machine, but not equivalent to the other implementations.
+# ctypedef int u8
+# ctypedef int u16
+# ctypedef int i8
+
 ctypedef int booli # `int` compiles better sometimes (E.G. CPU.AF) than `bint`.
 
 cpdef u8 as_u8(int val)

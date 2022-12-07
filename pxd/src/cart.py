@@ -65,7 +65,7 @@ class Cart:
         if cython.compiled:
             data_len: cython.int = len(self.data_bytes)
             self.data = cython.cast(
-                cython.p_int, PyMem_Malloc(cython.sizeof(cython.int) * data_len)
+                cython.pointer(u8), PyMem_Malloc(cython.sizeof(u8) * data_len)
             )
             i: cython.int
             for i in range(data_len):
@@ -78,16 +78,16 @@ class Cart:
         self.logo: t.Tuple[int]
         self.name: str
         self.is_gbc: bool
-        self.licensee: cython.int
+        self.licensee: u16
         self.is_sgb: bool
         self.cart_type: CartType
         self.rom_size: cython.int
         self.ram_size: cython.int
-        self.destination: cython.int
-        self.old_licensee: cython.int
-        self.rom_version: cython.int
-        self.complement_check: cython.int
-        self.checksum: cython.int
+        self.destination: u8
+        self.old_licensee: u8
+        self.rom_version: u8
+        self.complement_check: u8
+        self.checksum: u8
 
         fmts: t.List[t.Tuple[str, str, t.Optional[t.Callable[[t.Any], t.Any]]]] = [
             ("256s", "rsts", None),
@@ -123,7 +123,7 @@ class Cart:
 
         if cython.compiled:
             self.ram = cython.cast(
-                cython.p_int, PyMem_Malloc(cython.sizeof(cython.int) * self.ram_size)
+                cython.pointer(u8), PyMem_Malloc(cython.sizeof(u8) * self.ram_size)
             )
             i: cython.int
             for i in range(self.ram_size):

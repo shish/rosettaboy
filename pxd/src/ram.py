@@ -79,7 +79,7 @@ class RAM:
         return BOOT
 
     def get(self, addr: u16) -> u8:
-        val: cython.int
+        val: u8
         bank: u16
         offset: u16
         val = self.data[addr]

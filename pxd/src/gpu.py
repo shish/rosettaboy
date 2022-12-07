@@ -69,25 +69,23 @@ Stat = _Stat()
 
 
 class Sprite:
-    y: cython.int
-    x: cython.int
-    tile_id: cython.int
-    flags: cython.int
+    y: u8
+    x: u8
+    tile_id: u8
+    flags: u8
 
     def __init__(self, *args, **kwargs):
         if not cython.compiled:
             self.__cinit__(*args, **kwargs)
 
-    def __cinit__(
-        self, x: cython.int, y: cython.int, tile_id: cython.int, flags: cython.int
-    ):
+    def __cinit__(self, x: u8, y: u8, tile_id: u8, flags: u8):
         self.x = x
         self.y = y
         self.tile_id = tile_id
         self.flags = flags
 
     @staticmethod
-    def create(x: cython.int, y: cython.int, tile_id: cython.int, flags: cython.int):
+    def create(x: u8, y: u8, tile_id: u8, flags: u8):
         if cython.compiled:
             return Sprite.__new__(Sprite, x, y, tile_id, flags)
         else:
@@ -200,7 +198,7 @@ class GPU:
         ly = (self.cycle // 114) % 154
         self.cpu.ram.set(Mem.LY, ly)
 
-        stat: cython.int = self.cpu.ram.get(Mem.STAT)
+        stat: u8 = self.cpu.ram.get(Mem.STAT)
         stat &= ~Stat.MODE_BITS
         stat &= ~Stat.LYC_EQUAL
 
@@ -265,7 +263,7 @@ class GPU:
         self.cpu.ram.set(Mem.STAT, stat)
 
     def update_palettes(self) -> None:
-        raw_bgp: cython.int = self.cpu.ram.get(Mem.BGP)
+        raw_bgp: u8 = self.cpu.ram.get(Mem.BGP)
         self.bgp = [
             self.colors[(raw_bgp >> 0) & 0x3],
             self.colors[(raw_bgp >> 2) & 0x3],
@@ -273,7 +271,7 @@ class GPU:
             self.colors[(raw_bgp >> 6) & 0x3],
         ]
 
-        raw_obp0: cython.int = self.cpu.ram.get(Mem.OBP0)
+        raw_obp0: u8 = self.cpu.ram.get(Mem.OBP0)
         self.obp0 = [
             self.colors[(raw_obp0 >> 0) & 0x3],
             self.colors[(raw_obp0 >> 2) & 0x3],
@@ -281,7 +279,7 @@ class GPU:
             self.colors[(raw_obp0 >> 6) & 0x3],
         ]
 
-        raw_obp1: cython.int = self.cpu.ram.get(Mem.OBP1)
+        raw_obp1: u8 = self.cpu.ram.get(Mem.OBP1)
         self.obp1 = [
             self.colors[(raw_obp1 >> 0) & 0x3],
             self.colors[(raw_obp1 >> 2) & 0x3],
@@ -294,7 +292,7 @@ class GPU:
 
         # Tile data
         tile_display_width: cython.int = 32
-        tile_id: cython.int
+        tile_id: u8
         for tile_id in range(0, 384):
             xy = make_SDL_Point(
                 x=160 + (tile_id % tile_display_width) * 8,
@@ -326,17 +324,19 @@ class GPU:
 
         # Background tiles
         if lcdc & LCDC.BG_WIN_ENABLED:
-            scroll_y: cython.int = self.cpu.ram.get(Mem.SCY)
-            scroll_x: cython.int = self.cpu.ram.get(Mem.SCX)
+            scroll_y: u8 = self.cpu.ram.get(Mem.SCY)
+            scroll_x: u8 = self.cpu.ram.get(Mem.SCX)
             tile_offset = not (lcdc & LCDC.DATA_SRC)
-            tile_map: cython.int = Mem.MAP_1 if (lcdc & LCDC.BG_MAP) else Mem.MAP_0
+            tile_map: u16 = Mem.MAP_1 if (lcdc & LCDC.BG_MAP) else Mem.MAP_0
 
             if self.debug:
                 xy = make_SDL_Point(x=256 - scroll_x, y=ly)
                 sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 0xFF)
                 sdl2.SDL_RenderDrawPoint(self.renderer, xy.x, xy.y)
 
-            y_in_bgmap: cython.int = (ly + scroll_y) % 256
+            y_in_bgmap: cython.int = (
+                ly + scroll_y
+            ) % 256  # Might be faster to just let it overflow as u8 I guess.
             tile_y: cython.int = y_in_bgmap // 8
             tile_sub_y: cython.int = y_in_bgmap % 8
 
@@ -346,7 +346,7 @@ class GPU:
                 tile_x: cython.int = x_in_bgmap // 8
                 tile_sub_x: cython.int = x_in_bgmap % 8
 
-                tile_id: cython.int = self.cpu.ram.get(tile_map + tile_y * 32 + tile_x)
+                tile_id: u8 = self.cpu.ram.get(tile_map + tile_y * 32 + tile_x)
                 if tile_offset and tile_id < 0x80:
                     tile_id += 0x100
 
@@ -359,8 +359,8 @@ class GPU:
 
         # Window tiles
         if lcdc & LCDC.WINDOW_ENABLED:
-            wnd_y: cython.int = self.cpu.ram.get(Mem.WY)
-            wnd_x: cython.int = self.cpu.ram.get(Mem.WX)
+            wnd_y: u8 = self.cpu.ram.get(Mem.WY)
+            wnd_x: u8 = self.cpu.ram.get(Mem.WX)
             tile_offset = not (lcdc & LCDC.DATA_SRC)
             tile_map = Mem.MAP_1 if (lcdc & LCDC.WINDOW_MAP) else Mem.MAP_0
 
@@ -402,7 +402,7 @@ class GPU:
             # auto sprites: [Sprite 40] = []
             # memcpy(sprites, &ram.data[OAM_BASE], 40 * sizeof(Sprite))
             # for sprite in sprites.iter():
-            n: cython.int
+            n: u16
             for n in range(0, 40):
                 sprite: Sprite = Sprite.create(
                     y=self.cpu.ram.get(Mem.OAM_BASE + 4 * n + 0),
@@ -452,7 +452,7 @@ class GPU:
 
     def paint_tile(
         self,
-        tile_id: cython.int,
+        tile_id: u8,  # Other implementations use i16, but class Sprite uses u8? — Wow, u8 instead of int actually improved performance by like 5% I think.
         offset: sdl2.SDL_Point,
         palette: cython.array(sdl2.SDL_Color, 4),
         flip_x: bool,
@@ -478,21 +478,21 @@ class GPU:
 
     def paint_tile_line(
         self,
-        tile_id: cython.int,
+        tile_id: u8,
         offset: sdl2.SDL_Point,
         palette: cython.array(sdl2.SDL_Color, 4),
         flip_x: bool,
         flip_y: bool,
         y: cython.int,
     ) -> None:
-        addr: cython.int = Mem.TILE_DATA + tile_id * 16 + y * 2
-        low_byte: cython.int = self.cpu.ram.get(addr)
-        high_byte: cython.int = self.cpu.ram.get(addr + 1)
-        x: cython.int
+        addr: u16 = Mem.TILE_DATA + tile_id * 16 + y * 2
+        low_byte: u8 = self.cpu.ram.get(addr)
+        high_byte: u8 = self.cpu.ram.get(addr + 1)
+        x: u8
         for x in range(0, 8):
-            low_bit: cython.int = (low_byte >> (7 - x)) & 0x01
-            high_bit: cython.int = (high_byte >> (7 - x)) & 0x01
-            px: cython.int = (high_bit << 1) | low_bit
+            low_bit: u8 = (low_byte >> (7 - x)) & 0x01
+            high_bit: u8 = (high_byte >> (7 - x)) & 0x01
+            px: u8 = (high_bit << 1) | low_bit
             # pallette #0 = transparent, so don't draw anything
             if px > 0:
                 xy = make_SDL_Point(
@@ -505,12 +505,12 @@ class GPU:
                 sdl2.SDL_RenderDrawPoint(self.renderer, xy.x, xy.y)
 
 
-def gen_hue(n: cython.int) -> sdl2.SDL_Color:
-    region: cython.int = n // 43
-    remainder: cython.int = (n - (region * 43)) * 6
+def gen_hue(n: u8) -> sdl2.SDL_Color:
+    region: u8 = n // 43
+    remainder: u8 = (n - (region * 43)) * 6
 
-    q: cython.int = 255 - remainder
-    t: cython.int = remainder
+    q: u8 = 255 - remainder
+    t: u8 = remainder
 
     if region == 0:
         return sdl2.SDL_Color(r=255, g=t, b=0, a=0xFF)
