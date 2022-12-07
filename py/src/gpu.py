@@ -1,5 +1,6 @@
 import sdl2
 import typing as t
+from dataclasses import dataclass
 
 from .consts import *
 from .cpu import CPU
@@ -32,7 +33,8 @@ class Stat:
     DRAWING: t.Final[u8] = 0x03
 
 
-class Sprite(t.NamedTuple):
+@dataclass
+class Sprite:
     y: int
     x: int
     tile_id: int
@@ -69,8 +71,8 @@ class GPU:
         self.cpu = cpu
         self.headless = headless
         self.debug = debug
-        self.cycle = 0
-        self.title = "RosettaBoy - " + (cpu.ram.cart.name or "<corrupt>")
+        self.cycle: int = 0
+        self.title: str = "RosettaBoy - " + (cpu.ram.cart.name or "<corrupt>")
 
         # Window
         size = (160, 144)
@@ -79,6 +81,10 @@ class GPU:
                 160 + 256,
                 144,
             )
+
+        self.hw_window: t.Optional[sdl2.SDL_Window] = None
+        self.hw_renderer: t.Optional[sdl2.SDL_Renderer] = None
+        self.hw_buffer: t.Optional[sdl2.SDL_Texture] = None
 
         if not headless:
             sdl2.SDL_InitSubSystem(sdl2.SDL_INIT_VIDEO)
@@ -103,10 +109,6 @@ class GPU:
                 size[0],
                 size[1],
             )
-        else:
-            self.hw_window = None
-            self.hw_renderer = None
-            self.hw_buffer = None
 
         self.buffer: sdl2.SDL_Surface = sdl2.SDL_CreateRGBSurface(
             0, size[0], size[1], 32, rmask, gmask, bmask, amask
@@ -114,13 +116,15 @@ class GPU:
         self.renderer: sdl2.SDL_Renderer = sdl2.SDL_CreateSoftwareRenderer(self.buffer)
 
         # Colors
-        self.colors = [
+        self.colors: t.List[sdl2.SDL_Color] = [
             sdl2.SDL_Color(r=0x9B, g=0xBC, b=0x0F, a=0xFF),
             sdl2.SDL_Color(r=0x8B, g=0xAC, b=0x0F, a=0xFF),
             sdl2.SDL_Color(r=0x30, g=0x62, b=0x30, a=0xFF),
             sdl2.SDL_Color(r=0x0F, g=0x38, b=0x0F, a=0xFF),
         ]
-        # printf("SDL_Init failed: %s\n", sdl2.SDL_GetError())
+        self.bgp: t.List[sdl2.SDL_Color] = self.colors
+        self.obp0: t.List[sdl2.SDL_Color] = self.colors
+        self.obp1: t.List[sdl2.SDL_Color] = self.colors
 
     #    GPU.~GPU():
     #        sdl2.SDL_FreeSurface(self.buffer)
@@ -366,7 +370,7 @@ class GPU:
         self,
         tile_id: int,
         offset: sdl2.SDL_Point,
-        palette: sdl2.SDL_Color,
+        palette: t.List[sdl2.SDL_Color],
         flip_x: bool,
         flip_y: bool,
     ) -> None:
@@ -389,7 +393,7 @@ class GPU:
         self,
         tile_id: int,
         offset: sdl2.SDL_Point,
-        palette: sdl2.SDL_Color,
+        palette: t.List[sdl2.SDL_Color],
         flip_x: bool,
         flip_y: bool,
         y: int,
