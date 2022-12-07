@@ -5,7 +5,6 @@
 			cython_3
 			setuptools
 			
-			mypy
 			black
 		])).out
 		

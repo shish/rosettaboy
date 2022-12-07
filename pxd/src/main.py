@@ -21,13 +21,13 @@ def main(argv: List[str]) -> int:
         gameboy = GameBoy(args)
         gameboy.run()
     except EmuError as e:
-        print_exception(e)
+        if isinstance(e, ControlledExit):
+            print(e)
+        else:
+            print_exception(e)
         return e.exit_code
     except (KeyboardInterrupt, BrokenPipeError):
         pass
-    except Exception as e:
-        print_exception(e)
-        return 1
     finally:
         sdl2.SDL_Quit()
 

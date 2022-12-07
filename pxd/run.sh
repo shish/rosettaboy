@@ -5,4 +5,6 @@ cd $(dirname $0)
 
 source py_env.sh
 
-exec python3 -m src.main $*
+./build.sh
+
+exec python3 build/main.py $*
