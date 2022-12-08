@@ -44,3 +44,13 @@ jobs:
           ~/.gocode
           ~/go
         cache-key: ${{ hashFiles('**/go.mod') }}
+  nix:
+    name: Nix
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Nix
+      uses: "./.github/templates/nix"
+      with:
+        workdir: go

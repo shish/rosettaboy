@@ -45,3 +45,15 @@ jobs:
       with:
         workdir: zig
         deps: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+  nix:
+    name: Nix
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Nix
+      uses: "./.github/templates/nix"
+      with:
+        workdir: zig

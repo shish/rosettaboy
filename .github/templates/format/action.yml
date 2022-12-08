@@ -3,7 +3,7 @@ name: format
 inputs:
   deps:
     required: false
-  workdir: 
+  workdir:
     required: true
 
 runs:
