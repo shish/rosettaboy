@@ -1,0 +1,26 @@
+name: format
+
+inputs:
+  deps:
+    required: false
+  workdir: 
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+  - name: Set Up Cache
+    if: inputs.cache-key
+    uses: actions/cache@v2
+    with:
+      path: ${{ inputs.cache-paths }} 
+      key: ${{ inputs.workdir }}-format-${{ runner.os }}-${{ inputs.cache-key }}
+  - name: Install Deps
+    if: inputs.deps
+    shell: bash
+    working-directory: ${{ inputs.workdir }}
+    run: ${{ inputs.deps }}
+  - name: Check
+    working-directory: ${{ inputs.workdir }}
+    shell: bash
+    run: ./format.sh && git diff --exit-code

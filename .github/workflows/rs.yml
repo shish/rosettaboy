@@ -18,42 +18,26 @@ jobs:
     name: Format
     runs-on: ubuntu-22.04
     steps:
-    - name: Set Up Toolchain Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.rustup/toolchains
-          ~/.rustup/update-hashes
-          ~/.rustup/settings.toml
-        key: ${{ runner.os }}-rust-toolchain
-    - name: Set Up Toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Check
-      working-directory: rs
-      run: ./format.sh && git diff --exit-code
+    - name: Format
+      uses: "./.github/templates/format"
+      with:
+        workdir: rs
+        deps: sudo apt-get update && sudo apt-get install -y cargo
   build:
     name: Build
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y gcc libsdl2-dev cargo
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Set Up Build Cache
-      uses: actions/cache@v2
+    - name: Build
+      uses: "./.github/templates/build"
       with:
-        path: |
+        workdir: rs
+        deps: sudo apt-get update && sudo apt-get install -y gcc libsdl2-dev cargo
+        cache-paths: |
           ~/.cargo/registry
           ~/.cargo/git
           rs/target
-        key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
-    - name: Build
-      run: ./rs/run.sh --help
-    - name: CPU Integration Tests
-      run: ./utils/blargg.py rs
-    - name: Benchmark
-      run: ./utils/bench.py rs --default --frames 10
+        cache-key: ${{ hashFiles('**/Cargo.lock') }}

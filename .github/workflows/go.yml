@@ -18,42 +18,29 @@ jobs:
     name: Format
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
-    - name: Set Up Toolchain Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/go
-        key: ${{ runner.os }}-go-toolchain
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Check
-      working-directory: go
-      run: ./format.sh && git diff --exit-code
+    - name: Format
+      uses: "./.github/templates/format"
+      with:
+        workdir: go
+        deps: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
+        cache-paths: |
+          ~/.gocode
+          ~/go
+        cache-key: ${{ hashFiles('**/go.mod') }}
   build:
     name: Build
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
-    - name: Set Up Toolchain Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/go
-        key: ${{ runner.os }}-go-toolchain
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Set Up Build Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.gocode
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
     - name: Build
-      run: ./go/run.sh --help
-    - name: CPU Integration Tests
-      run: ./utils/blargg.py go
-    - name: Benchmark
-      run: ./utils/bench.py go --default --frames 10
+      uses: "./.github/templates/build"
+      with:
+        workdir: go
+        deps: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
+        cache-paths: |
+          ~/.gocode
+          ~/go
+        cache-key: ${{ hashFiles('**/go.mod') }}
