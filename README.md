@@ -62,10 +62,11 @@ that the user has the standard language dev kits installed (eg we assume
 anyone who wants to work on the Rust version will have Cargo installed;
 anyone who wants to work on Python will have virtualenv + pip; etc)
 
-If you have a shell with docker installed, you can run `./utils/shell.sh`
-to create and run a docker container with all the necessary dev tools
-pre-installed -- `./run.sh --headless --silent` should be able to pass
-tests for all languages.
+If you have either Nix or Docker available, you can run `./utils/shell.sh` to create and run an environment with all necessary dev tools pre-installed. — `./run.sh --headless --silent` should be able to pass tests for all languages.
+
+If you prefer Docker, you can use `./utils/shell-docker.sh` instead.
+
+If you prefer Nix, you can manually run `nix-shell` instead. When run in an implemention's directory, `nix-shell` will only provide what is needed for that language, and when run in the project root it will provide everything needed for all languages.
 
 
 Benchmarks

@@ -2,13 +2,14 @@
 set -eu
 
 cd $(dirname $0)
+cd ..
 
-# If we are running in a terminal, then run docker in terminal mode
-if [ -t 1 ] ; then
-    FLAGS=-ti
+if command -v nix-shell; then
+    if [ -n "$*" ]; then
+        nix-shell --run "$*"
+    else
+        nix-shell
+    fi
 else
-    FLAGS=
+    ./utils/shell-docker "$@"
 fi
-
-docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t rosettaboy . && \
-docker run --rm --privileged $FLAGS -v $(pwd)/..:/home/dev/rosettaboy rosettaboy $*

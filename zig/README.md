@@ -1,6 +1,12 @@
 RosettaBoy - Zig Edition
 ========================
 
+Make sure you fetch the GIT submodules if you didn't clone recursively:
+
+```
+$ git submodule update --recursive
+```
+
 Thoughts on Zig
 ===============
 - It's pre-1.0 which means people break things regularly, certain
