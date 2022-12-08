@@ -18,32 +18,26 @@ jobs:
     name: Format
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y php-cli
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Install Composer
-      run: |
-        php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-        php composer-setup.php
-        php -r "unlink('composer-setup.php');"
-    - name: Install Deps
-      working-directory: php
-      run: ../composer.phar require friendsofphp/php-cs-fixer
-    - name: Check
-      working-directory: php
-      run: ./format.sh && git diff --exit-code
+    - name: Format
+      uses: "./.github/templates/format"
+      with:
+        workdir: php
+        deps: |
+          sudo apt-get update && sudo apt-get install -y php-cli
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php composer-setup.php
+          php -r "unlink('composer-setup.php');"
+          ./composer.phar require friendsofphp/php-cs-fixer
   build:
     name: Build
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y php-cli
     - name: Checkout
       uses: actions/checkout@v3
     - name: Build
-      run: ./php/run.sh --help
-    - name: CPU Integration Tests
-      run: ./utils/blargg.py php
-    - name: Benchmark
-      run: ./utils/bench.py php --default --frames 10
+      uses: "./.github/templates/build"
+      with:
+        workdir: php
+        deps: sudo apt-get update && sudo apt-get install -y php-cli

@@ -18,24 +18,21 @@ jobs:
     name: Format
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Deps
-      run: which clang-format-14 || (sudo apt-get update && sudo apt-get install -y clang-format-14)
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Check
-      working-directory: cpp
-      run: ./format.sh && git diff --exit-code
+    - name: Format
+      uses: "./.github/templates/format"
+      with:
+        workdir: cpp
+        deps: which clang-format-14 || (sudo apt-get update && sudo apt-get install -y clang-format-14)
   build:
     name: Build
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y gcc cmake libsdl2-dev
     - name: Checkout
       uses: actions/checkout@v3
     - name: Build
-      run: ./cpp/run.sh --help
-    - name: CPU Integration Tests
-      run: ./utils/blargg.py cpp
-    - name: Benchmark
-      run: ./utils/bench.py cpp --default --frames 10
+      uses: "./.github/templates/build"
+      with:
+        workdir: cpp
+        deps: sudo apt-get update && sudo apt-get install -y gcc cmake libsdl2-dev

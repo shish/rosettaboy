@@ -18,26 +18,24 @@ jobs:
     name: Format
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Tools
-      uses: jiro4989/setup-nim-action@v1
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Check
-      working-directory: nim
-      run: ./format.sh && git diff --exit-code
+    - name: Set Up Toolchain
+      uses: jiro4989/setup-nim-action@v1
+    - name: Format
+      uses: "./.github/templates/format"
+      with:
+        workdir: nim
   build:
     name: Build
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Tools
-      uses: jiro4989/setup-nim-action@v1
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Set Up Toolchain
+      uses: jiro4989/setup-nim-action@v1
     - name: Build
-      run: ./nim/run.sh --help
-    - name: CPU Integration Tests
-      run: ./utils/blargg.py nim
-    - name: Benchmark
-      run: ./utils/bench.py nim --default --frames 10
+      uses: "./.github/templates/build"
+      with:
+        workdir: nim
+        deps: sudo apt-get update && sudo apt-get install -y libsdl2-dev

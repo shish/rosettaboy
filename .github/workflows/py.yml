@@ -18,30 +18,24 @@ jobs:
     name: Format
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y python3.11-venv
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Check
-      working-directory: py
-      run: ./format.sh && git diff --exit-code
+    - name: Format
+      uses: "./.github/templates/format"
+      with:
+        workdir: py
+        deps: sudo apt-get update && sudo apt-get install -y python3.11-venv
   test:
     name: Test
     runs-on: ubuntu-22.04
     steps:
-    - name: Install Deps
-      run: sudo apt-get update && sudo apt-get install -y python3.11-venv
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Set Up Build Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          py/venv
-        key: ${{ runner.os }}-py-venv
     - name: Build
-      run: ./py/run.sh --help
-    - name: CPU Integration Tests
-      run: ./utils/blargg.py py
-    - name: Benchmark
-      run: ./utils/bench.py py --default --frames 10
+      uses: "./.github/templates/build"
+      with:
+        workdir: py
+        deps: sudo apt-get update && sudo apt-get install -y python3.11-venv
+        cache-paths: |
+          py/venv
+        cache-key: venv
