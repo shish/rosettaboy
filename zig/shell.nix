@@ -44,9 +44,8 @@ let
 		postBuild = ''
 			cd $out/lib/
 			for _file in libSDL2*; do
-				_file_lower="libsdl2$(echo $_file | cut -c 8-)"
-				if [ ! -a $_file_lower ]; then
-					ln -s $_file $_file_lower
+				if [[ ! -f "''${_file,,}" ]]; then
+					ln -s "$_file" "''${_file,,}"
 				fi
 			done;
 		'';
