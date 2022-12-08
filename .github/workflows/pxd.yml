@@ -1,0 +1,47 @@
+name: Cython
+
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'pxd/**'
+    - '.github/workflows/pxd.yml'
+  pull_request:
+    paths:
+    - 'pxd/**'
+    - '.github/workflows/pxd.yml'
+  workflow_dispatch:
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Install Deps
+      run: sudo apt-get update && sudo apt-get install -y python3.11-venv
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Check
+      working-directory: pxd
+      run: ./format.sh && git diff --exit-code
+  test:
+    name: Test
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Install Deps
+      run: sudo apt-get update && sudo apt-get install -y python3.11-venv libsdl2-dev
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Set Up Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          pxd/venv
+        key: ${{ runner.os }}-pxd-venv
+    - name: Build
+      run: ./pxd/run.sh --help
+    - name: CPU Integration Tests
+      run: ./utils/blargg.py pxd
+    - name: Benchmark
+      run: ./utils/bench.py pxd --default --frames 10
