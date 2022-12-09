@@ -19,8 +19,8 @@ jobs:
     uses: ./.github/workflows/common.yml
     with:
       workdir: rs
-      format-deps: sudo apt-get update && sudo apt-get install -y cargo
-      build-deps: sudo apt-get update && sudo apt-get install -y gcc libsdl2-dev cargo
+      format-pkgs: cargo
+      build-pkgs: gcc libsdl2-dev cargo
       cache-paths: |
         ~/.cargo
         rs/target

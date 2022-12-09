@@ -20,4 +20,4 @@ jobs:
     with:
       workdir: nim
       with-nim: true
-      build-deps: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+      build-pkgs: libsdl2-dev

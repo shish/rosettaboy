@@ -6,6 +6,12 @@ on:
       workdir:
         required: true
         type: string
+      build-pkgs:
+        required: false
+        type: string
+      format-pkgs:
+        required: false
+        type: string
       build-deps:
         required: false
         type: string
@@ -49,6 +55,11 @@ jobs:
       shell: bash
       working-directory: ${{ inputs.workdir }}
       run: ${{ inputs.format-deps }}
+    - name: Install Deps 2
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: ${{ inputs.build-pkgs }}
+        version: format-${{ inputs.workdir }}
     - name: Install Nim
       if: inputs.with-nim
       uses: jiro4989/setup-nim-action@v1
@@ -81,6 +92,11 @@ jobs:
       shell: bash
       working-directory: ${{ inputs.workdir }}
       run: ${{ inputs.build-deps }}
+    - name: Install Deps 2
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: ${{ inputs.build-pkgs }}
+        version: build-${{ inputs.workdir }}
     - name: Install Nim
       if: inputs.with-nim
       uses: jiro4989/setup-nim-action@v1
