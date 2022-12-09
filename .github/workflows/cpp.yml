@@ -14,35 +14,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  format:
-    name: Format
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Format
-      uses: "./.github/templates/format"
-      with:
-        workdir: cpp
-        deps: which clang-format-14 || (sudo apt-get update && sudo apt-get install -y clang-format-14)
-  build:
-    name: Build
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Build
-      uses: "./.github/templates/build"
-      with:
-        workdir: cpp
-        deps: sudo apt-get update && sudo apt-get install -y gcc cmake libsdl2-dev
-  nix:
-    name: Nix
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Nix
-      uses: "./.github/templates/nix"
-      with:
-        workdir: cpp
+  common:
+    name: Common
+    uses: ./.github/workflows/common.yml
+    with:
+      workdir: cpp
+      format-deps: which clang-format-14 || (sudo apt-get update && sudo apt-get install -y clang-format-14)
+      build-deps: sudo apt-get update && sudo apt-get install -y gcc cmake libsdl2-dev
