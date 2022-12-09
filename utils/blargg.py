@@ -62,7 +62,7 @@ def test(cwd, rom):
         print(f"{cwd} {rom_name} = {RED}Failed{END}")
     else:
         print(f"{cwd} {rom_name} = {RED}Crashed{END}\n{p.stdout}")
-    return p.returncode == 0
+    return p.returncode == 0 and "Unit test passed" in p.stdout
 
 
 dirs = args.langs or [n.replace("/run.sh", "") for n in glob("*/run.sh")]
