@@ -25,4 +25,4 @@ jobs:
         php composer-setup.php
         php -r "unlink('composer-setup.php');"
         ./composer.phar require friendsofphp/php-cs-fixer
-      build-deps: sudo apt-get update && sudo apt-get install -y php-cli
+      build-pkgs: php-cli
