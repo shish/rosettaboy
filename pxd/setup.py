@@ -3,13 +3,10 @@
 from setuptools import setup, Extension
 from Cython.Build import cythonize
 
-import os
-
 setup(
     scripts=["main.py"],
     ext_modules=cythonize(
         module_list=[Extension(name="*", sources=["src/*.py"], libraries=["SDL2"])],
-        nthreads=os.cpu_count(),
         annotate=True,
         compiler_directives={
             "language_level": 3,
