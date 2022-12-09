@@ -21,3 +21,6 @@ jobs:
       workdir: cpp
       format-deps: which clang-format-14 || (sudo apt-get update && sudo apt-get install -y clang-format-14)
       build-deps: sudo apt-get update && sudo apt-get install -y gcc cmake libsdl2-dev
+      cache-paths: |
+        cpp/build
+      cache-key: build

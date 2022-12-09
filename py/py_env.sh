@@ -1,6 +1,6 @@
 # Instead of being run, this gets `source`d by `run.sh` and `format.sh`.
 
-BUILDDIR=venv/$(hostname)
+BUILDDIR=venv/$(uname)-$(uname -m)
 PYIMPORT_EXIT=$(python3 -c 'import sdl2, black, mypy' 1>&2; echo $?) # Use existing libraries (E.G. from system, or from Nix) if found.
 if [ $PYIMPORT_EXIT -eq 0 ] ; then
 	echo "Python packages found:"

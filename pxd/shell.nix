@@ -8,7 +8,6 @@
 			black
 		])).out
 		
-		hostname
 		SDL2
 	];
 }

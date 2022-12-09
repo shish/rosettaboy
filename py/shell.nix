@@ -7,7 +7,5 @@
 			mypy
 			black
 		])).out
-		
-		hostname
 	];
 }
