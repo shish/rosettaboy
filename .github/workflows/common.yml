@@ -1,0 +1,130 @@
+name: Common
+
+on:
+  workflow_call:
+    inputs:
+      workdir:
+        required: true
+        type: string
+      build-deps:
+        required: false
+        type: string
+      format-deps:
+        required: false
+        type: string
+      cache-key:
+        required: false
+        type: string
+      cache-file:
+        required: false
+        type: string
+      cache-paths:
+        required: false
+        type: string
+      with-nim:
+        required: false
+        type: boolean
+        default: false
+      with-zig:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Set Up Cache (Key)
+      if: inputs.cache-key
+      uses: actions/cache@v3
+      with:
+        path: ${{ inputs.cache-paths }} 
+        key: ${{ inputs.workdir }}-format-${{ inputs.cache-key }}
+        restore-keys: ${{ inputs.workdir }}-format-
+    - name: Set Up Cache (File)
+      if: inputs.cache-file
+      uses: actions/cache@v3
+      with:
+        path: ${{ inputs.cache-paths }}
+        key: ${{ inputs.workdir }}-format-${{ hashFiles(inputs.cache-file) }}
+        restore-keys: ${{ inputs.workdir }}-format-
+    - name: Install Deps
+      if: inputs.format-deps
+      shell: bash
+      working-directory: ${{ inputs.workdir }}
+      run: ${{ inputs.format-deps }}
+    - name: Install Nim
+      if: inputs.with-nim
+      uses: jiro4989/setup-nim-action@v1
+    - name: Install Zig
+      if: inputs.with-zig
+      uses: goto-bus-stop/setup-zig@v1
+      with:
+        version: 0.10.0
+    - name: Check
+      working-directory: ${{ inputs.workdir }}
+      shell: bash
+      run: ./format.sh && git diff --exit-code
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Set Up Cache
+      if: inputs.cache-key
+      uses: actions/cache@v3
+      with:
+        path: ${{ inputs.cache-paths }} 
+        key: ${{ inputs.workdir }}-build-${{ inputs.cache-key }}
+        restore-keys: ${{ inputs.workdir }}-build-
+    - name: Install Deps
+      if: inputs.build-deps
+      shell: bash
+      working-directory: ${{ inputs.workdir }}
+      run: ${{ inputs.build-deps }}
+    - name: Install Nim
+      if: inputs.with-nim
+      uses: jiro4989/setup-nim-action@v1
+    - name: Install Zig
+      if: inputs.with-zig
+      uses: goto-bus-stop/setup-zig@v1
+      with:
+        version: 0.10.0
+    - name: Build
+      shell: bash
+      run: ./${{ inputs.workdir }}/run.sh --help
+    - name: CPU Integration Tests
+      shell: bash
+      run: ./utils/blargg.py ${{ inputs.workdir }}
+    - name: Benchmark
+      shell: bash
+      run: ./utils/bench.py ${{ inputs.workdir }} --default --frames 10
+  nix:
+    name: Nix
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Set Up Build Cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          /nix
+        key: ${{ inputs.workdir }}-nix-${{ hashFiles(format('{0}/shell.nix', inputs.workdir)) }}
+        restore-keys: ${{ inputs.workdir }}-nix-
+    - name: Install Deps
+      uses: cachix/install-nix-action@v15
+      with:
+        nix_path: nixpkgs=channel:nixos-22.11
+    - name: Run
+      shell: bash
+      working-directory: ${{ inputs.workdir }}
+      run: nix-shell --pure --run './run.sh --help'

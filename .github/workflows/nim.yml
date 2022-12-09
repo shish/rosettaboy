@@ -14,38 +14,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  format:
-    name: Format
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Set Up Toolchain
-      uses: jiro4989/setup-nim-action@v1
-    - name: Format
-      uses: "./.github/templates/format"
-      with:
-        workdir: nim
-  build:
-    name: Build
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Set Up Toolchain
-      uses: jiro4989/setup-nim-action@v1
-    - name: Build
-      uses: "./.github/templates/build"
-      with:
-        workdir: nim
-        deps: sudo apt-get update && sudo apt-get install -y libsdl2-dev
-  nix:
-    name: Nix
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Nix
-      uses: "./.github/templates/nix"
-      with:
-        workdir: nim
+  common:
+    name: Common
+    uses: ./.github/workflows/common.yml
+    with:
+      workdir: nim
+      with-nim: true
+      build-deps: sudo apt-get update && sudo apt-get install -y libsdl2-dev

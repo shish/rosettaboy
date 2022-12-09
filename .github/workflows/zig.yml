@@ -14,46 +14,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  format:
-    name: Format
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Set Up Toolchain
-      uses: goto-bus-stop/setup-zig@v1
-      with:
-        version: 0.10.0
-    - name: Format
-      uses: "./.github/templates/format"
-      with:
-        workdir: zig
-  build:
-    name: Build
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: Set Up Toolchain
-      uses: goto-bus-stop/setup-zig@v1
-      with:
-        version: 0.10.0
-    - name: Build
-      uses: "./.github/templates/build"
-      with:
-        workdir: zig
-        deps: sudo apt-get update && sudo apt-get install -y libsdl2-dev
-  nix:
-    name: Nix
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: Nix
-      uses: "./.github/templates/nix"
-      with:
-        workdir: zig
+  common:
+    name: Common
+    uses: ./.github/workflows/common.yml
+    with:
+      workdir: zig
+      with-zig: true
+      build-deps: sudo apt-get update && sudo apt-get install -y libsdl2-dev

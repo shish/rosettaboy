@@ -14,40 +14,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  format:
-    name: Format
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Format
-      uses: "./.github/templates/format"
-      with:
-        workdir: php
-        deps: |
-          sudo apt-get update && sudo apt-get install -y php-cli
-          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-          php composer-setup.php
-          php -r "unlink('composer-setup.php');"
-          ./composer.phar require friendsofphp/php-cs-fixer
-  build:
-    name: Build
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Build
-      uses: "./.github/templates/build"
-      with:
-        workdir: php
-        deps: sudo apt-get update && sudo apt-get install -y php-cli
-  nix:
-    name: Nix
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Nix
-      uses: "./.github/templates/nix"
-      with:
-        workdir: php
+  common:
+    name: Common
+    uses: ./.github/workflows/common.yml
+    with:
+      workdir: php
+      format-deps: |
+        sudo apt-get update && sudo apt-get install -y php-cli
+        php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+        php composer-setup.php
+        php -r "unlink('composer-setup.php');"
+        ./composer.phar require friendsofphp/php-cs-fixer
+      build-deps: sudo apt-get update && sudo apt-get install -y php-cli

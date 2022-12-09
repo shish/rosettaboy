@@ -14,39 +14,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  format:
-    name: Format
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Format
-      uses: "./.github/templates/format"
-      with:
-        workdir: py
-        deps: sudo apt-get update && sudo apt-get install -y python3.11-venv
-  test:
-    name: Test
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Build
-      uses: "./.github/templates/build"
-      with:
-        workdir: py
-        deps: sudo apt-get update && sudo apt-get install -y python3.11-venv
-        cache-paths: |
-          py/venv
-          ~/.cache/pip
-        cache-key: venv
-  nix:
-    name: Nix
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Nix
-      uses: "./.github/templates/nix"
-      with:
-        workdir: py
+  common:
+    name: Common
+    uses: ./.github/workflows/common.yml
+    with:
+      workdir: py
+      format-deps: sudo apt-get update && sudo apt-get install -y python3.11-venv
+      build-deps: sudo apt-get update && sudo apt-get install -y python3.11-venv
+      cache-paths: |
+        py/venv
+        ~/.cache/pip
+      cache-key: venv

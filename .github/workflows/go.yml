@@ -14,43 +14,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  format:
-    name: Format
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Format
-      uses: "./.github/templates/format"
-      with:
-        workdir: go
-        deps: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
-        cache-paths: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        cache-key: ${{ hashFiles('**/go.mod') }}
-  build:
-    name: Build
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Build
-      uses: "./.github/templates/build"
-      with:
-        workdir: go
-        deps: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
-        cache-paths: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        cache-key: ${{ hashFiles('**/go.mod') }}
-  nix:
-    name: Nix
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Nix
-      uses: "./.github/templates/nix"
-      with:
-        workdir: go
+  common:
+    name: Common
+    uses: ./.github/workflows/common.yml
+    with:
+      workdir: go
+      format-deps: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
+      build-deps: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
+      cache-paths: |
+        ~/.cache/go-build
+        ~/go/pkg/mod
+      cache-file: '**/go.mod'
