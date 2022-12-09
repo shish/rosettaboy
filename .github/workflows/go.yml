@@ -26,8 +26,8 @@ jobs:
         workdir: go
         deps: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
         cache-paths: |
-          ~/.gocode
-          ~/go
+          ~/.cache/go-build
+          ~/go/pkg/mod
         cache-key: ${{ hashFiles('**/go.mod') }}
   build:
     name: Build
@@ -41,8 +41,8 @@ jobs:
         workdir: go
         deps: sudo apt-get update && sudo apt-get install -y golang libsdl2-dev
         cache-paths: |
-          ~/.gocode
-          ~/go
+          ~/.cache/go-build
+          ~/go/pkg/mod
         cache-key: ${{ hashFiles('**/go.mod') }}
   nix:
     name: Nix
