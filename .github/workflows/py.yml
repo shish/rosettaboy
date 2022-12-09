@@ -38,6 +38,7 @@ jobs:
         deps: sudo apt-get update && sudo apt-get install -y python3.11-venv
         cache-paths: |
           py/venv
+          ~/.cache/pip
         cache-key: venv
   nix:
     name: Nix

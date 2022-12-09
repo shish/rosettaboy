@@ -15,10 +15,11 @@ runs:
   steps:
   - name: Set Up Cache
     if: inputs.cache-key
-    uses: actions/cache@v2
+    uses: actions/cache@v3
     with:
       path: ${{ inputs.cache-paths }} 
-      key: ${{ inputs.workdir }}-build-${{ runner.os }}-${{ inputs.cache-key }}
+      key: ${{ inputs.workdir }}-build-${{ inputs.cache-key }}
+      restore-keys: ${{ inputs.workdir }}-
   - name: Install Deps
     if: inputs.deps
     shell: bash
