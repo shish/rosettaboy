@@ -1,5 +1,5 @@
 import typing as t
-from .consts import u8
+from src.consts import u8
 
 
 class EmuError(Exception):
