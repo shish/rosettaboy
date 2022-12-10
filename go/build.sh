@@ -2,4 +2,4 @@
 set -eu
 
 cd $(dirname $0)
-exec cargo run --release -- $*
+go build -o rosettaboy-release src/*.go

@@ -8,4 +8,4 @@ export PATH="/Users/shish2k/homebrew/opt/llvm/bin:$PATH"
 
 cd $(dirname $0)
 nimble --accept build -d:danger --opt:speed -d:lto --mm:arc --panics:on
-exec ./rosettaboy $*
+cp ./rosettaboy ./rosettaboy-speed

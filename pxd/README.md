@@ -5,7 +5,8 @@ Cythonized version of the Python implementation.
 Usage
 -----
 ```
-./run.sh game.gb
+./build.sh
+./rosettaboy-release game.gb
 ```
 
 Requirements
@@ -14,10 +15,3 @@ Requirements
 - Cython 3.0.0a11
 - PySDL2
 - SDL2
-
-Formatting
-----------
-Automated with Black:
-```
-black src/*.py
-```

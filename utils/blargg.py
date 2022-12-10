@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--threads",
     type=int,
-    default=1,
+    default=8,
     help="How many tests to run in parallel",
 )
 parser.add_argument("langs", default=[], nargs="*", help="Which languages to test")
@@ -37,18 +37,32 @@ if not os.path.exists(TEST_DIR):
     )
 
 
-def test(cwd, rom):
-    cmd = [
-        "./run.sh",
-        "--turbo",
-        "--silent",
-        "--headless",
-        "--frames",
-        "2000",
-        f"../{rom}",
-    ]
+def build(cwd):
     p = subprocess.run(
-        cmd,
+        ["./build.sh"],
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        errors="replace",
+    )
+    if p.returncode == 0:
+        print(f"{cwd} = {GREEN}Built{END}")
+    else:
+        print(f"{cwd} = {RED}Failed{END}\n{p.stdout}")
+    return p.returncode == 0
+
+def test(cwd, rom):
+    p = subprocess.run(
+        [
+            "./rosettaboy-release",
+            "--turbo",
+            "--silent",
+            "--headless",
+            "--frames",
+            "2000",
+            f"../{rom}",
+        ],
         cwd=cwd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -65,13 +79,17 @@ def test(cwd, rom):
     return p.returncode == 0 and "Unit test passed" in p.stdout
 
 
-dirs = args.langs or [n.replace("/run.sh", "") for n in glob("*/run.sh")]
+dirs = args.langs or [n.replace("/build.sh", "") for n in glob("*/build.sh")]
 roms = glob("gb-autotest-roms/*/*.gb")
 tests_to_run = itertools.product(dirs, roms)
 
 p = ThreadPool(args.threads)
-results = p.starmap(test, tests_to_run)
+results = p.starmap(build, [(d, ) for d in dirs])
 if all(results):
-    sys.exit(0)
+    results = p.starmap(test, tests_to_run)
+    if all(results):
+        sys.exit(0)
+    else:
+        sys.exit(1)
 else:
-    sys.exit(1)
+    sys.exit(2)

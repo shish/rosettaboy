@@ -27,8 +27,23 @@ if not os.path.exists(TEST_ROM):
     )
 
 
+def build(lang: str, builder: str, sub: str) -> bool:
+    proc = subprocess.run(
+        [f"./{builder}"],
+        cwd=lang,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    if proc.returncode != 0:
+        print(f"{lang:>5s} / {sub:7s}: Failed\n{proc.stdout}")
+        return False
+    else:
+        print(f"{lang:>5s} / {sub:7s}: Built")
+        return True
+
+
 def test(lang: str, runner: str, sub: str, frames: int, profile: int) -> bool:
-    # Some languages have orders-of-magnitudes of differences in speed
     proc = subprocess.run(
         [
             f"./{runner}",
@@ -83,14 +98,31 @@ def main() -> int:
     if args.frames == 0 and args.profile == 0:
         args.profile = 10
 
+    for lang_builder in glob("*/build*.sh"):
+        lang = os.path.dirname(lang_builder)
+        builder = os.path.basename(lang_builder)
+        sub = "release"
+        if match := re.match("build_(.*).sh", builder):
+            sub = match.group(1)
+
+        if args.langs and lang not in args.langs:
+            continue
+        if args.default and sub != "release":
+            continue
+        if lang == "utils":
+            continue
+        build(lang, builder, sub)
+
     tests_to_run = []
-    for lang_runner in glob("*/run*.sh"):
+    for lang_runner in glob("*/rosettaboy*"):
         lang = os.path.dirname(lang_runner)
         runner = os.path.basename(lang_runner)
         sub = "release"
-        if match := re.match("run_(.*).sh", runner):
+        if match := re.match("rosettaboy-(.*)", runner):
             sub = match.group(1)
 
+        if not os.access(lang_runner, os.X_OK):
+            continue
         if args.langs and lang not in args.langs:
             continue
         if args.default and sub != "release":
