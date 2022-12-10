@@ -12,12 +12,6 @@ on:
       format-pkgs:
         required: false
         type: string
-      build-deps:
-        required: false
-        type: string
-      format-deps:
-        required: false
-        type: string
       cache-key:
         required: false
         type: string
@@ -50,12 +44,7 @@ jobs:
         path: ${{ inputs.cache-paths }} 
         key: ${{ inputs.workdir }}-format-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
         restore-keys: ${{ inputs.workdir }}-format-
-    - name: Install Deps
-      if: inputs.format-deps
-      shell: bash
-      working-directory: ${{ inputs.workdir }}
-      run: ${{ inputs.format-deps }}
-    - name: Install Deps 2
+    - name: Install Pkgs
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: ${{ inputs.build-pkgs }}
@@ -87,12 +76,7 @@ jobs:
         path: ${{ inputs.cache-paths }} 
         key: ${{ inputs.workdir }}-build-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
         restore-keys: ${{ inputs.workdir }}-build-
-    - name: Install Deps
-      if: inputs.build-deps
-      shell: bash
-      working-directory: ${{ inputs.workdir }}
-      run: ${{ inputs.build-deps }}
-    - name: Install Deps 2
+    - name: Install Pkgs
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: ${{ inputs.build-pkgs }}
