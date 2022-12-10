@@ -4,6 +4,7 @@ __pycache__
 .mypy_cache
 .pyre
 build
+rbmp
 
 Makefile
 *.gb

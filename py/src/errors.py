@@ -3,7 +3,7 @@ from src.consts import u8
 
 
 class EmuError(Exception):
-    exit_code = 1
+    pass
 
 
 class UnsupportedCart(EmuError):
@@ -17,15 +17,11 @@ class ControlledExit(EmuError):
 
 
 class Quit(ControlledExit):
-    exit_code = 0
-
     def __str__(self) -> str:
         return "User has exited the emulator"
 
 
 class Timeout(ControlledExit):
-    exit_code = 0
-
     def __init__(self, frames: int, duration: float) -> None:
         self.frames = frames
         self.duration = duration
@@ -39,15 +35,11 @@ class Timeout(ControlledExit):
 
 
 class UnitTestPassed(ControlledExit):
-    exit_code = 0
-
     def __str__(self) -> str:
         return "Unit test passed"
 
 
 class UnitTestFailed(ControlledExit):
-    exit_code = 2
-
     def __str__(self) -> str:
         return "Unit test failed"
 
@@ -55,8 +47,6 @@ class UnitTestFailed(ControlledExit):
 # Game error, ie the game developer has a bug
 class GameException(EmuError):
     """Inheriting from EmuError"""
-
-    exit_code = 3
 
 
 class InvalidOpcode(GameException):
@@ -90,8 +80,6 @@ class InvalidRamWrite(GameException):
 # User error, ie the user gave us an ivalid or corrupt input file
 class UserException(EmuError):
     """Inheriting From EmuError"""
-
-    exit_code = 4
 
 
 class RomMissing(UserException):
