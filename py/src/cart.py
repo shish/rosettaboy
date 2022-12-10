@@ -2,7 +2,7 @@ import typing as t
 import struct
 from enum import Enum
 
-from src.consts import u8
+from src.consts import u8, u16
 from src.errors import LogoChecksumFailed, HeaderChecksumFailed
 
 
@@ -56,54 +56,22 @@ class Cart:
     def __init__(self, rom: str) -> None:
         with open(rom, "rb") as fp:
             self.data = fp.read()
+            data = self.data
 
-        self.rsts: bytes
-        self.init: t.Tuple[int]
-        self.logo: t.Tuple[int]
-        self.name: str
-        self.is_gbc: bool
-        self.licensee: int
-        self.is_sgb: bool
-        self.cart_type: CartType
-        self.rom_size: int
-        self.ram_size: int
-        self.destination: int
-        self.old_licensee: int
-        self.rom_version: int
-        self.complement_check: int
-        self.checksum: int
+        self.logo = data[0x104 : 0x104 + 48]
+        self.name = data[0x134 : 0x134 + 15].decode("ascii").strip()
 
-        fmts: t.List[t.Tuple[str, str, t.Optional[t.Callable[[t.Any], t.Any]]]] = [
-            ("256s", "rsts", None),
-            ("4B", "init", None),
-            ("48B", "logo", None),
-            ("15s", "name", lambda x: x.strip(b"\x00").decode()),
-            ("B", "is_gbc", lambda x: x == 0x80),
-            ("H", "licensee", None),
-            ("B", "is_sgb", lambda x: x == 0x03),
-            ("B", "cart_type", lambda x: CartType(x)),
-            ("B", "rom_size", lambda x: parse_rom_size(x)),
-            ("B", "ram_size", lambda x: parse_ram_size(x)),
-            ("B", "destination", None),
-            ("B", "old_licensee", None),
-            ("B", "rom_version", None),
-            ("B", "complement_check", None),
-            # Checksum (higher byte first) produced by
-            # adding all bytes of a cartridge except for
-            # two checksum bytes and taking two lower
-            # bytes of the result. (GameBoy ignores this
-            # value.)
-            (">H", "checksum", None),
-        ]
-        offset: int = 0
-        for fmt, name, mod in fmts:
-            val = struct.unpack_from(fmt, self.data, offset)
-            offset += struct.calcsize(fmt)
-            if len(val) == 1:
-                val = val[0]
-            if mod:
-                val = mod(val)
-            setattr(self, name, val)
+        self.is_gbc = data[0x143] == 0x80  # 0x80 = works on both, 0xC0 = colour only
+        self.licensee: u16 = data[0x144] << 8 | data[0x145]
+        self.is_sgb = data[0x146] == 0x03
+        self.cart_type = CartType(data[0x147])
+        self.rom_size = parse_rom_size(data[0x148])
+        self.ram_size = parse_ram_size(data[0x149])
+        self.destination = data[0x14A]
+        self.old_licensee = data[0x14B]
+        self.rom_version = data[0x14C]
+        self.complement_check = data[0x14D]
+        self.checksum: u16 = data[0x14E] << 8 | data[0x14F]
 
         self.ram = [0] * self.ram_size
 
