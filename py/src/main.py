@@ -4,9 +4,9 @@ import sdl2
 import sys
 from typing import List
 
-from .args import parse_args
-from .gameboy import GameBoy
-from .errors import GameException, UserException, ControlledExit, EmuError
+from src.args import parse_args
+from src.gameboy import GameBoy
+from src.errors import GameException, UserException, ControlledExit, EmuError
 
 
 def main(argv: List[str]) -> int:

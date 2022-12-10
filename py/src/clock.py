@@ -1,7 +1,7 @@
 import sdl2
-import time
-from .buttons import Buttons
-from .errors import Timeout
+
+from src.buttons import Buttons
+from src.errors import Timeout
 
 
 class Clock:

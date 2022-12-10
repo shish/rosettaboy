@@ -2,8 +2,8 @@ import sdl2
 import typing as t
 from dataclasses import dataclass
 
-from .consts import *
-from .cpu import CPU
+from src.consts import *
+from src.cpu import CPU
 
 SCALE = 2
 

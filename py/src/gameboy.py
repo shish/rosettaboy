@@ -1,11 +1,11 @@
 import argparse
 
-from .cart import Cart
-from .cpu import CPU
-from .gpu import GPU
-from .clock import Clock
-from .buttons import Buttons
-from .ram import RAM
+from src.cart import Cart
+from src.cpu import CPU
+from src.gpu import GPU
+from src.clock import Clock
+from src.buttons import Buttons
+from src.ram import RAM
 
 
 class GameBoy:
