@@ -1,4 +1,4 @@
-# Instead of being run, this gets `source`d by `run.sh` and `format.sh`.
+# Instead of being run, this gets `source`d by `build.sh` and `format.sh`.
 
 BUILDDIR=venv/$(uname)-$(uname -m)
 PYIMPORT_EXIT=$(python3 -c 'import sdl2, black, mypy, cython' 1>&2; echo $?) # Use existing libraries (E.G. from system, or from Nix) if found.

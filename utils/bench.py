@@ -3,9 +3,9 @@
 """
 Usage: ./utils/bench.py zig rs cpp
 
-Will find any run*.sh scripts in the named directories
-(eg run.sh, run_pgo.sh, run_pypy.sh) and run them with
-a standard set of args.
+Will find any rosettaboy-* variants in the named directories
+(eg rosettaboy-release, rosettaboy-pypy, rosettaboy-debug, etc)
+and run them with a standard set of args.
 """
 from glob import glob
 import subprocess
@@ -79,7 +79,7 @@ def main() -> int:
         "--default",
         default=False,
         action="store_true",
-        help="Only run the default run.sh, not variants",
+        help="Only run the default build.sh, not variants",
     )
     parser.add_argument(
         "--threads",

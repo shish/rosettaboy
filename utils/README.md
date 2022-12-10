@@ -1,12 +1,11 @@
 Utils
 =====
 
-shell.sh + Nix + Docker
+shell.sh + Nix / Docker
 -----------------------
 Convenience script to get a shell with all tools and dependencies needed to run any implementation.
 
-Run `./utils/shell.sh` to get a shell where you can then
-`cd` to language and `./run.sh` to run it.
+Run `./utils/shell.sh` to get a shell where you can then `cd` to language and `./build.sh` to build it.
 
 If Nix is available, it will use that. Otherwise, it will fallback to `shell-docker.sh`.
 
@@ -26,7 +25,7 @@ a different one for "test failed".
 
 bench.sh
 --------
-Find all of the `run*.sh` launchers and run them with a standard set
+Find all of the `rosettaboy-*` variants and run them with a standard set
 of command line options
 
 

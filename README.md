@@ -54,15 +54,18 @@ languages, are very welcome :)
 
 Dev Guide
 ---------
-I want to keep the build processes as simple as possible - it should be
-possible to `cd` into the directory for any implementation and then `./run.sh`
-should build (if necessary) and run the code. Ideally the run script should
-also fetch-if-needed any dependencies, the only assumption I want to make is
+I want to keep the build processes as simple as possible:
+- `cd` into the directory for any implementation
+- `./build.sh` to build the standard version with release-mode compiler flags
+- `./rosettaboy-release [...]` to run games
+
+Ideally the build script should
+also fetch (if needed) any dependencies, the only assumption I want to make is
 that the user has the standard language dev kits installed (eg we assume
 anyone who wants to work on the Rust version will have Cargo installed;
 anyone who wants to work on Python will have virtualenv + pip; etc)
 
-If you have either Nix or Docker available, you can run `./utils/shell.sh` to create and run an environment with all necessary dev tools pre-installed. — `./run.sh --headless --silent` should be able to pass tests for all languages.
+If you have either Nix or Docker available, you can run `./utils/shell.sh` to create and run an environment with all necessary dev tools pre-installed. — `./build.sh && ./rosettaboy-release --headless --silent` should be able to pass tests for all languages.
 
 If you prefer Docker, you can use `./utils/shell-docker.sh` instead.
 
@@ -81,8 +84,8 @@ seems fairer; especially if we can get the measurement included automatically
 via github actions. Pull requests welcome :)
 
 Running on an M1 Macbook Pro, using (to my knowledge) the latest version of
-each compiler, with standard "release mode" flags (see each language's run.sh
-for exactly which flags are used):
+each compiler, with standard "release mode" flags (see each language's
+`build.sh` for exactly which flags are used):
 
 ```
 $ ./utils/bench.py

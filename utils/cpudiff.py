@@ -6,9 +6,9 @@ tests, it can be useful to compare results against a known-good one
 For example, nim has some GPU weirdness, let's see if there're any
 differences happening at the CPU level:
 
-$ ./cpp/run.sh -SHtf5 ../test_roms/games/opus5.gb --debug-cpu > cpp.cpu
-$ ./zig/run.sh -SHtf5 ../test_roms/games/opus5.gb --debug-cpu > zig.cpu
-$ ./nim/run.sh -SHtf5 ../test_roms/games/opus5.gb --debug-cpu > nim.cpu
+$ ./cpp/rosettaboy-release -SHtf5 ../test_roms/games/opus5.gb --debug-cpu > cpp.cpu
+$ ./zig/rosettaboy-release -SHtf5 ../test_roms/games/opus5.gb --debug-cpu > zig.cpu
+$ ./nim/rosettaboy-release -SHtf5 ../test_roms/games/opus5.gb --debug-cpu > nim.cpu
 $ ./utils/cpudiff.py *.cpu
 Skipped 37 common lines
 00C0 4000 00D8 014D : FFF4 = 0000 : ZNhc : v____ : 017E = CD : CALL $01E4

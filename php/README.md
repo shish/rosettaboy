@@ -8,7 +8,8 @@ to see the instructions as they are executed though, and data-cable output
 works so things like blargg's test roms can print "ok" or "fail".
 
 ```
-./run.sh -c -S -H -t -p 60 game.gb
+./build.sh
+./rosettaboy-release -c -S -H -t -p 60 game.gb
 ```
 
 xdebug is useful, but makes things slow. opcache makes things fast, but is
