@@ -91,11 +91,14 @@ jobs:
         version: 0.10.0
     - name: Build
       shell: bash
-      run: ./${{ inputs.workdir }}/run.sh --help
+      run: ./${{ inputs.workdir }}/build.sh
+    - name: Smoke Test
+      shell: bash
+      run: ./${{ inputs.workdir }}/rosettaboy-release --help
     - name: CPU Integration Tests
       shell: bash
       run: ./utils/blargg.py ${{ inputs.workdir }}
-    - name: Benchmark
+    - name: Benchmark Test
       shell: bash
       run: ./utils/bench.py ${{ inputs.workdir }} --default --frames 10
   nix:
@@ -120,4 +123,4 @@ jobs:
     - name: Run
       shell: bash
       working-directory: ${{ inputs.workdir }}
-      run: nix-shell --pure --run './run.sh --help'
+      run: nix-shell --pure --run './build.sh && ./rosettaboy-release --help'

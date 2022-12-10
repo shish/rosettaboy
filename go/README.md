@@ -1,9 +1,11 @@
 RosettaBoy - Go Edition
 =======================
 
+Usage
+-----
 ```
-go get -v github.com/veandco/go-sdl2/sdl
-go run src/*.go game.gb
+./build.sh
+./rosettaboy-release game.gb
 ```
 
 Thoughts on Go

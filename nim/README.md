@@ -1,7 +1,12 @@
 RosettaBoy - Nim Edition
 ========================
 
-
+Usage
+-----
+```
+./build.sh
+./rosettaboy-release game.gb
+```
 
 Thoughts on Nim
 ===============

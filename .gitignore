@@ -8,3 +8,4 @@ gb-autotest-roms
 .vscode/
 venv/
 build/
+*/rosettaboy-*
