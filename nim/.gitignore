@@ -1,2 +1,3 @@
 rosettaboy
+bin.*
 libSDL2.dylib

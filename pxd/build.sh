@@ -20,8 +20,7 @@ python3 setup.py build "$@" --build-base "$BUILD_DIR" --build-purelib "$BUILD_DI
 cat >rosettaboy-release <<EOD
 #!/usr/bin/env bash
 set -eu
-cd \$(dirname \$0)
-source py_env.sh
-exec python3 build/main.py \$*
+source "\$(dirname \$0)/py_env.sh"
+PYTHONPATH="\$(dirname \$0)/build/" exec python3 "\$(dirname \$0)/build/main.py" \$*
 EOD
 chmod +x rosettaboy-release
