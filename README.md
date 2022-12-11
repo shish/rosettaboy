@@ -89,20 +89,22 @@ each compiler, with standard "release mode" flags (see each language's
 
 ```
 $ ./utils/bench.py
-   rs / release: Emulated 13230 frames in 10.00s (1323fps)
-   rs / lto    : Emulated 13018 frames in 10.00s (1302fps)
-  cpp / release: Emulated 12752 frames in 10.00s (1275fps)
-  nim / speed  : Emulated  8163 frames in 10.00s (816fps)
-  nim / release: Emulated  8160 frames in 10.00s (815fps)
-  zig / release: Emulated  7472 frames in 10.00s (747fps)
-  nim / release: Emulated  6228 frames in 10.00s (622fps)
-   go / release: Emulated  4948 frames in 10.00s (495fps)
-  pxd / release: Emulated  3778 frames in 10.00s (378fps)
-   py / mypyc  : Emulated   833 frames in 10.01s (83fps)
-  php / opcache: Emulated   600 frames in 10.00s (60fps)
-  php / release: Emulated   251 frames in 10.01s (25fps)
-   py / release: Emulated    95 frames in 10.04s (9fps)
-  zig / safe   : Emulated    38 frames in 10.16s (4fps)
+   rs / lto    : Emulated 15763 frames in 10.00s (1576fps)
+   rs / release: Emulated 13183 frames in 10.00s (1318fps)
+  cpp / release: Emulated 12966 frames in 10.00s (1297fps)
+  zig / release: Emulated  8792 frames in 10.00s (879fps)
+  nim / speed  : Emulated  8127 frames in 10.00s (812fps)
+  nim / release: Emulated  6161 frames in 10.00s (616fps)
+  cpp / debug  : Emulated  5693 frames in 10.00s (569fps)
+   go / release: Emulated  5040 frames in 10.00s (504fps)
+  pxd / release: Emulated  3792 frames in 10.00s (379fps)
+  nim / debug  : Emulated  1968 frames in 10.00s (196fps)
+   rs / debug  : Emulated  1676 frames in 10.00s (168fps)
+   py / mypyc  : Emulated   887 frames in 10.01s (89fps)
+  php / opcache: Emulated   613 frames in 10.01s (61fps)
+  php / release: Emulated   255 frames in 10.01s (25fps)
+   py / release: Emulated   101 frames in 10.06s (10fps)
+  zig / safe   : Emulated    40 frames in 10.00s (4fps)
 ```
 
 Also if you spot some bit of code that is weirdly slow and making your favourite

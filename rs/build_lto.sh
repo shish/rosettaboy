@@ -3,4 +3,4 @@ set -eu
 
 cd $(dirname $0)
 cargo build --profile release-lto
-cp ./target/release/rosettaboy-rs ./rosettaboy-lto
+mv ./target/release-lto/rosettaboy-rs ./rosettaboy-lto
