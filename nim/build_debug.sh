@@ -2,7 +2,7 @@
 set -eu
 
 cd $(dirname $0)
-nimble --accept build -d:debug
+nimble --accept build -d:debug -d:nimDebugDlOpen
 mv ./rosettaboy ./bin.debug
 cat >rosettaboy-debug <<EOD
 #!/bin/sh

@@ -93,3 +93,12 @@ gpu = createGPU(ram)
 And now `cpu.ram != gpu.ram` ???
 
 I feel like maaaaybe this has something to do with `let` vs `var`?
+
+
+Installing on OSX/M1
+--------------------
+- nix install doesn't recognise arm, compile fails
+  - fixed (https://github.com/NixOS/nixpkgs/pull/204028)
+- nix installs 1.6.8 instead of 1.6.10
+- the nix version of nimble crashes because it can't handle curl and openssl living together (https://github.com/nim-lang/Nim/issues/9419)
+- choosenim installs x86 nim intead of arm (https://github.com/dom96/choosenim/pull/301)
