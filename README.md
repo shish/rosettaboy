@@ -90,6 +90,7 @@ each compiler, with standard "release mode" flags (see each language's
 ```
 $ ./utils/bench.py
    rs / lto    : Emulated 15763 frames in 10.00s (1576fps)
+  cpp / lto    : Emulated 14737 frames in 10.00s (1474fps)
    rs / release: Emulated 13183 frames in 10.00s (1318fps)
   cpp / release: Emulated 12966 frames in 10.00s (1297fps)
   zig / release: Emulated  8792 frames in 10.00s (879fps)
