@@ -2,7 +2,7 @@
 	buildInputs = with pkgs; [
 		nim
 		SDL2
-		lld
+		pkgs.llvmPackages_14.bintools
 		
 		git cacert
 	];
