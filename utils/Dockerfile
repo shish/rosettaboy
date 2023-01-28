@@ -36,7 +36,7 @@ ARG PHP_VERSION
 USER root
 RUN apt update && apt install -y php${PHP_VERSION}-cli php${PHP_VERSION}-dev
 USER dev
-RUN git clone https://github.com/shish/php-sdl ~/php-sdl && \
+RUN git clone https://github.com/Ponup/php-sdl ~/php-sdl && \
     cd ~/php-sdl && phpize && ./configure && make
 
 # Install Python tools
