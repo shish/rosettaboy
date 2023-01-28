@@ -3,12 +3,12 @@
 let
   sdl = pkgs.php81.buildPecl {
     pname = "sdl";
-    version = "bd24b2";
+    version = "655e40";
     src = pkgs.fetchFromGitHub {
-      owner = "shish";
+      owner = "Ponup";
       repo = "php-sdl";
-      rev = "bd24b2600dc23717abd538ffba188b295dafe60d";
-      sha256 = "0dr048bvcvb6f4gzdwb3ykim30ir6pckcsl2pwpsmv3c6ni9sq25";
+      rev = "655e403b8a9681c418702a74833c68c1a4ae1bd5";
+      sha256 = "1kfw1s4ip8y0zfyl61ipw3ql9c4d9f0bwwg398kfl9p8k3vc857h";
     };
     buildInputs = with pkgs; [ SDL2 ];
   };
