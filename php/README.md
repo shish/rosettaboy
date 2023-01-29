@@ -2,22 +2,9 @@
 PHP arg parsing is a nightmare, so this version only supports short flags
 (patches welcome!)
 
-PHP also doesn't seem to have any non-deprecated SDL bindings, so there's
-no input or output (patches also welcome!). You can run in CPU-debug mode
-to see the instructions as they are executed though, and data-cable output
-works so things like blargg's test roms can print "ok" or "fail".
-
 ```
 ./build.sh
 ./rosettaboy-release -c -S -H -t -p 60 game.gb
-```
-
-xdebug is useful, but makes things slow. opcache makes things fast, but is
-incompatible with xdebug. To try and get the least-bad thing in each situation:
-
-For running in practice:
-```
-php8.1 -dopcache.enable_cli=1 -dopcache.jit_buffer_size=100M src/main.php --args
 ```
 
 VS Code debug configuration:
