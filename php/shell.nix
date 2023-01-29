@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> { } }:
 
 let
-  sdl = pkgs.php81.buildPecl {
+  sdl = pkgs.php82.buildPecl {
     pname = "sdl";
     version = "655e40";
     src = pkgs.fetchFromGitHub {
@@ -13,7 +13,7 @@ let
     buildInputs = with pkgs; [ SDL2 ];
   };
 
-  php = pkgs.php81.withExtensions ({ enabled, all }: enabled ++ [ sdl ]);
+  php = pkgs.php82.withExtensions ({ enabled, all }: enabled ++ [ sdl ]);
 in
 
 pkgs.mkShell {
