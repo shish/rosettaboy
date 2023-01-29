@@ -1,4 +1,4 @@
-ARG PHP_VERSION=8.1
+ARG PHP_VERSION=8.2
 ARG PYTHON_VERSION=3.11
 ARG RUST_VERSION=1.65.0
 ARG ZIG_VERSION=0.10.0
@@ -36,7 +36,7 @@ ARG PHP_VERSION
 USER root
 RUN apt update && apt install -y php${PHP_VERSION}-cli php${PHP_VERSION}-dev
 USER dev
-RUN git clone https://github.com/shish/php-sdl ~/php-sdl && \
+RUN git clone https://github.com/Ponup/php-sdl ~/php-sdl && \
     cd ~/php-sdl && phpize && ./configure && make
 
 # Install Python tools
