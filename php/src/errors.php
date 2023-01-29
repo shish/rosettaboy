@@ -11,10 +11,8 @@ class Quit extends ControlledExit
 
 class Timeout extends ControlledExit
 {
-    public function __construct(int $frames, float $duration)
+    public function __construct(private int $frames, private float $duration)
     {
-        $this->frames = $frames;
-        $this->duration = $duration;
     }
 
     public function __toString(): string
@@ -37,9 +35,8 @@ class GameException extends Exception
 }
 class InvalidOpcode extends GameException
 {
-    public function __construct($opcode)
+    public function __construct(private int $opcode)
     {
-        $this->opcode = $opcode;
     }
 }
 
@@ -49,24 +46,21 @@ class UserException extends Exception
 }
 class UnsupportedCart extends UserException
 {
-    public function __construct($cart_type)
+    public function __construct(private int $cart_type)
     {
-        $this->cart_type = $cart_type;
     }
 }
 
 class LogoChecksumFailed extends UserException
 {
-    public function __construct($logo_checksum)
+    public function __construct(private int $logo_checksum)
     {
-        $this->logo_checksum = $logo_checksum;
     }
 }
 
 class HeaderChecksumFailed extends UserException
 {
-    public function __construct($header_checksum)
+    public function __construct(private int $header_checksum)
     {
-        $this->header_checksum = $header_checksum;
     }
 }
