@@ -11,6 +11,14 @@ require "ram.php";
 
 class GameBoy
 {
+    private Cart $cart;
+    private RAM $ram;
+    private CPU $cpu;
+    private GPU $gpu;
+    private APU $apu;
+    private Buttons $buttons;
+    private Clock $clock;
+
     public function __construct($args)
     {
         $this->cart = new Cart($args['rom']);
