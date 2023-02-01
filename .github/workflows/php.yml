@@ -21,3 +21,4 @@ jobs:
       workdir: php
       format-pkgs: php-cli
       build-pkgs: php-cli
+      build-nix: true
