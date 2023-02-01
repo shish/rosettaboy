@@ -24,3 +24,4 @@ jobs:
       cache-paths: |
         cpp/build
       cache-key: build
+      build-nix: true
