@@ -27,7 +27,7 @@ type
     Regs {.union.} = object
         r8: R8
         r16: R16
-    CPU* = object
+    CPU* = ref object
         ram: ram.RAM
         stop*: bool
         interrupts: bool
