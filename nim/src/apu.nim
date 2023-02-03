@@ -20,4 +20,3 @@ proc create*(silent: bool, debug: bool): APU =
 # FIXME: implement this
 proc tick*(apu: APU) =
     return
-

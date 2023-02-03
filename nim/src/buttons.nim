@@ -50,7 +50,7 @@ Note that in memory, 0=pressed and 1=released - since this makes things
 incredibly confusing, we invert the bits when reading the byte and invert
 them back when writing.
 ]#
-proc updateButtons(self: var Buttons) =
+proc updateButtons(self: Buttons) =
     var joyp = bitops.bitnot(self.ram.get(consts.Mem_JOYP))
     joyp = bitops.bitand(joyp, 0x30)
     if bitops.bitand(joyp, JOYPAD_MODE_DPAD) != 0:
@@ -78,7 +78,7 @@ proc updateButtons(self: var Buttons) =
 Once per frame, check the queue of input events from the OS,
 store which buttons are pressed or not
 ]#
-proc handleInputs(self: var Buttons): bool =
+proc handleInputs(self: Buttons): bool =
     var needInterrupt = false;
 
     var event = sdl2.defaultEvent
@@ -177,7 +177,7 @@ proc handleInputs(self: var Buttons): bool =
     return needInterrupt
 
 
-proc tick*(self: var Buttons) =
+proc tick*(self: Buttons) =
     self.cycle += 1
     self.updateButtons()
     if self.cycle mod 17556 == 20:

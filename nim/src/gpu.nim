@@ -122,7 +122,7 @@ func x_flip(self: Sprite): bool =
 func y_flip(self: Sprite): bool =
     bitand(self.flags, SPRITE_FLIP_Y) > 0
 
-proc update_palettes(self: var GPU) =
+proc update_palettes(self: GPU) =
     let raw_bgp = self.ram.get(consts.Mem_BGP)
     self.bgp[0] = self.colors[bitand((raw_bgp shr 0), 0x3)]
     self.bgp[1] = self.colors[bitand((raw_bgp shr 2), 0x3)]
@@ -314,7 +314,7 @@ proc draw_line(self: GPU, ly: uint32) =
                     xy.y = (sprite.y - 8).cint
                     self.paint_tile(sprite.tile_id.int16 + 1, xy, palette, sprite.x_flip(), sprite.y_flip())
 
-proc tick*(self: var GPU) =
+proc tick*(self: GPU) =
     self.cycle += 1
 
     # CPU STOP stops all LCD activity until a button is pressed
