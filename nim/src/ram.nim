@@ -165,7 +165,7 @@ proc get*(self: RAM, address: uint16): uint8 {.inline.} =
     return val
 
 
-proc set*(self: var RAM, address: uint16, val: uint8) {.inline.} =
+proc set*(self: RAM, address: uint16, val: uint8) {.inline.} =
     if self.debug:
         echo fmt"ram[{address:04X}] <- {val:02X}"
 
