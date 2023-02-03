@@ -91,7 +91,7 @@ proc create*(cart: Cart, debug: bool): RAM =
     )
 
 
-proc get*(self: RAM, address: uint16): uint8 =
+proc get*(self: RAM, address: uint16): uint8 {.inline.} =
     var val = self.data[address.int];
     case address:
         of 0x0000..0x3FFF:
@@ -165,7 +165,7 @@ proc get*(self: RAM, address: uint16): uint8 =
     return val
 
 
-proc set*(self: var RAM, address: uint16, val: uint8) =
+proc set*(self: var RAM, address: uint16, val: uint8) {.inline.} =
     if self.debug:
         echo fmt"ram[{address:04X}] <- {val:02X}"
 
