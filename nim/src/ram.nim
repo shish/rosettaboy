@@ -100,9 +100,9 @@ template get*(self: RAM, address: uint16): uint8 =
         of 0x0000..0x3FFF:
             # ROM bank 0
             if self.data[consts.Mem_BOOT] == 0 and address < 0x0100:
-                val = self.boot[address.int]
+                val = self.boot[cast[uint8](address)]
             else:
-                val = self.cart.data[address.int].uint8
+                val = self.cart.data[address].uint8
 
         of 0x4000..0x7FFF:
             # Switchable ROM bank
