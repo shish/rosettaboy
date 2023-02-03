@@ -90,8 +90,11 @@ proc create*(cart: Cart, debug: bool): RAM =
       boot: boot,
     )
 
+proc echoMem(address: uint16, val: uint8, right: bool) =
+  let arrow = if right: "->" else: "<-"
+  echo fmt"ram[{address:04X}] {arrow} {val:02X}"
 
-proc get*(self: RAM, address: uint16): uint8 {.inline.} =
+template get*(self: RAM, address: uint16): uint8 =
     var val = self.data[address.int];
     case address:
         of 0x0000..0x3FFF:
@@ -161,13 +164,13 @@ proc get*(self: RAM, address: uint16): uint8 {.inline.} =
         else:
             val = self.data[address.int];
     if self.debug:
-        echo fmt"ram[{address:04X}] -> {val:02X}"
-    return val
+        echoMem(address, val, false)
+    val
 
 
-proc set*(self: RAM, address: uint16, val: uint8) {.inline.} =
+template set*(self: RAM, address: uint16, val: uint8) =
     if self.debug:
-        echo fmt"ram[{address:04X}] <- {val:02X}"
+        echoMem(address, val, true)
 
     case address:
         of 0x0000..0x1FFF:
