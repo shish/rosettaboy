@@ -1,6 +1,7 @@
 RosettaBoy
 ==========
 
+[![C](https://github.com/shish/rosettaboy/actions/workflows/c.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/c.yml)
 [![C++](https://github.com/shish/rosettaboy/actions/workflows/cpp.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/cpp.yml)
 [![Go](https://github.com/shish/rosettaboy/actions/workflows/go.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/go.yml)
 [![Nim](https://github.com/shish/rosettaboy/actions/workflows/nim.yml/badge.svg)](https://github.com/shish/rosettaboy/actions/workflows/nim.yml)
