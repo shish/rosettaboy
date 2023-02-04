@@ -1,0 +1,26 @@
+name: C
+
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'c/**'
+    - '.github/workflows/c.yml'
+  pull_request:
+    paths:
+    - 'c/**'
+    - '.github/workflows/c.yml'
+  workflow_dispatch:
+
+jobs:
+  common:
+    name: Common
+    uses: ./.github/workflows/common.yml
+    with:
+      workdir: c
+      format-pkgs: clang-format-14
+      build-pkgs: gcc cmake libsdl2-dev
+      cache-paths: |
+        c/build
+      cache-key: build
