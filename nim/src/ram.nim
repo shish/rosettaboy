@@ -91,8 +91,8 @@ proc create*(cart: Cart, debug: bool): RAM =
     )
 
 proc echoMem(address: uint16, val: uint8, right: bool) =
-  let arrow = if right: "->" else: "<-"
-  echo fmt"ram[{address:04X}] {arrow} {val:02X}"
+    let arrow = if right: "->" else: "<-"
+    echo fmt"ram[{address:04X}] {arrow} {val:02X}"
 
 template get*(self: RAM, address: uint16): uint8 =
     var val = self.data[address.int];
