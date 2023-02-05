@@ -45,7 +45,7 @@ jobs:
         key: ${{ inputs.workdir }}-format-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
         restore-keys: ${{ inputs.workdir }}-format-
     - name: Install Pkgs
-      uses: awalsh128/cache-apt-pkgs-action@v1.2.2
+      uses: awalsh128/cache-apt-pkgs-action@v1.2.3
       with:
         packages: ${{ inputs.build-pkgs }}
         version: format-${{ inputs.workdir }}
@@ -77,7 +77,7 @@ jobs:
         key: ${{ inputs.workdir }}-build-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
         restore-keys: ${{ inputs.workdir }}-build-
     - name: Install Pkgs
-      uses: awalsh128/cache-apt-pkgs-action@v1.2.2
+      uses: awalsh128/cache-apt-pkgs-action@v1.2.3
       with:
         packages: ${{ inputs.build-pkgs }}
         version: build-${{ inputs.workdir }}
