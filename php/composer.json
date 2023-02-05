@@ -1,0 +1,23 @@
+{
+    "name": "shish/rosettaboy",
+    "type": "application",
+    "description": "A gameboy emulator",
+    "keywords": ["gameboy", "emulator"],
+    "homepage": "https://github.com/shish/rosettaboy",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Shish",
+            "email": "webmaster@shishnet.org",
+            "homepage": "http://shishnet.org",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer" : "^3.12",
+        "phpstan/phpstan": "^1.9"
+    }
+}
