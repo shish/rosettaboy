@@ -32,6 +32,8 @@ class GameBoy
 
     public function run()
     {
+        // This is an infinite loop on purpose
+        // @phpstan-ignore-next-line
         while (true) {
             $this->tick();
         }

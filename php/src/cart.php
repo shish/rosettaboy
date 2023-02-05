@@ -92,6 +92,8 @@ class Cart
         }
 
         $debug = false;
+        // This is an infinite loop on purpose
+        // @phpstan-ignore-next-line
         if ($debug) {
             printf("name         : %s\n", $this->name);
             printf("is_gbc       : %d\n", $this->is_gbc);

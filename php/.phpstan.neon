@@ -1,0 +1,7 @@
+
+parameters:
+  level: 5
+  paths:
+    - src
+  ignoreErrors:
+    - '#Access to an undefined property SDL_Event::\$key.#'

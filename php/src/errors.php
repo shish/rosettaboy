@@ -17,7 +17,7 @@ class Timeout extends ControlledExit
 
     public function __toString(): string
     {
-        return sprintf("Emulated %5d frames in %5.2fs (%.0ffps)\n", $this->frames, $this->duration, $this->frames / $this->duration);
+        return sprintf("Emulated %5d frames in %5.2fs (%.0ffps)", $this->frames, $this->duration, $this->frames / $this->duration);
     }
 }
 
@@ -38,6 +38,11 @@ class InvalidOpcode extends GameException
     public function __construct(private int $opcode)
     {
     }
+
+    public function __toString(): string
+    {
+        return sprintf("Invalid OpCode: 0x%02X", $this->opcode);
+    }
 }
 
 // User Errors
@@ -49,6 +54,11 @@ class UnsupportedCart extends UserException
     public function __construct(private int $cart_type)
     {
     }
+
+    public function __toString(): string
+    {
+        return sprintf("Unsupported cart type: 0x%02X", $this->cart_type);
+    }
 }
 
 class LogoChecksumFailed extends UserException
@@ -56,11 +66,21 @@ class LogoChecksumFailed extends UserException
     public function __construct(private int $logo_checksum)
     {
     }
+
+    public function __toString(): string
+    {
+        return sprintf("Logo checksum failed: %04X", $this->logo_checksum);
+    }
 }
 
 class HeaderChecksumFailed extends UserException
 {
     public function __construct(private int $header_checksum)
     {
+    }
+
+    public function __toString(): string
+    {
+        return sprintf("Header checksum failed: %04X", $this->header_checksum);
     }
 }
