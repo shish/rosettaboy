@@ -203,7 +203,7 @@ class GPU
         for ($tile_id = 0; $tile_id < 384; $tile_id++) {
             $xy = new SDL_Point(
                 160 + ($tile_id % $tile_display_width) * 8,
-                floor($tile_id / $tile_display_width) * 8,
+                (int)floor($tile_id / $tile_display_width) * 8,
             );
             $this->paint_tile($tile_id, $xy, $this->bgp, false, false);
         }
@@ -243,12 +243,12 @@ class GPU
             }
 
             $y_in_bgmap = ($ly + $scroll_y) % 256;
-            $tile_y = floor($y_in_bgmap / 8);
+            $tile_y = (int)floor($y_in_bgmap / 8);
             $tile_sub_y = $y_in_bgmap % 8;
 
             for ($lx = 0; $lx <= 160; $lx += 8) {
                 $x_in_bgmap = ($lx + $scroll_x) % 256;
-                $tile_x = floor($x_in_bgmap / 8);
+                $tile_x = (int)floor($x_in_bgmap / 8);
                 $tile_sub_x = $x_in_bgmap % 8;
 
                 $tile_id = $this->cpu->ram->get($tile_map + $tile_y * 32 + $tile_x);
@@ -376,7 +376,7 @@ class GPU
 
 function gen_hue(int $n): SDL_Color
 {
-    $region = floor($n / 43);
+    $region = (int)floor($n / 43);
     $remainder = ($n - ($region * 43)) * 6;
 
     $q = 255 - $remainder;

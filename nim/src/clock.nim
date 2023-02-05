@@ -29,7 +29,7 @@ proc create*(buttons: Buttons, frames: int, profile: int, turbo: bool): Clock =
       start: epochTime(),
     )
 
-proc tick*(self: var Clock) =
+proc tick*(self: Clock) =
     self.cycle += 1
 
     if self.cycle mod 17556 == 20:

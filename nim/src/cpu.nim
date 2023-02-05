@@ -27,7 +27,7 @@ type
     Regs {.union.} = object
         r8: R8
         r16: R16
-    CPU* = object
+    CPU* = ref object
         ram: ram.RAM
         stop*: bool
         interrupts: bool
@@ -192,11 +192,11 @@ proc create*(ram: ram.RAM, debug: bool): CPU =
         debug: debug
     )
 
-proc interrupt*(cpu: var CPU, interrupt: uint8) =
+proc interrupt*(cpu: CPU, interrupt: uint8) =
     cpu.ram.set(consts.MEM_IF, bitor(cpu.ram.get(consts.MEM_IF), interrupt))
     cpu.halt = false # interrupts interrupt HALT state
 
-proc tickDma(self: var CPU) =
+proc tickDma(self: CPU) =
     # TODO: DMA should take 26 cycles, during which main self.ram is inaccessible
     if self.ram.get(consts.MEM_DMA) != 0:
         let dmaSrc: uint16 = self.ram.get(consts.MEM_DMA).uint16 shl 8;
@@ -204,7 +204,7 @@ proc tickDma(self: var CPU) =
             self.ram.set(consts.MEM_OamBase + i.uint16, self.ram.get(dmaSrc + i.uint16));
         self.ram.set(consts.MEM_DMA, 0x00)
 
-proc tickClock(self: var CPU) =
+proc tickClock(self: CPU) =
     self.cycle += 1;
 
     # TODO: writing any value to consts.MEM_DIV should reset it to 0x00
@@ -222,17 +222,17 @@ proc tickClock(self: var CPU) =
                 self.interrupt(consts.INTERRUPT_TIMER)
             self.ram.set(consts.MEM_TIMA, self.ram.get(consts.MEM_TIMA) + 1);
 
-proc push(self: var CPU, val: uint16) =
+proc push(self: CPU, val: uint16) =
     self.ram.set(self.sp - 1, (bitand((bitand(val, 0xFF00)) shr 8, 0xFF)).uint8)
     self.ram.set(self.sp - 2, (bitand(val, 0xFF)).uint8)
     self.sp -= 2
 
-proc pop(self: var CPU): uint16 =
+proc pop(self: CPU): uint16 =
     let val = bitor(((self.ram.get(self.sp + 1).uint16) shl 8), self.ram.get(self.sp).uint16)
     self.sp += 2
     return val
 
-proc checkInterrupt(self: var CPU, queue: uint8, i: uint8, handler: uint16): bool =
+proc checkInterrupt(self: CPU, queue: uint8, i: uint8, handler: uint16): bool =
     if bitand(queue, i) != 0:
         # TODO: wait two cycles
         # TODO: push16(PC) should also take two cycles
@@ -243,7 +243,7 @@ proc checkInterrupt(self: var CPU, queue: uint8, i: uint8, handler: uint16): boo
         return true
     return false
 
-proc tickInterrupts(self: var CPU) =
+proc tickInterrupts(self: CPU) =
     let queue = bitand(self.ram.get(consts.MEM_IE), self.ram.get(consts.MEM_IF))
     if self.interrupts and queue != 0:
         #tracing::debug!(
@@ -261,7 +261,7 @@ proc tickInterrupts(self: var CPU) =
         self.checkInterrupt(queue, consts.INTERRUPT_SERIAL, consts.MEM_SerialHandler) or
         self.checkInterrupt(queue, consts.INTERRUPT_JOYPAD, consts.MEM_JoypadHandler);
 
-proc cpuXor(self: var CPU, val: uint8) =
+proc cpuXor(self: CPU, val: uint8) =
     self.regs.r8.a = bitxor(self.regs.r8.a, val);
 
     self.flagZ = self.regs.r8.a == 0;
@@ -270,7 +270,7 @@ proc cpuXor(self: var CPU, val: uint8) =
     self.flagC = false;
 
 
-proc cpuOr(self: var CPU, val: uint8) =
+proc cpuOr(self: CPU, val: uint8) =
     self.regs.r8.a = bitor(self.regs.r8.a, val);
 
     self.flagZ = self.regs.r8.a == 0;
@@ -279,7 +279,7 @@ proc cpuOr(self: var CPU, val: uint8) =
     self.flagC = false;
 
 
-proc cpuAnd(self: var CPU, val: uint8) =
+proc cpuAnd(self: CPU, val: uint8) =
     self.regs.r8.a = bitand(self.regs.r8.a, val);
 
     self.flagZ = self.regs.r8.a == 0;
@@ -288,14 +288,14 @@ proc cpuAnd(self: var CPU, val: uint8) =
     self.flagC = false;
 
 
-proc cpuCp(self: var CPU, val: uint8) =
+proc cpuCp(self: CPU, val: uint8) =
     self.flagZ = self.regs.r8.a == val;
     self.flagN = true;
     self.flagH = bitand(self.regs.r8.a, 0x0F) < bitand(val, 0x0F);
     self.flagC = self.regs.r8.a < val;
 
 
-proc cpuAdd(self: var CPU, val: uint8) =
+proc cpuAdd(self: CPU, val: uint8) =
     self.flagC = self.regs.r8.a.int32 + val.int32 > 0xFF;
     self.flagH = bitand(self.regs.r8.a, 0x0F) + bitand(val, 0x0F) > 0x0F;
     self.flagN = false;
@@ -303,7 +303,7 @@ proc cpuAdd(self: var CPU, val: uint8) =
     self.flagZ = self.regs.r8.a == 0;
 
 
-proc cpuAdc(self: var CPU, val: uint8) =
+proc cpuAdc(self: CPU, val: uint8) =
     var carry: uint8 = (if self.flagC: 1 else: 0)
     self.flagC = (self.regs.r8.a.int32 + val.int32 + carry.int32) > 0xFF;
     self.flagH = bitand(self.regs.r8.a, 0x0F) + bitand(val, 0x0F) + carry > 0x0F;
@@ -312,7 +312,7 @@ proc cpuAdc(self: var CPU, val: uint8) =
     self.flagZ = self.regs.r8.a == 0;
 
 
-proc cpuSub(self: var CPU, val: uint8) =
+proc cpuSub(self: CPU, val: uint8) =
     self.flagC = self.regs.r8.a < val;
     self.flagH = bitand(self.regs.r8.a, 0x0F) < bitand(val, 0x0F);
     self.regs.r8.a = self.regs.r8.a - val;
@@ -320,7 +320,7 @@ proc cpuSub(self: var CPU, val: uint8) =
     self.flagN = true;
 
 
-proc cpuSbc(self: var CPU, val: uint8) =
+proc cpuSbc(self: CPU, val: uint8) =
     var carry: uint8 = (if self.flagC: 1 else: 0)
     var res: int32 = self.regs.r8.a.int32 - val.int32 - carry.int32;
     self.flagH = bitand(bitxor(self.regs.r8.a, val, res.uint8), (1 shl 4)) != 0;
@@ -343,7 +343,7 @@ proc getReg(self: CPU, n: uint8): uint8 =
         else: raise errors.InvalidRegister.newException(fmt"Invalid register {n}")
 
 
-proc setReg(self: var CPU, n: uint8, val: uint8) =
+proc setReg(self: CPU, n: uint8, val: uint8) =
     case bitand(n, 0x07):
         of 0: self.regs.r8.b = val
         of 1: self.regs.r8.c = val
@@ -361,7 +361,7 @@ proc setReg(self: var CPU, n: uint8, val: uint8) =
 Execute a normal instruction (everything except for those
 prefixed with 0xCB)
 ]#
-proc tickMain(self: var CPU, op: uint8, arg: OpArg) =
+proc tickMain(self: CPU, op: uint8, arg: OpArg) =
     # Execute
     var val: uint8 = 0
     var carry: uint8 = 0
@@ -714,7 +714,7 @@ proc tickMain(self: var CPU, op: uint8, arg: OpArg) =
  * an instruction based on the 5, and then storing the
  * data based on the 3 again.
 ]#
-proc tickCb(self: var CPU, op: uint8) =
+proc tickCb(self: CPU, op: uint8) =
     var val: uint8
     var origC: bool
     var bit: uint8
@@ -818,7 +818,7 @@ proc tickCb(self: var CPU, op: uint8) =
     self.setReg(op, val);
 
 
-proc dumpRegs(self: var CPU) =
+proc dumpRegs(self: CPU) =
     # stack
     let sp_val = bitor(self.ram.get(self.sp).uint16, self.ram.get(self.sp + 1).uint16 shl 8)
 
@@ -868,7 +868,7 @@ Pick an instruction from RAM as pointed to by the
 Program Counter register; if the instruction takes
 an argument then pick that too; then execute it.
 ]#
-proc tickInstructions(self: var CPU) =
+proc tickInstructions(self: CPU) =
     # if the previous instruction was large, let's not run any
     # more instructions until other subsystems have caught up
     if self.owedCycles > 0:
@@ -916,7 +916,7 @@ proc tickInstructions(self: var CPU) =
         self.owedCycles -= 1
 
 
-proc tick*(self: var CPU) =
+proc tick*(self: CPU) =
     self.tickDma()
     self.tickClock()
     self.tickInterrupts()
@@ -925,4 +925,3 @@ proc tick*(self: var CPU) =
     if self.stop:
         return
     self.tickInstructions()
-
