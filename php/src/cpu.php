@@ -334,7 +334,7 @@ class CPU
             $this->ram->set(Mem::$DIV, ($this->ram->get(Mem::$DIV) + 1) & 0xFF);
         }
 
-        if ($this->ram->get(Mem::$TAC) & (1 << 2) > 0) { // timer enable
+        if (($this->ram->get(Mem::$TAC) & (1 << 2)) > 0) { // timer enable
             $speeds = [256, 4, 16, 64]; // increment per X cycles
             $speed = $speeds[$this->ram->get(Mem::$TAC) & 0x03];
             if ($this->cycle % $speed == 0) {
@@ -666,18 +666,12 @@ class CPU
             case 0x19:
             case 0x29:
             case 0x39:
-                if ($op == 0x09) {
-                    $val16 = join16($this->B, $this->C);
-                }
-                if ($op == 0x19) {
-                    $val16 = join16($this->D, $this->E);
-                }
-                if ($op == 0x29) {
-                    $val16 = $this->HL;
-                }
-                if ($op == 0x39) {
-                    $val16 = $this->SP;
-                }
+                $val16 = match ($op) {
+                    0x09 => join16($this->B, $this->C),
+                    0x19 => join16($this->D, $this->E),
+                    0x29 => $this->HL,
+                    0x39 => $this->SP,
+                };
                 $this->FLAG_H = (($this->HL & 0x0FFF) + ($val16 & 0x0FFF) > 0x0FFF);
                 $this->FLAG_C = (($this->HL + $val16) > 0xFFFF);
                 $this->HL = ($this->HL + $val16) & 0xFFFF;

@@ -2,13 +2,10 @@
 
 class APU
 {
-    private bool $silent;
-    private bool $debug;
-
-    public function __construct(bool $silent, bool $debug)
-    {
-        $this->silent = $silent;
-        $this->debug = $debug;
+    public function __construct(
+        private bool $silent, // @phpstan-ignore-line
+        private bool $debug  // @phpstan-ignore-line
+    ) {
     }
 
     public function tick(): void
