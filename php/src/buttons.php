@@ -57,7 +57,6 @@ class Buttons
             if ($this->handle_inputs()) {
                 $this->cpu->stop = false;
                 $this->cpu->interrupt(Interrupt::JOYPAD);
-                $this->need_interrupt = false;
             }
         }
     }
