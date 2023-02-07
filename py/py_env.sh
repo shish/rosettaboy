@@ -10,7 +10,7 @@ else
 	if [ ! -d $BUILDDIR ] ; then
 		echo "Installing PySDL2, MyPy, and Black in $BUILDDIR"
 		python3 -m venv $BUILDDIR
-		$BUILDDIR/bin/pip install pysdl2 pysdl2-dll git+https://github.com/python/mypy.git black
+		$BUILDDIR/bin/pip install pysdl2 pysdl2-dll 'mypy>=1.0.0' black
 	fi
 	echo "Using Python3 in $BUILDDIR"
 	PATH="$BUILDDIR/bin:$PATH"
