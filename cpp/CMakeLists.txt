@@ -19,6 +19,7 @@ if( ENABLE_LTO AND supported )
     set_property(TARGET rosettaboy-cpp PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
+find_package(fmt REQUIRED)
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
-target_link_libraries(rosettaboy-cpp ${SDL2_LIBRARIES})
+target_link_libraries(rosettaboy-cpp ${SDL2_LIBRARIES} fmt::fmt-header-only)

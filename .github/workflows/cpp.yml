@@ -20,7 +20,7 @@ jobs:
     with:
       workdir: cpp
       format-pkgs: clang-format-14
-      build-pkgs: gcc cmake libsdl2-dev
+      build-pkgs: gcc cmake libsdl2-dev libfmt-dev
       cache-paths: |
         cpp/build
       cache-key: build
