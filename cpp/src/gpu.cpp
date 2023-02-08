@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <iostream>
 
 #include "consts.h"
 #include "gpu.h"
@@ -17,7 +18,8 @@ u32 bmask = 0x00ff0000;
 u32 amask = 0xff000000;
 #endif
 
-GPU::GPU(CPU *cpu, char *title, bool headless, bool debug) {
+GPU::GPU(CPU *cpu, char *title, std::string screenshot, bool headless, bool debug) {
+    this->screenshot = screenshot;
     this->cpu = cpu;
     this->debug = debug;
 
@@ -61,6 +63,10 @@ GPU::GPU(CPU *cpu, char *title, bool headless, bool debug) {
 };
 
 GPU::~GPU() {
+    std::cout << "Screenshot " << this->screenshot << "\n";
+    if(this->screenshot.length() > 0) {
+        SDL_SaveBMP(this->buffer, this->screenshot.c_str());
+    }
     SDL_FreeSurface(this->buffer);
     if(this->hw_window) SDL_DestroyWindow(this->hw_window);
     SDL_Quit();
