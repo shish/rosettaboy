@@ -1,6 +1,7 @@
 #ifndef ROSETTABOY_RAM_H
 #define ROSETTABOY_RAM_H
 
+#include <fmt/core.h>
 #include <stdexcept>
 
 #include "cart.h"
@@ -62,7 +63,7 @@ inline u8 RAM::get(u16 addr) {
         case 0xA000 ... 0xBFFF: {
             // 8KB Switchable RAM bank
             if(!this->ram_enable) {
-                printf("ERR: Reading from external ram while disabled: %04X\n", addr);
+                fmt::print("ERR: Reading from external ram while disabled: {:#06X}\n", addr);
                 return 0;
             }
             int bank = this->ram_bank * RAM_BANK_SIZE;
@@ -103,14 +104,14 @@ inline u8 RAM::get(u16 addr) {
     }
 
     if(this->debug) {
-        printf("ram[%04X] -> %02X\n", addr, val);
+        fmt::print("ram[{addr:#06X}] -> {val:#X}\n", addr, val);
     }
     return val;
 }
 
 inline void RAM::set(u16 addr, u8 val) {
     if(this->debug) {
-        printf("ram[%04X] <- %02X\n", addr, val);
+        fmt::print("ram[{addr:#06X}] <- {val:#X}\n", addr, val);
     }
     switch(addr) {
         case 0x0000 ... 0x1FFF: {
@@ -122,7 +123,7 @@ inline void RAM::set(u16 addr, u8 val) {
         case 0x2000 ... 0x3FFF: {
             this->rom_bank_low = val;
             this->rom_bank = (this->rom_bank_high << 5) | this->rom_bank_low;
-            if(this->debug) printf("rom_bank set to %u/%u\n", this->rom_bank, this->cart->rom_size / ROM_BANK_SIZE);
+            if(this->debug) fmt::print("rom_bank set to {}/{}\n", this->rom_bank, this->cart->rom_size / ROM_BANK_SIZE);
             if(this->rom_bank * ROM_BANK_SIZE > this->cart->rom_size) {
                 throw std::invalid_argument("Set rom_bank beyond the size of ROM");
             }
@@ -131,14 +132,16 @@ inline void RAM::set(u16 addr, u8 val) {
         case 0x4000 ... 0x5FFF: {
             if(this->ram_bank_mode) {
                 this->ram_bank = val;
-                if(this->debug) printf("ram_bank set to %u/%u\n", this->ram_bank, this->cart->ram_size / RAM_BANK_SIZE);
+                if(this->debug)
+                    fmt::print("ram_bank set to {}/{}\n", this->ram_bank, this->cart->ram_size / RAM_BANK_SIZE);
                 if(this->ram_bank * RAM_BANK_SIZE > this->cart->ram_size) {
                     throw std::invalid_argument("Set ram_bank beyond the size of RAM");
                 }
             } else {
                 this->rom_bank_high = val;
                 this->rom_bank = (this->rom_bank_high << 5) | this->rom_bank_low;
-                if(this->debug) printf("rom_bank set to %u/%u\n", this->rom_bank, this->cart->rom_size / ROM_BANK_SIZE);
+                if(this->debug)
+                    fmt::print("rom_bank set to {}/{}\n", this->rom_bank, this->cart->rom_size / ROM_BANK_SIZE);
                 if(this->rom_bank * ROM_BANK_SIZE > this->cart->rom_size) {
                     throw std::invalid_argument("Set rom_bank beyond the size of ROM");
                 }
@@ -163,7 +166,9 @@ inline void RAM::set(u16 addr, u8 val) {
             int bank = this->ram_bank * RAM_BANK_SIZE;
             int offset = addr - 0xA000;
             if(this->debug)
-                printf("Writing external RAM: %04X=%02X (%02X:%04X)\n", bank + offset, val, this->ram_bank, offset);
+                fmt::print(
+                    "Writing external RAM: {:#06X}={:#X} ({:#X}:{:#06X})\n", bank + offset, val, this->ram_bank,
+                    offset);
             if(bank + offset >= this->cart->ram_size) {
                 throw new InvalidRamWrite(this->ram_bank, offset, this->cart->ram_size);
             }
