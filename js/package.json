@@ -1,0 +1,26 @@
+{
+  "name": "rosettaboy",
+  "version": "0.0.0",
+  "description": "A gameboy emulator in lots of languages, JS edition",
+  "main": "./dist/index.js",
+  "type": "module",
+  "bin": {
+    "rosettaboy": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "parcel build --public-url . src/index.ts",
+    "watch": "parcel watch --public-url . src/index.ts",
+    "format": "prettier --write 'src/*.ts' --tab-width 4 --trailing-comma all"
+  },
+  "author": "Shish <shish@shishnet.org>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.11.9",
+    "parcel": "^2.8.0",
+    "prettier": "^2.8.0"
+  },
+  "dependencies": {
+    "@kmamal/sdl": "^0.6.3",
+    "commander": "^9.4.1"
+  }
+}

@@ -100,6 +100,7 @@ $ ./utils/bench.py
   cpp / debug  : Emulated  5693 frames in 10.00s (569fps)
    go / release: Emulated  5040 frames in 10.00s (504fps)
   pxd / release: Emulated  3792 frames in 10.00s (379fps)
+   js / release: Emulated  2436 frames in 10.00s (243fps)  # missing GPU
   nim / debug  : Emulated  1968 frames in 10.00s (196fps)
    rs / debug  : Emulated  1676 frames in 10.00s (168fps)
    py / mypyc  : Emulated   887 frames in 10.01s (89fps)

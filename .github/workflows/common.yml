@@ -116,6 +116,11 @@ jobs:
           /nix
         key: ${{ inputs.workdir }}-nix-${{ hashFiles(format('{0}/shell.nix', inputs.workdir)) }}
         restore-keys: ${{ inputs.workdir }}-nix-
+    - name: Install Pkgs
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: libc-bin
+        version: nix-apt
     - name: Install Deps
       uses: cachix/install-nix-action@v15
       with:
