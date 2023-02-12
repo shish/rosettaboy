@@ -19,15 +19,15 @@ class GameBoy
     private Buttons $buttons;
     private Clock $clock;
 
-    public function __construct($args)
+    public function __construct(Args $args)
     {
-        $this->cart = new Cart($args['rom']);
-        $this->ram = new RAM($this->cart, $args['debug-ram']);
-        $this->cpu = new CPU($this->ram, $args['debug-cpu']);
-        $this->gpu = new GPU($this->cpu, $args['debug-gpu'], $args['headless']);
-        $this->apu = new APU($args['silent'], $args['debug-apu']);
-        $this->buttons = new Buttons($this->cpu, $args['headless']);
-        $this->clock = new Clock($this->buttons, $args['frames'], $args['profile'], $args['turbo']);
+        $this->cart = new Cart($args->rom);
+        $this->ram = new RAM($this->cart, $args->debug_ram);
+        $this->cpu = new CPU($this->ram, $args->debug_cpu);
+        $this->gpu = new GPU($this->cpu, $args->debug_gpu, $args->headless);
+        $this->apu = new APU($args->silent, $args->debug_apu);
+        $this->buttons = new Buttons($this->cpu, $args->headless);
+        $this->clock = new Clock($this->buttons, $args->frames, $args->profile, $args->turbo);
     }
 
     public function run()
