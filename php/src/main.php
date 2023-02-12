@@ -15,7 +15,7 @@ require "args.php";
 require "gameboy.php";
 require "errors.php";
 
-$args = parse_args($argv);
+$args = Args::parse($argv);
 
 try {
     $gameboy = new GameBoy($args);
