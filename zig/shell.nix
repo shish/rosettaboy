@@ -16,7 +16,7 @@ let
 	}))).master.${version} or (abort "Unknown version: ${version}")
 	).${pkgs.stdenv.system} or (abort "Unknown platform ${pkgs.stdenv.system}");
 	
-	zig-pinned-bin = let zigUrl=getZigUrl "2023-02-13"; in pkgs.stdenv.mkDerivation {
+	zig-pinned-bin = let zigUrl=getZigUrl "2023-02-09"; in pkgs.stdenv.mkDerivation {
 		pname = "zig-bin";
 		inherit (zigUrl) version;
 		
