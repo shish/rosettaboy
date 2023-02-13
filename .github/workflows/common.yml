@@ -26,8 +26,7 @@ on:
         type: string
       with-zig:
         required: false
-        type: boolean
-        default: false
+        type: string
 
 jobs:
   format:
@@ -55,9 +54,9 @@ jobs:
         nim-version: ${{ inputs.with-nim }}
     - name: Install Zig
       if: inputs.with-zig
-      uses: goto-bus-stop/setup-zig@v1
+      uses: goto-bus-stop/setup-zig@v2
       with:
-        version: 0.10.0
+        version: ${{ inputs.with-zig }}
     - name: Check
       working-directory: ${{ inputs.workdir }}
       shell: bash
@@ -89,9 +88,9 @@ jobs:
         nim-version: ${{ inputs.with-nim }}
     - name: Install Zig
       if: inputs.with-zig
-      uses: goto-bus-stop/setup-zig@v1
+      uses: goto-bus-stop/setup-zig@v2
       with:
-        version: 0.10.0
+        version: ${{ inputs.with-zig }}
     - name: Build
       shell: bash
       run: ./${{ inputs.workdir }}/build.sh
