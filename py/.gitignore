@@ -15,3 +15,5 @@ Makefile
 *.swp
 *.txt
 *.sav
+
+*.egg-info/
