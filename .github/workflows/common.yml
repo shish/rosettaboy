@@ -23,8 +23,7 @@ on:
         type: string
       with-nim:
         required: false
-        type: boolean
-        default: false
+        type: string
       with-zig:
         required: false
         type: boolean
@@ -52,6 +51,8 @@ jobs:
     - name: Install Nim
       if: inputs.with-nim
       uses: jiro4989/setup-nim-action@v1
+      with:
+        nim-version: ${{ inputs.with-nim }}
     - name: Install Zig
       if: inputs.with-zig
       uses: goto-bus-stop/setup-zig@v1
@@ -84,6 +85,8 @@ jobs:
     - name: Install Nim
       if: inputs.with-nim
       uses: jiro4989/setup-nim-action@v1
+      with:
+        nim-version: ${{ inputs.with-nim }}
     - name: Install Zig
       if: inputs.with-zig
       uses: goto-bus-stop/setup-zig@v1
