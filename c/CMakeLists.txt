@@ -52,6 +52,7 @@ endif()
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
+target_link_libraries(rosettaboy-c-shared ${SDL2_LIBRARIES})
 target_link_libraries(rosettaboy-c ${SDL2_LIBRARIES})
 
 install(TARGETS rosettaboy-c rosettaboy-c-shared rosettaboy-c-static
