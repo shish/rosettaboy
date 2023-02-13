@@ -14,17 +14,9 @@ import re
 import sys
 import argparse
 from multiprocessing.pool import ThreadPool
+from pathlib import Path
 
 TEST_ROM_URL = "https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true"
-TEST_ROM = "opus5.gb"
-if not os.path.exists(TEST_ROM):
-    subprocess.run(
-        ["wget", TEST_ROM_URL, "-O", TEST_ROM],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        check=True,
-    )
 
 
 def build(lang: str, builder: str, sub: str) -> bool:
@@ -43,7 +35,10 @@ def build(lang: str, builder: str, sub: str) -> bool:
         return True
 
 
-def test(lang: str, runner: str, sub: str, frames: int, profile: int) -> bool:
+def test(lang: str, runner: str, sub: str, frames: int, profile: int, rom: Path) -> bool:
+    if not rom.is_absolute():
+        rom = f"../{rom}"
+    
     proc = subprocess.run(
         [
             f"./{runner}",
@@ -54,7 +49,7 @@ def test(lang: str, runner: str, sub: str, frames: int, profile: int) -> bool:
             "--silent",
             "--headless",
             "--turbo",
-            f"../{TEST_ROM}",
+            f"{rom}",
         ],
         cwd=lang,
         stdout=subprocess.PIPE,
@@ -93,8 +88,25 @@ def main() -> int:
     parser.add_argument(
         "--profile", type=int, default=0, help="Run for this many seconds"
     )
+    parser.add_argument(
+        "--test_rom",
+        type=Path,
+        default=Path(os.environ.get("GB_DEFAULT_BENCH_ROM", "opus5.gb")),
+        help="Which test rom to run",
+        metavar="ROM"
+    )
     parser.add_argument("langs", default=[], nargs="*", help="Which languages to test")
     args = parser.parse_args()
+
+    if not os.path.exists(args.test_rom):
+        subprocess.run(
+            ["wget", TEST_ROM_URL, "-O", args.test_rom],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=True,
+        )
+
     if args.frames == 0 and args.profile == 0:
         args.profile = 10
 
@@ -127,7 +139,7 @@ def main() -> int:
             continue
         if args.default and sub != "release":
             continue
-        tests_to_run.append((lang, runner, sub, args.frames, args.profile))
+        tests_to_run.append((lang, runner, sub, args.frames, args.profile, args.test_rom))
 
     p = ThreadPool(args.threads)
     results = p.starmap(test, tests_to_run)
