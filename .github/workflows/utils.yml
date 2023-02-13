@@ -29,6 +29,6 @@ jobs:
       continue-on-error: true
     - name: Build
       working-directory: utils
-      run: docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t rosettaboy .
+      run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy .
     - name: Run
       run: ./utils/shell-docker.sh ./utils/bench.py --default --frames 10 --threads 4
