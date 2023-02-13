@@ -3,7 +3,7 @@ import sys
 
 from src.errors import UnitTestPassed, UnitTestFailed, InvalidOpcode
 from src.ram import RAM
-from src.consts import *
+from src.consts import u8, u16, i8, Mem, Interrupt
 
 
 # fmt: off
