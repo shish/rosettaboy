@@ -7,10 +7,12 @@ on:
     paths:
     - 'rs/**'
     - '.github/workflows/rs.yml'
+    - '.github/workflows/common.yml'
   pull_request:
     paths:
     - 'rs/**'
     - '.github/workflows/rs.yml'
+    - '.github/workflows/common.yml'
   workflow_dispatch:
 
 jobs:

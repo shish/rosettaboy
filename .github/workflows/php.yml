@@ -7,10 +7,12 @@ on:
     paths:
     - 'php/**'
     - '.github/workflows/php.yml'
+    - '.github/workflows/common.yml'
   pull_request:
     paths:
     - 'php/**'
     - '.github/workflows/php.yml'
+    - '.github/workflows/common.yml'
   workflow_dispatch:
 
 jobs:

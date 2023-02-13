@@ -7,10 +7,12 @@ on:
     paths:
     - 'go/**'
     - '.github/workflows/go.yml'
+    - '.github/workflows/common.yml'
   pull_request:
     paths:
     - 'go/**'
     - '.github/workflows/go.yml'
+    - '.github/workflows/common.yml'
   workflow_dispatch:
 
 jobs:

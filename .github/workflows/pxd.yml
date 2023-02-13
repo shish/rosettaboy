@@ -7,10 +7,12 @@ on:
     paths:
     - 'pxd/**'
     - '.github/workflows/pxd.yml'
+    - '.github/workflows/common.yml'
   pull_request:
     paths:
     - 'pxd/**'
     - '.github/workflows/pxd.yml'
+    - '.github/workflows/common.yml'
   workflow_dispatch:
 
 jobs:

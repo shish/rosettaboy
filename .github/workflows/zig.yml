@@ -7,10 +7,12 @@ on:
     paths:
     - 'zig/**'
     - '.github/workflows/zig.yml'
+    - '.github/workflows/common.yml'
   pull_request:
     paths:
     - 'zig/**'
     - '.github/workflows/zig.yml'
+    - '.github/workflows/common.yml'
   workflow_dispatch:
 
 jobs:
