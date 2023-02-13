@@ -12,7 +12,7 @@ let
 		# 2. Try to use it with `nix-shell`. It will error because the hash is wrong, and the right hash will be reported. Put the new hash here too. (I swear this is what the tutorials say to do.)
 		# 3. Change the "YYYY-MM-DD" key below to the new version, as long as it's in the `sources.json`.
 		url = "https://raw.githubusercontent.com/mitchellh/zig-overlay/7f6b977414710c4e7f1f0f8a5e66876cda9cface/sources.json";
-		sha256 = "sha256:0356h1aaknnzzk0lrjjbg5lwy9b3i06rsww91cmjs45scy6h7fj2";
+		sha256 = "sha256:0fnpx1r48z64w7iyfx78pk5wvpmrnglv76azsvn2qqs5ww64576b";
 	}))).master.${version} or (abort "Unknown version: ${version}")
 	).${pkgs.stdenv.system} or (abort "Unknown platform ${pkgs.stdenv.system}");
 	
