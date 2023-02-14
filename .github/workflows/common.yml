@@ -39,7 +39,7 @@ jobs:
       if: inputs.cache-paths
       uses: actions/cache@v3
       with:
-        path: ${{ inputs.cache-paths }} 
+        path: ${{ inputs.cache-paths }}
         key: ${{ inputs.workdir }}-format-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
         restore-keys: ${{ inputs.workdir }}-format-
     - name: Install Pkgs
@@ -73,7 +73,7 @@ jobs:
       if: inputs.cache-paths
       uses: actions/cache@v3
       with:
-        path: ${{ inputs.cache-paths }} 
+        path: ${{ inputs.cache-paths }}
         key: ${{ inputs.workdir }}-build-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
         restore-keys: ${{ inputs.workdir }}-build-
     - name: Install Pkgs
