@@ -2,8 +2,6 @@ name: Rust
 
 on:
   push:
-    branches:
-    - master
     paths:
     - 'rs/**'
     - '.github/workflows/rs.yml'

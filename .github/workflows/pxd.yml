@@ -2,8 +2,6 @@ name: Cython
 
 on:
   push:
-    branches:
-    - master
     paths:
     - 'pxd/**'
     - '.github/workflows/pxd.yml'
