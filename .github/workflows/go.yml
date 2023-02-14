@@ -6,11 +6,13 @@ on:
     - 'go/**'
     - '.github/workflows/go.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'go/**'
     - '.github/workflows/go.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:
