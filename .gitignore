@@ -9,5 +9,6 @@ gb-autotest-roms
 venv/
 build/
 */rosettaboy-*
-result
+result*
 .direnv
+/.pre-commit-config.yaml
