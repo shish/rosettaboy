@@ -6,11 +6,13 @@ on:
     - 'nim/**'
     - '.github/workflows/nim.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'nim/**'
     - '.github/workflows/nim.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:

@@ -6,11 +6,13 @@ on:
     - 'pxd/**'
     - '.github/workflows/pxd.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'pxd/**'
     - '.github/workflows/pxd.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:

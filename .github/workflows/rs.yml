@@ -6,11 +6,13 @@ on:
     - 'rs/**'
     - '.github/workflows/rs.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'rs/**'
     - '.github/workflows/rs.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:

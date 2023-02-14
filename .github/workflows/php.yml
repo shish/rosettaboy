@@ -6,11 +6,13 @@ on:
     - 'php/**'
     - '.github/workflows/php.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'php/**'
     - '.github/workflows/php.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:

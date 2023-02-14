@@ -6,11 +6,13 @@ on:
     - 'zig/**'
     - '.github/workflows/zig.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'zig/**'
     - '.github/workflows/zig.yml'
     - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:
