@@ -2,8 +2,6 @@ name: Nim
 
 on:
   push:
-    branches:
-    - master
     paths:
     - 'nim/**'
     - '.github/workflows/nim.yml'
