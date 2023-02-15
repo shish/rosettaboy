@@ -8,9 +8,13 @@ option(ENABLE_LTO "enable LTO" OFF)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT supported OUTPUT error)
 
+include(GNUInstallDirs)
+
 include_directories(/usr/local/include/)
 
 add_executable(rosettaboy-cpp src/main.cpp src/args.cpp src/cpu.cpp src/cart.cpp src/gameboy.cpp src/gpu.cpp src/consts.h src/cart.h src/cpu.h src/gpu.h src/args.h src/apu.cpp src/apu.h src/ram.cpp src/ram.h src/buttons.cpp src/buttons.h src/clock.cpp src/clock.h)
+install(TARGETS rosettaboy-cpp
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 if( ENABLE_LTO AND supported )
     message(STATUS "IPO / LTO enabled")

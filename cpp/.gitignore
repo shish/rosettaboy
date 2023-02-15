@@ -10,3 +10,4 @@ CMakeFiles
 Makefile
 cmake_install.cmake
 rosettaboy-cpp
+/result*
