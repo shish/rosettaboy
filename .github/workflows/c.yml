@@ -2,15 +2,17 @@ name: C
 
 on:
   push:
-    branches:
-    - master
     paths:
     - 'c/**'
     - '.github/workflows/c.yml'
+    - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'c/**'
     - '.github/workflows/c.yml'
+    - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:

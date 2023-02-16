@@ -2,15 +2,17 @@ name: C++
 
 on:
   push:
-    branches:
-    - master
     paths:
     - 'cpp/**'
     - '.github/workflows/cpp.yml'
+    - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'cpp/**'
     - '.github/workflows/cpp.yml'
+    - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:
@@ -20,7 +22,7 @@ jobs:
     with:
       workdir: cpp
       format-pkgs: clang-format-14
-      build-pkgs: gcc cmake libsdl2-dev
+      build-pkgs: gcc cmake libsdl2-dev libfmt-dev
       cache-paths: |
         cpp/build
       cache-key: build

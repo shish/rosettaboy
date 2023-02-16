@@ -2,15 +2,17 @@ name: Zig
 
 on:
   push:
-    branches:
-    - master
     paths:
     - 'zig/**'
     - '.github/workflows/zig.yml'
+    - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'zig/**'
     - '.github/workflows/zig.yml'
+    - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:
@@ -19,5 +21,5 @@ jobs:
     uses: ./.github/workflows/common.yml
     with:
       workdir: zig
-      with-zig: true
+      with-zig: 0.11.0-dev.1586+2d017f379
       build-pkgs: libsdl2-dev

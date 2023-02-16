@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <fmt/core.h>
 
 #include "consts.h"
 #include "cpu.h"
@@ -43,19 +43,20 @@ void CPU::dump_regs() {
     char op_str[16] = "";
     if(op == 0xCB) {
         op = this->ram->get(PC + 1);
-        snprintf(op_str, 16, "%s", CB_OP_NAMES[op].c_str());
+        fmt::format_to_n(op_str, 16, "{}", CB_OP_NAMES[op]);
     } else {
-        if(OP_ARG_TYPES[op] == 0) snprintf(op_str, 16, "%s", OP_NAMES[op].c_str());
-        if(OP_ARG_TYPES[op] == 1) snprintf(op_str, 16, OP_NAMES[op].c_str(), this->ram->get(PC + 1));
+        if(OP_ARG_TYPES[op] == 0) fmt::format_to_n(op_str, 16, "{}", OP_NAMES[op]);
+        if(OP_ARG_TYPES[op] == 1) fmt::format_to_n(op_str, 16, OP_NAMES[op], this->ram->get(PC + 1));
         if(OP_ARG_TYPES[op] == 2)
-            snprintf(op_str, 16, OP_NAMES[op].c_str(), this->ram->get(PC + 1) | this->ram->get(PC + 2) << 8);
-        if(OP_ARG_TYPES[op] == 3) snprintf(op_str, 16, OP_NAMES[op].c_str(), (i8)this->ram->get(PC + 1));
+            fmt::format_to_n(op_str, 16, OP_NAMES[op], this->ram->get(PC + 1) | this->ram->get(PC + 2) << 8);
+        if(OP_ARG_TYPES[op] == 3) fmt::format_to_n(op_str, 16, OP_NAMES[op], (i8)this->ram->get(PC + 1));
     }
 
     // print
     // clang-format off
-    printf(
-        "%04X %04X %04X %04X : %04X = %04X : %c%c%c%c : %c%c%c%c%c : %04X = %02X : %s\n",
+    fmt::print(
+        "{AF:#06X} {BC:#06X} {DE:#06X} {HL:#06X} : {SP:#06X} = {sp_val:#06X} : "
+        "{z}{n}{h}{c} : {v}{l}{t}{s}{j} : {PC:#06X} = {op:#X} : {op_str}\n",
         AF, BC, DE, HL,
         SP, sp_val,
         z, n, h, c,
@@ -144,7 +145,7 @@ bool CPU::check_interrupt(u8 queue, u8 i, u16 handler) {
 void CPU::tick_interrupts() {
     u8 queue = this->ram->get(Mem::IE) & this->ram->get(Mem::IF);
     if(this->interrupts && queue) {
-        if(debug) printf("Handling interrupts: %02X & %02X\n", this->ram->get(Mem::IE), this->ram->get(Mem::IF));
+        if(debug) fmt::print("Handling interrupts: {:#X} & {:#X}\n", this->ram->get(Mem::IE), this->ram->get(Mem::IF));
         this->interrupts = false; // no nested interrupts, RETI will re-enable
         this->check_interrupt(queue, Interrupt::VBLANK, Mem::VBLANK_HANDLER) ||
             this->check_interrupt(queue, Interrupt::STAT, Mem::LCD_HANDLER) ||
@@ -567,7 +568,7 @@ void CPU::tick_cb(u8 op) {
             break;
 
         // Should never get here
-        default: printf("Op CB %02X not implemented\n", op); throw std::invalid_argument("Op not implemented");
+        default: fmt::print("Op CB {:#X} not implemented\n", op); throw std::invalid_argument("Op not implemented");
     }
     this->set_reg(op, val);
 }
@@ -663,7 +664,7 @@ u8 CPU::get_reg(u8 n) {
         case 5: return this->L; break;
         case 6: return this->ram->get(this->HL); break;
         case 7: return this->A; break;
-        default: printf("Invalid register %d\n", n); return 0;
+        default: fmt::print("Invalid register {}\n", n); return 0;
     }
 }
 
@@ -677,6 +678,6 @@ void CPU::set_reg(u8 n, u8 val) {
         case 5: this->L = val; break;
         case 6: this->ram->set(this->HL, val); break;
         case 7: this->A = val; break;
-        default: printf("Invalid register %d\n", n);
+        default: fmt::print("Invalid register {}\n", n);
     }
 }

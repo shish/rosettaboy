@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <fmt/core.h>
 
 #include "consts.h"
 #include "gpu.h"
@@ -30,7 +31,7 @@ GPU::GPU(CPU *cpu, char *title, bool headless, bool debug) {
     if(!headless) {
         SDL_InitSubSystem(SDL_INIT_VIDEO);
         char title_buf[64];
-        snprintf(title_buf, 64, "RosettaBoy - %s", title);
+        fmt::format_to_n(title_buf, 64, "RosettaBoy - {}", title);
         this->hw_window = SDL_CreateWindow(
             title_buf,                                      // window title
             SDL_WINDOWPOS_UNDEFINED,                        // initial x position

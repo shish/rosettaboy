@@ -23,12 +23,10 @@ on:
         type: string
       with-nim:
         required: false
-        type: boolean
-        default: false
+        type: string
       with-zig:
         required: false
-        type: boolean
-        default: false
+        type: string
 
 jobs:
   format:
@@ -41,22 +39,24 @@ jobs:
       if: inputs.cache-paths
       uses: actions/cache@v3
       with:
-        path: ${{ inputs.cache-paths }} 
+        path: ${{ inputs.cache-paths }}
         key: ${{ inputs.workdir }}-format-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
         restore-keys: ${{ inputs.workdir }}-format-
     - name: Install Pkgs
-      uses: awalsh128/cache-apt-pkgs-action@v1.2.2
+      uses: awalsh128/cache-apt-pkgs-action@v1.2.3
       with:
         packages: ${{ inputs.build-pkgs }}
         version: format-${{ inputs.workdir }}
     - name: Install Nim
       if: inputs.with-nim
       uses: jiro4989/setup-nim-action@v1
+      with:
+        nim-version: ${{ inputs.with-nim }}
     - name: Install Zig
       if: inputs.with-zig
-      uses: goto-bus-stop/setup-zig@v1
+      uses: goto-bus-stop/setup-zig@v2
       with:
-        version: 0.10.0
+        version: ${{ inputs.with-zig }}
     - name: Check
       working-directory: ${{ inputs.workdir }}
       shell: bash
@@ -73,22 +73,24 @@ jobs:
       if: inputs.cache-paths
       uses: actions/cache@v3
       with:
-        path: ${{ inputs.cache-paths }} 
+        path: ${{ inputs.cache-paths }}
         key: ${{ inputs.workdir }}-build-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
         restore-keys: ${{ inputs.workdir }}-build-
     - name: Install Pkgs
-      uses: awalsh128/cache-apt-pkgs-action@v1.2.2
+      uses: awalsh128/cache-apt-pkgs-action@v1.2.3
       with:
         packages: ${{ inputs.build-pkgs }}
         version: build-${{ inputs.workdir }}
     - name: Install Nim
       if: inputs.with-nim
       uses: jiro4989/setup-nim-action@v1
+      with:
+        nim-version: ${{ inputs.with-nim }}
     - name: Install Zig
       if: inputs.with-zig
-      uses: goto-bus-stop/setup-zig@v1
+      uses: goto-bus-stop/setup-zig@v2
       with:
-        version: 0.10.0
+        version: ${{ inputs.with-zig }}
     - name: Build
       shell: bash
       run: ./${{ inputs.workdir }}/build.sh

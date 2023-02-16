@@ -2,15 +2,17 @@ name: Go
 
 on:
   push:
-    branches:
-    - master
     paths:
     - 'go/**'
     - '.github/workflows/go.yml'
+    - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'go/**'
     - '.github/workflows/go.yml'
+    - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:
@@ -19,9 +21,9 @@ jobs:
     uses: ./.github/workflows/common.yml
     with:
       workdir: go
-      format-pkgs: golang libsdl2-dev
-      build-pkgs: golang libsdl2-dev
+      format-pkgs: golang-1.17 libsdl2-dev
+      build-pkgs: golang-1.17 libsdl2-dev
       cache-paths: |
         ~/.cache/go-build
         ~/go/pkg/mod
-      cache-file: '**/go.mod'
+      cache-file: '**/go.sum'

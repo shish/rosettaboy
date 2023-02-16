@@ -2,15 +2,17 @@ name: Cython
 
 on:
   push:
-    branches:
-    - master
     paths:
     - 'pxd/**'
     - '.github/workflows/pxd.yml'
+    - '.github/workflows/common.yml'
+    - 'flake.*'
   pull_request:
     paths:
     - 'pxd/**'
     - '.github/workflows/pxd.yml'
+    - '.github/workflows/common.yml'
+    - 'flake.*'
   workflow_dispatch:
 
 jobs:

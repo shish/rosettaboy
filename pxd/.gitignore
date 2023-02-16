@@ -19,3 +19,4 @@ Cython
 *.h
 *.html
 build_temp
+*.egg-info/

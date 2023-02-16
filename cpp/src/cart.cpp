@@ -1,5 +1,6 @@
 #include <cstring>
 #include <fcntl.h>
+#include <fmt/core.h>
 #include <iostream>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -83,17 +84,20 @@ Cart::Cart(std::string filename) {
     }
 
     if(debug) {
-        printf("name         : %s\n", name);
-        printf("is_gbc       : %d\n", is_gbc);
-        printf("is_sgb       : %d\n", is_sgb);
-        printf("licensee     : %d\n", licensee);
-        printf("old_licensee : %d\n", old_licensee);
-        printf("destination  : %d\n", destination);
-        printf("cart_type    : %d\n", cart_type);
-        printf("rom_size     : %u\n", rom_size);
-        printf("ram_size     : %u\n", ram_size);
-        printf("rom_version  : %d\n", rom_version);
-        printf("ccheck       : %d\n", complement_check);
-        printf("checksum     : %d\n", checksum);
+        fmt::print(
+            "name         : {name}\n"
+            "is_gbc       : {is_gbc}\n"
+            "is_sgb       : {is_sgb}\n"
+            "licensee     : {licensee}\n"
+            "old_licensee : {old_licensee}\n"
+            "destination  : {destination}\n"
+            "cart_type    : {cart_type}\n"
+            "rom_size     : {rom_size}\n"
+            "ram_size     : {ram_size}\n"
+            "rom_version  : {rom_version}\n"
+            "ccheck       : {complement_check}\n"
+            "checksum     : {checksum}\n",
+            name, is_gbc, is_sgb, licensee, old_licensee, destination, cart_type, rom_size, ram_size, rom_version,
+            complement_check, checksum);
     }
 }

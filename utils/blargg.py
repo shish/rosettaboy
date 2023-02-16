@@ -11,9 +11,9 @@ import os
 import subprocess
 import sys
 import itertools
-from glob import glob
 from multiprocessing.pool import ThreadPool
 import argparse
+from pathlib import Path
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -22,6 +22,13 @@ parser.add_argument(
     default=8,
     help="How many tests to run in parallel",
 )
+parser.add_argument(
+    "--test_rom_dir",
+    type=Path,
+    default=os.environ.get("GB_DEFAULT_AUTOTEST_ROM_DIR", "gb-autotest-roms"),
+    help="The directory with the test ROMS",
+    metavar="DIR"
+)
 parser.add_argument("langs", default=[], nargs="*", help="Which languages to test")
 args = parser.parse_args()
 
@@ -29,7 +36,7 @@ args = parser.parse_args()
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
 END = "\033[0m"
-TEST_DIR = "gb-autotest-roms"
+TEST_DIR = Path(args.test_rom_dir)
 
 if not os.path.exists(TEST_DIR):
     subprocess.run(
@@ -53,6 +60,11 @@ def build(cwd):
     return p.returncode == 0
 
 def test(cwd, rom):
+    rom_name = rom.relative_to(TEST_DIR)
+
+    if not rom.is_absolute():
+        rom = f"../{rom}"
+
     p = subprocess.run(
         [
             "./rosettaboy-release",
@@ -61,7 +73,7 @@ def test(cwd, rom):
             "--headless",
             "--frames",
             "2000",
-            f"../{rom}",
+            f"{rom}",
         ],
         cwd=cwd,
         stdout=subprocess.PIPE,
@@ -69,7 +81,7 @@ def test(cwd, rom):
         text=True,
         errors="replace",
     )
-    rom_name = rom.replace(f"{TEST_DIR}/", "")
+    
     if p.returncode == 0 and "Unit test passed" in p.stdout:
         print(f"{cwd} {rom_name} = {GREEN}Passed{END}")
     elif p.returncode == 2:
@@ -79,8 +91,8 @@ def test(cwd, rom):
     return p.returncode == 0 and "Unit test passed" in p.stdout
 
 
-dirs = args.langs or [n.replace("/build.sh", "") for n in glob("*/build.sh")]
-roms = glob("gb-autotest-roms/*/*.gb")
+dirs = args.langs or [f"{n}".replace("/build.sh", "") for n in Path('.').glob("*/build.sh")]
+roms = Path(TEST_DIR).glob(f"*/*.gb")
 tests_to_run = itertools.product(dirs, roms)
 
 p = ThreadPool(args.threads)
