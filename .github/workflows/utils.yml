@@ -27,8 +27,10 @@ jobs:
     - name: Initialise docker cache
       uses: satackey/action-docker-layer-caching@v0.0.11
       continue-on-error: true
-    - name: Build
+    - name: Build Container
       working-directory: utils
       run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy .
+    - name: Build Rosettaboys
+      run: ./utils/shell-docker.sh ./all.py build --default
     - name: Run
-      run: ./utils/shell-docker.sh ./utils/bench.py --default --frames 10 --threads 4
+      run: ./utils/shell-docker.sh ./all.py bench --default --frames 10 --threads 4
