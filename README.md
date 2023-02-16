@@ -89,7 +89,7 @@ each compiler, with standard "release mode" flags (see each language's
 `build.sh` for exactly which flags are used):
 
 ```
-$ ./utils/bench.py
+$ ./all.py bench | ./utils/sort.py
    rs / lto    : Emulated 15763 frames in 10.00s (1576fps)
   cpp / lto    : Emulated 14737 frames in 10.00s (1474fps)
    rs / release: Emulated 13183 frames in 10.00s (1318fps)
