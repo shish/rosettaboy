@@ -2,7 +2,7 @@ import sdl2
 import typing as t
 from dataclasses import dataclass
 
-from src.consts import *
+from src.consts import u8, Mem, Interrupt
 from src.cpu import CPU
 
 SCALE = 2
