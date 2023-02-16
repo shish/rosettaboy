@@ -2,5 +2,5 @@
 set -eu
 
 cd $(dirname $0)
-zig build -Drelease-safe=true
+zig build -Doptimize=ReleaseSafe
 mv ./zig-out/bin/rosettaboy ./rosettaboy-safe
