@@ -34,7 +34,7 @@ set(SOURCE_FILES
     src/clock.c
     ${HEADERS})
 
-add_library(rosettaboy-c-shared SHARED ${SOURCE_FILES})
+# add_library(rosettaboy-c-shared SHARED ${SOURCE_FILES})
 add_library(rosettaboy-c-static STATIC ${SOURCE_FILES})
 
 add_executable(rosettaboy-c
@@ -55,7 +55,8 @@ include_directories(${SDL2_INCLUDE_DIRS})
 target_link_libraries(rosettaboy-c-shared ${SDL2_LIBRARIES})
 target_link_libraries(rosettaboy-c ${SDL2_LIBRARIES})
 
-install(TARGETS rosettaboy-c rosettaboy-c-shared rosettaboy-c-static
+# FIXME: and rosettaboy-c-shared
+install(TARGETS rosettaboy-c rosettaboy-c-static
     EXPORT rosettaboy-c
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
