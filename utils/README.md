@@ -16,19 +16,6 @@ An attempt to build a dockerfile with all of the necessary
 dependencies to run any implementation (headless and silent)
 
 
-blargg.py
----------
-Run a slightly-hacked version of Blargg's test suite. Specifically
-it is hacked to run a specific invalid opcode for "test passed" and
-a different one for "test failed".
-
-
-bench.sh
---------
-Find all of the `rosettaboy-*` variants and run them with a standard set
-of command line options
-
-
 cpudiff.py
 ----------
 Spot the difference between two `--debug-cpu` log files

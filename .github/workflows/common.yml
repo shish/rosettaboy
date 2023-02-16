@@ -99,10 +99,10 @@ jobs:
       run: ./${{ inputs.workdir }}/rosettaboy-release --help
     - name: CPU Integration Tests
       shell: bash
-      run: ./utils/blargg.py ${{ inputs.workdir }}
+      run: ./all.py blargg ${{ inputs.workdir }}
     - name: Benchmark Test
       shell: bash
-      run: ./utils/bench.py ${{ inputs.workdir }} --default --frames 10
+      run: ./all.py bench ${{ inputs.workdir }} --default --frames 10
   nix:
     name: Nix
     runs-on: ubuntu-22.04
