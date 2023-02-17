@@ -1,0 +1,283 @@
+{
+  "nodes": {
+    "cl-gameboy": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1479058009,
+        "narHash": "sha256-qvT5wbRCrngd5tUPaEWqEUj53mGwjz87+eibn3qWd3k=",
+        "owner": "sjl",
+        "repo": "cl-gameboy",
+        "rev": "cce73054d4bfde332e31a2938f4e0630c162cf6b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sjl",
+        "repo": "cl-gameboy",
+        "type": "github"
+      }
+    },
+    "flake-compat": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1673956053,
+        "narHash": "sha256-4gtG9iQuiKITOjNQQeQIpoIB6b16fm+504Ch3sNKLd8=",
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "rev": "35bb57c0c8d8b62bbfd284272c928ceb64ddbde9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "locked": {
+        "lastModified": 1667395993,
+        "narHash": "sha256-nuEHfE/LcWyuSWnS8t12N1wc105Qtau+/OdUAjtQ0rA=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "5aed5285a952e0b949eb3ba02c12fa4fcfef535f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "gb-autotest-roms": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1658898280,
+        "narHash": "sha256-i5TkoWJ9f+OZYwr0oyaFigCkfPQkRBReYqBfXxcyXmM=",
+        "owner": "shish",
+        "repo": "gb-autotest-roms",
+        "rev": "367b7dc51aed4b84eea8097d7426fe2e3cd2f459",
+        "type": "github"
+      },
+      "original": {
+        "owner": "shish",
+        "repo": "gb-autotest-roms",
+        "type": "github"
+      }
+    },
+    "gitignore": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1660459072,
+        "narHash": "sha256-8DFJjXG8zqoONA1vXtgeKXy68KdJL5UaXR8NtVMUbx8=",
+        "owner": "hercules-ci",
+        "repo": "gitignore.nix",
+        "rev": "a20de23b925fd8264fd7fad6454652e142fd7f73",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "gitignore.nix",
+        "type": "github"
+      }
+    },
+    "gomod2nix-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1662501203,
+        "narHash": "sha256-4BKeqCX2zwgBiTdlc2DjGQ0CttKm0vSw0r/bdFdM/PQ=",
+        "owner": "nix-community",
+        "repo": "gomod2nix",
+        "rev": "89cd0675b96775aa3ee86e7c0cf5bc238dd27976",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "gomod2nix",
+        "type": "github"
+      }
+    },
+    "naersk": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1671096816,
+        "narHash": "sha256-ezQCsNgmpUHdZANDCILm3RvtO1xH8uujk/+EqNvzIOg=",
+        "owner": "nix-community",
+        "repo": "naersk",
+        "rev": "d998160d6a076cfe8f9741e56aeec7e267e3e114",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "naersk",
+        "type": "github"
+      }
+    },
+    "nim-argparse": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1669660759,
+        "narHash": "sha256-rtA0NJbA7aQglw/4U/fhX8GTlGf0eYoXfuzlJsA38Q8=",
+        "owner": "iffy",
+        "repo": "nim-argparse",
+        "rev": "98c7c99bfbcaae750ac515a6fd603f85ed68668f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "iffy",
+        "repo": "nim-argparse",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1675757258,
+        "narHash": "sha256-pIRer8vdsoherlRKpzfnHbMZ5TsAcvRlXHCIaHkIUbg=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "af96094e9b8eb162d70a84fa3b39f4b7a8b264d2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-22.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "php-sdl-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1672500911,
+        "narHash": "sha256-8BTE9pjoJuomSuNxvoBLjbBE8eA3BkO9+8CjG4kO3M0=",
+        "owner": "Ponup",
+        "repo": "php-sdl",
+        "rev": "655e403b8a9681c418702a74833c68c1a4ae1bd5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Ponup",
+        "repo": "php-sdl",
+        "type": "github"
+      }
+    },
+    "pre-commit-hooks": {
+      "inputs": {
+        "flake-compat": [
+          "flake-compat"
+        ],
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "gitignore": [
+          "gitignore"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-stable": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1675688762,
+        "narHash": "sha256-oit/SxMk0B380ASuztBGQLe8TttO1GJiXF8aZY9AYEc=",
+        "owner": "cachix",
+        "repo": "pre-commit-hooks.nix",
+        "rev": "ab608394886fb04b8a5df3cb0bab2598400e3634",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cachix",
+        "repo": "pre-commit-hooks.nix",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "cl-gameboy": "cl-gameboy",
+        "flake-compat": "flake-compat",
+        "flake-utils": "flake-utils",
+        "gb-autotest-roms": "gb-autotest-roms",
+        "gitignore": "gitignore",
+        "gomod2nix-src": "gomod2nix-src",
+        "naersk": "naersk",
+        "nim-argparse": "nim-argparse",
+        "nixpkgs": "nixpkgs",
+        "php-sdl-src": "php-sdl-src",
+        "pre-commit-hooks": "pre-commit-hooks",
+        "zig-clap": "zig-clap",
+        "zig-overlay": "zig-overlay",
+        "zig-sdl": "zig-sdl"
+      }
+    },
+    "zig-clap": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1675698794,
+        "narHash": "sha256-p541p6rmQu6uh/uhd72fM/PWo8UeliCEn59g6WJsktQ=",
+        "owner": "Hejsil",
+        "repo": "zig-clap",
+        "rev": "272d8e2088b2cae037349fb260dc05ec46bba422",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Hejsil",
+        "repo": "zig-clap",
+        "rev": "272d8e2088b2cae037349fb260dc05ec46bba422",
+        "type": "github"
+      }
+    },
+    "zig-overlay": {
+      "inputs": {
+        "flake-compat": [
+          "flake-compat"
+        ],
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1675746787,
+        "narHash": "sha256-62E0b7i51LNHBsWbsi2ChG5gCqZfTb8/UaZren6DqXs=",
+        "owner": "mitchellh",
+        "repo": "zig-overlay",
+        "rev": "6a76f5697bcf291d1a7d88b0ef8189c2f5c9b38f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mitchellh",
+        "repo": "zig-overlay",
+        "type": "github"
+      }
+    },
+    "zig-sdl": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1675665690,
+        "narHash": "sha256-pmDzS6gDhYVqPq5nqoZzQRQ3BkKXebKbmNRYqeMjXLU=",
+        "owner": "MasterQ32",
+        "repo": "SDL.zig",
+        "rev": "6b33f1f4299ec8814e9fb3b206cda37791ced574",
+        "type": "github"
+      },
+      "original": {
+        "owner": "MasterQ32",
+        "repo": "SDL.zig",
+        "rev": "6b33f1f4299ec8814e9fb3b206cda37791ced574",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

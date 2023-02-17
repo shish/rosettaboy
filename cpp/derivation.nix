@@ -1,21 +1,18 @@
 {
- lib,
- stdenv,
- cmake,
- SDL2,
- pkg-config,
- cleanSource,
- clang-tools ? null,
- ltoSupport ? false,
- debugSupport ? false
+  lib,
+  stdenv,
+  cmake,
+  SDL2,
+  fmt_8,
+  pkg-config,
+  cleanSource,
+  clang-format ? null,
+  ltoSupport ? false,
+  debugSupport ? false,
 }:
 
-let
-  devTools = [ clang-tools ];
-in
-
 stdenv.mkDerivation rec {
-  name = "rosettaboy-c";
+  name = "rosettaboy-cpp";
   src = cleanSource {
     inherit name;
     src = ./.;
@@ -24,12 +21,12 @@ stdenv.mkDerivation rec {
     '';
   };
 
-  passthru = { inherit devTools; };
-
-  enableParallelBuilding = true;
-
-  buildInputs = [ SDL2 ];
+  buildInputs = [ SDL2 fmt_8 ];
   nativeBuildInputs = [ cmake pkg-config ];
+
+  passthru = {
+    devTools = [ clang-format ];
+  };
 
   cmakeFlags = [ ]
     ++ lib.optional debugSupport "-DCMAKE_BUILD_TYPE=Debug"

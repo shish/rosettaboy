@@ -1,0 +1,6 @@
+schema = 3
+
+[mod]
+  [mod."github.com/veandco/go-sdl2"]
+    version = "v0.4.24"
+    hash = "sha256-PnWW2f94PP8jILjFX+qg/NIxkPiF2KMAS8rfipE7atM="

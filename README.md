@@ -70,7 +70,7 @@ If you have either Nix or Docker available, you can run `./utils/shell.sh` to cr
 
 If you prefer Docker, you can use `./utils/shell-docker.sh` instead.
 
-If you prefer Nix, you can manually run `nix-shell` instead. When run in an implemention's directory, `nix-shell` will only provide what is needed for that language, and when run in the project root it will provide everything needed for all languages.
+If you prefer Nix, you can manually run `nix develop` or `nix-shell` instead. When run with an implementation as an argument, e.g.  `nix develop .#py`, it will only provide what is needed for that language, and when run in the project root it will provide everything needed for all languages. Alternatively, there is also an integration with [nix-direnv](https://github.com/nix-community/nix-direnv).
 
 
 Benchmarks

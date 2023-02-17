@@ -10,6 +10,8 @@ option(ENABLE_LTO "enable LTO" OFF)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT supported OUTPUT error)
 
+include(GNUInstallDirs)
+
 include_directories(/usr/local/include/)
 
 set(HEADERS
