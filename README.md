@@ -90,7 +90,7 @@ each compiler, with standard "release mode" flags (see each language's
 
 ```
 $ ./all.py bench | ./utils/sort.py
-  nim / speed  : Emulated 16485 frames in 10.00s (1648fps)
+  nim / lto    : Emulated 16438 frames in 10.00s (1643fps)
    rs / lto    : Emulated 16029 frames in 10.00s (1603fps)
   cpp / lto    : Emulated 15064 frames in 10.00s (1506fps)
     c / lto    : Emulated 15054 frames in 10.00s (1505fps)
