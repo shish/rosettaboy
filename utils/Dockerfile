@@ -1,7 +1,7 @@
 ARG PHP_VERSION=8.2
 ARG PYTHON_VERSION=3.11
-ARG RUST_VERSION=1.65.0
-ARG ZIG_VERSION=0.10.0
+ARG RUST_VERSION=1.67.1
+ARG ZIG_VERSION=0.11.0-dev.1606+3c2a43fdc
 
 FROM debian:unstable
 
@@ -19,7 +19,7 @@ RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID dev
 
 # Install C++ tools
 USER root
-RUN apt update && apt install -y cmake clang-format-14
+RUN apt update && apt install -y cmake clang-format-14 libfmt-dev
 
 # Install Go tools
 USER root
@@ -56,7 +56,9 @@ RUN cargo search foo
 # Install Zig tools
 ARG ZIG_VERSION
 USER dev
-RUN wget https://ziglang.org/download/${ZIG_VERSION}/zig-linux-$(uname -m)-${ZIG_VERSION}.tar.xz -O /tmp/zig.tar.xz && \
+
+# RUN wget https://ziglang.org/download/${ZIG_VERSION}/zig-linux-$(uname -m)-${ZIG_VERSION}.tar.xz -O /tmp/zig.tar.xz && \
+RUN wget https://ziglang.org/builds/zig-linux-$(uname -m)-${ZIG_VERSION}.tar.xz -O /tmp/zig.tar.xz && \
     mkdir ~/.zig && tar --strip-components=1 -C ~/.zig -xf /tmp/zig.tar.xz && rm -f /tmp/zig.tar.gz
 ENV PATH="/home/dev/.zig:$PATH"
 
