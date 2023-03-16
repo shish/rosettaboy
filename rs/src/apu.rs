@@ -247,9 +247,9 @@ impl APU {
                 (self.ch1s.sweep_timer + 1) % (self.ch1.sweep_period as usize * hz_to_samples(128));
             if self.ch1s.sweep_timer == 0 {
                 if self.ch1.sweep_negate {
-                    self.ch1s.sweep = self.ch1s.sweep.overflowing_sub(1).0;
+                    self.ch1s.sweep = self.ch1s.sweep.wrapping_sub(1);
                 } else {
-                    self.ch1s.sweep = self.ch1s.sweep.overflowing_add(1).0;
+                    self.ch1s.sweep = self.ch1s.sweep.wrapping_add(1);
                 };
             }
         }
