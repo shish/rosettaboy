@@ -238,7 +238,7 @@ impl CPU {
 
     fn dump_regs(&self, ram: &ram::RAM) {
         // stack
-        let sp_val = ram.get(self.sp) as u16 | (ram.get(self.sp.overflowing_add(1).0) as u16) << 8;
+        let sp_val = ram.get(self.sp) as u16 | (ram.get(self.sp.wrapping_add(1)) as u16) << 8;
 
         // interrupts
         let z;
@@ -345,7 +345,7 @@ impl CPU {
         // TODO: writing any value to Mem::DIV should reset it to 0x00
         // increment at 16384Hz (each 64 cycles?)
         if self.cycle % 64 == 0 {
-            ram.set(Mem::DIV, ram.get(Mem::DIV).overflowing_add(1).0);
+            ram.set(Mem::DIV, ram.get(Mem::DIV).wrapping_add(1));
         }
 
         if ram.get(Mem::TAC) & 1 << 2 == 1 << 2 {
@@ -357,7 +357,7 @@ impl CPU {
                     ram.set(Mem::TIMA, ram.get(Mem::TMA)); // if timer overflows, load base
                     self.interrupt(ram, Interrupt::TIMER);
                 }
-                ram.set(Mem::TIMA, ram.get(Mem::TIMA).overflowing_add(1).0);
+                ram.set(Mem::TIMA, ram.get(Mem::TIMA).wrapping_add(1));
             }
         }
     }
@@ -488,7 +488,7 @@ impl CPU {
                     ram.set(self.regs.r16.bc, self.regs.r8.a);
                 }
                 0x03 => {
-                    self.regs.r16.bc = self.regs.r16.bc.overflowing_add(1).0;
+                    self.regs.r16.bc = self.regs.r16.bc.wrapping_add(1);
                 }
                 0x08 => {
                     ram.set(arg.u16 + 1, (self.sp >> 8) as u8 & 0xFF);
@@ -498,7 +498,7 @@ impl CPU {
                     self.regs.r8.a = ram.get(self.regs.r16.bc);
                 }
                 0x0B => {
-                    self.regs.r16.bc = self.regs.r16.bc.overflowing_sub(1).0;
+                    self.regs.r16.bc = self.regs.r16.bc.wrapping_sub(1);
                 }
 
                 0x10 => {
@@ -511,21 +511,21 @@ impl CPU {
                     ram.set(self.regs.r16.de, self.regs.r8.a);
                 }
                 0x13 => {
-                    self.regs.r16.de = self.regs.r16.de.overflowing_add(1).0;
+                    self.regs.r16.de = self.regs.r16.de.wrapping_add(1);
                 }
                 0x18 => {
-                    self.pc = self.pc.overflowing_add(arg.i8 as u16).0;
+                    self.pc = self.pc.wrapping_add(arg.i8 as u16);
                 }
                 0x1A => {
                     self.regs.r8.a = ram.get(self.regs.r16.de);
                 }
                 0x1B => {
-                    self.regs.r16.de = self.regs.r16.de.overflowing_sub(1).0;
+                    self.regs.r16.de = self.regs.r16.de.wrapping_sub(1);
                 }
 
                 0x20 => {
                     if !self.regs.r8.f.contains(Flag::Z) {
-                        self.pc = self.pc.overflowing_add(arg.i8 as u16).0;
+                        self.pc = self.pc.wrapping_add(arg.i8 as u16);
                     }
                 }
                 0x21 => {
@@ -533,29 +533,29 @@ impl CPU {
                 }
                 0x22 => {
                     ram.set(self.regs.r16.hl, self.regs.r8.a);
-                    self.regs.r16.hl = self.regs.r16.hl.overflowing_add(1).0;
+                    self.regs.r16.hl = self.regs.r16.hl.wrapping_add(1);
                 }
                 0x23 => {
-                    self.regs.r16.hl = self.regs.r16.hl.overflowing_add(1).0;
+                    self.regs.r16.hl = self.regs.r16.hl.wrapping_add(1);
                 }
                 0x27 => {
                     let mut val16 = self.regs.r8.a as u16;
                     if !self.regs.r8.f.contains(Flag::N) {
                         if self.regs.r8.f.contains(Flag::H) || (val16 & 0x0F) > 9 {
-                            val16 = val16.overflowing_add(6).0;
+                            val16 = val16.wrapping_add(6);
                         }
                         if self.regs.r8.f.contains(Flag::C) || val16 > 0x9F {
-                            val16 = val16.overflowing_add(0x60).0;
+                            val16 = val16.wrapping_add(0x60);
                         }
                     } else {
                         if self.regs.r8.f.contains(Flag::H) {
-                            val16 = val16.overflowing_sub(6).0;
+                            val16 = val16.wrapping_sub(6);
                             if !self.regs.r8.f.contains(Flag::C) {
                                 val16 &= 0xFF;
                             }
                         }
                         if self.regs.r8.f.contains(Flag::C) {
-                            val16 = val16.overflowing_sub(0x60).0;
+                            val16 = val16.wrapping_sub(0x60);
                         }
                     }
                     self.regs.r8.f.remove(Flag::H);
@@ -567,15 +567,15 @@ impl CPU {
                 }
                 0x28 => {
                     if self.regs.r8.f.contains(Flag::Z) {
-                        self.pc = self.pc.overflowing_add(arg.i8 as u16).0;
+                        self.pc = self.pc.wrapping_add(arg.i8 as u16);
                     }
                 }
                 0x2A => {
                     self.regs.r8.a = ram.get(self.regs.r16.hl);
-                    self.regs.r16.hl = self.regs.r16.hl.overflowing_add(1).0;
+                    self.regs.r16.hl = self.regs.r16.hl.wrapping_add(1);
                 }
                 0x2B => {
-                    self.regs.r16.hl = self.regs.r16.hl.overflowing_sub(1).0;
+                    self.regs.r16.hl = self.regs.r16.hl.wrapping_sub(1);
                 }
                 0x2F => {
                     self.regs.r8.a ^= 0xFF;
@@ -585,7 +585,7 @@ impl CPU {
 
                 0x30 => {
                     if !self.regs.r8.f.contains(Flag::C) {
-                        self.pc = self.pc.overflowing_add(arg.i8 as u16).0;
+                        self.pc = self.pc.wrapping_add(arg.i8 as u16);
                     }
                 }
                 0x31 => {
@@ -593,10 +593,10 @@ impl CPU {
                 }
                 0x32 => {
                     ram.set(self.regs.r16.hl, self.regs.r8.a);
-                    self.regs.r16.hl = self.regs.r16.hl.overflowing_sub(1).0;
+                    self.regs.r16.hl = self.regs.r16.hl.wrapping_sub(1);
                 }
                 0x33 => {
-                    self.sp = self.sp.overflowing_add(1).0;
+                    self.sp = self.sp.wrapping_add(1);
                 }
                 0x37 => {
                     self.regs.r8.f.remove(Flag::N);
@@ -605,15 +605,15 @@ impl CPU {
                 }
                 0x38 => {
                     if self.regs.r8.f.contains(Flag::C) {
-                        self.pc = self.pc.overflowing_add(arg.i8 as u16).0;
+                        self.pc = self.pc.wrapping_add(arg.i8 as u16);
                     }
                 }
                 0x3A => {
                     self.regs.r8.a = ram.get(self.regs.r16.hl);
-                    self.regs.r16.hl = self.regs.r16.hl.overflowing_sub(1).0;
+                    self.regs.r16.hl = self.regs.r16.hl.wrapping_sub(1);
                 }
                 0x3B => {
-                    self.sp = self.sp.overflowing_sub(1).0;
+                    self.sp = self.sp.wrapping_sub(1);
                 }
                 0x3F => {
                     self.regs.r8.f.toggle(Flag::C);
@@ -625,9 +625,9 @@ impl CPU {
                 0x04 | 0x0C | 0x14 | 0x1C | 0x24 | 0x2C | 0x34 | 0x3C => {
                     let val = self.get_reg((op - 0x04) / 8, ram);
                     self.regs.r8.f.set(Flag::H, (val & 0x0F) == 0x0F);
-                    self.regs.r8.f.set(Flag::Z, val.overflowing_add(1).0 == 0);
+                    self.regs.r8.f.set(Flag::Z, val.wrapping_add(1) == 0);
                     self.regs.r8.f.remove(Flag::N);
-                    self.set_reg((op - 0x04) / 8, val.overflowing_add(1).0, ram);
+                    self.set_reg((op - 0x04) / 8, val.wrapping_add(1), ram);
                 }
 
                 // DEC r
@@ -636,10 +636,10 @@ impl CPU {
                     self.regs
                         .r8
                         .f
-                        .set(Flag::H, (val.overflowing_sub(1).0 & 0x0F) == 0x0F);
-                    self.regs.r8.f.set(Flag::Z, val.overflowing_sub(1).0 == 0);
+                        .set(Flag::H, (val.wrapping_sub(1) & 0x0F) == 0x0F);
+                    self.regs.r8.f.set(Flag::Z, val.wrapping_sub(1) == 0);
                     self.regs.r8.f.insert(Flag::N);
-                    self.set_reg((op - 0x05) / 8, val.overflowing_sub(1).0, ram);
+                    self.set_reg((op - 0x05) / 8, val.wrapping_sub(1), ram);
                 }
 
                 // LD r,n
@@ -696,7 +696,7 @@ impl CPU {
                         .r8
                         .f
                         .set(Flag::C, (self.regs.r16.hl as u32 + val16 as u32) > 0xFFFF);
-                    self.regs.r16.hl = self.regs.r16.hl.overflowing_add(val16).0;
+                    self.regs.r16.hl = self.regs.r16.hl.wrapping_add(val16);
                     self.regs.r8.f.remove(Flag::N);
                 }
 
@@ -867,15 +867,15 @@ impl CPU {
                     self.pc = 0x20;
                 }
                 0xE8 => {
-                    let val16 = self.sp.overflowing_add(arg.i8 as u16).0;
+                    let val16 = self.sp.wrapping_add(arg.i8 as u16);
                     let h = ((self.sp ^ arg.i8 as u16 ^ val16) & 0x10) != 0;
                     let c = ((self.sp ^ arg.i8 as u16 ^ val16) & 0x100) != 0;
                     self.regs.r8.f.set(Flag::H, h);
                     self.regs.r8.f.set(Flag::C, c);
                     if arg.i8 > 0 {
-                        self.sp = self.sp.overflowing_add(arg.i8 as u16).0;
+                        self.sp = self.sp.wrapping_add(arg.i8 as u16);
                     } else {
-                        self.sp = self.sp.overflowing_sub((-arg.i8) as u16).0;
+                        self.sp = self.sp.wrapping_sub((-arg.i8) as u16);
                     }
                     self.regs.r8.f.remove(Flag::Z);
                     self.regs.r8.f.remove(Flag::N);
@@ -915,7 +915,7 @@ impl CPU {
                     self.pc = 0x30;
                 }
                 0xF8 => {
-                    let new_hl = self.sp.overflowing_add(arg.i8 as u16).0;
+                    let new_hl = self.sp.wrapping_add(arg.i8 as u16);
                     let (c, h) = if arg.i8 >= 0 {
                         (
                             ((self.sp & 0xFF) + (arg.i8) as u16) > 0xFF,
@@ -1134,7 +1134,7 @@ impl CPU {
                 .f
                 .set(Flag::H, (self.regs.r8.a & 0x0F) + (val & 0x0F) > 0x0F);
             self.regs.r8.f.remove(Flag::N);
-            self.regs.r8.a = self.regs.r8.a.overflowing_add(val).0;
+            self.regs.r8.a = self.regs.r8.a.wrapping_add(val);
             self.regs.r8.f.set(Flag::Z, self.regs.r8.a == 0);
         }
     }
@@ -1155,14 +1155,7 @@ impl CPU {
                 (self.regs.r8.a & 0x0F) + (val & 0x0F) + carry > 0x0F,
             );
             self.regs.r8.f.remove(Flag::N);
-            self.regs.r8.a = self
-                .regs
-                .r8
-                .a
-                .overflowing_add(val)
-                .0
-                .overflowing_add(carry)
-                .0;
+            self.regs.r8.a = self.regs.r8.a.wrapping_add(val).wrapping_add(carry);
             self.regs.r8.f.set(Flag::Z, self.regs.r8.a == 0);
         }
     }
@@ -1174,7 +1167,7 @@ impl CPU {
                 .r8
                 .f
                 .set(Flag::H, (self.regs.r8.a & 0x0F) < (val & 0x0F));
-            self.regs.r8.a = self.regs.r8.a.overflowing_sub(val).0;
+            self.regs.r8.a = self.regs.r8.a.wrapping_sub(val);
             self.regs.r8.f.set(Flag::Z, self.regs.r8.a == 0);
             self.regs.r8.f.insert(Flag::N);
         }
@@ -1193,14 +1186,7 @@ impl CPU {
                 ((self.regs.r8.a ^ val ^ (res as u8 & 0xff)) & (1 << 4)) != 0,
             );
             self.regs.r8.f.set(Flag::C, res < 0);
-            self.regs.r8.a = self
-                .regs
-                .r8
-                .a
-                .overflowing_sub(val)
-                .0
-                .overflowing_sub(carry)
-                .0;
+            self.regs.r8.a = self.regs.r8.a.wrapping_sub(val).wrapping_sub(carry);
             self.regs.r8.f.set(Flag::Z, self.regs.r8.a == 0);
             self.regs.r8.f.insert(Flag::N);
         }
