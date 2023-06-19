@@ -91,13 +91,13 @@ Cart::Cart(std::string filename) {
             "licensee     : {licensee}\n"
             "old_licensee : {old_licensee}\n"
             "destination  : {destination}\n"
-            "cart_type    : {cart_type}\n"
+            //"cart_type    : {cart_type}\n"
             "rom_size     : {rom_size}\n"
             "ram_size     : {ram_size}\n"
             "rom_version  : {rom_version}\n"
             "ccheck       : {complement_check}\n"
             "checksum     : {checksum}\n",
-            name, is_gbc, is_sgb, licensee, old_licensee, destination, cart_type, rom_size, ram_size, rom_version,
-            complement_check, checksum);
+            name, is_gbc, is_sgb, licensee, old_licensee, destination, // cart_type,
+            rom_size, ram_size, rom_version, complement_check, checksum);
     }
 }
