@@ -235,7 +235,7 @@ pub const CPU = struct {
 
     fn dump_regs(self: *CPU) !void {
         // stack
-        var sp_val = @intCast(u16, self.ram.get(self.sp)) | @intCast(u16, self.ram.get(self.sp + 1)) << 8;
+        var sp_val = @as(u16, @intCast(self.ram.get(self.sp))) | @as(u16, @intCast(self.ram.get(self.sp + 1))) << 8;
 
         // interrupts
         var z: u8 = if (self.regs.flags.z) 'Z' else 'z';
@@ -296,7 +296,7 @@ pub const CPU = struct {
     fn tick_dma(self: *CPU) void {
         // TODO: DMA should take 26 cycles, during which main RAM is inaccessible
         if (self.ram.get(consts.Mem.DMA) != 0) {
-            var dma_src: u16 = @intCast(u16, self.ram.get(consts.Mem.DMA)) << 8;
+            var dma_src: u16 = @as(u16, @intCast(self.ram.get(consts.Mem.DMA))) << 8;
 
             var i: u16 = 0;
             while (i <= 0xA0) : (i += 1) {
@@ -401,10 +401,10 @@ pub const CPU = struct {
                 .u8 = self.ram.get(addr),
             },
             2 => OpArg{
-                .u16 = @intCast(u16, self.ram.get(addr)) | @intCast(u16, self.ram.get(addr + 1)) << 8,
+                .u16 = @as(u16, @intCast(self.ram.get(addr))) | @as(u16, @intCast(self.ram.get(addr + 1))) << 8,
             },
             3 => OpArg{
-                .i8 = @bitCast(i8, self.ram.get(addr)),
+                .i8 = @as(i8, @bitCast(self.ram.get(addr))),
             },
         };
     }
@@ -422,8 +422,8 @@ pub const CPU = struct {
                 self.regs.r16.bc = self.regs.r16.bc +% 1;
             },
             0x08 => {
-                self.ram.set(arg.u16 + 1, @intCast(u8, (self.sp >> 8) & 0xFF));
-                self.ram.set(arg.u16, @intCast(u8, self.sp & 0xFF));
+                self.ram.set(arg.u16 + 1, @as(u8, @intCast((self.sp >> 8) & 0xFF)));
+                self.ram.set(arg.u16, @as(u8, @intCast(self.sp & 0xFF)));
             }, // how does this fit?
             0x0A => {
                 self.regs.r8.a = self.ram.get(self.regs.r16.bc);
@@ -445,7 +445,7 @@ pub const CPU = struct {
                 self.regs.r16.de = self.regs.r16.de +% 1;
             },
             0x18 => {
-                self.pc = @intCast(u16, @intCast(i32, self.pc) + arg.i8);
+                self.pc = @as(u16, @intCast(@as(i32, @intCast(self.pc)) + arg.i8));
             },
             0x1A => {
                 self.regs.r8.a = self.ram.get(self.regs.r16.de);
@@ -456,7 +456,7 @@ pub const CPU = struct {
 
             0x20 => {
                 if (!self.regs.flags.z) {
-                    self.pc = @intCast(u16, @intCast(i32, self.pc) + arg.i8);
+                    self.pc = @as(u16, @intCast(@as(i32, @intCast(self.pc)) + arg.i8));
                 }
             },
             0x21 => {
@@ -493,12 +493,12 @@ pub const CPU = struct {
                 if (val16 & 0x100 != 0) {
                     self.regs.flags.c = true;
                 }
-                self.regs.r8.a = @intCast(u8, val16 & 0xFF);
+                self.regs.r8.a = @as(u8, @intCast(val16 & 0xFF));
                 self.regs.flags.z = self.regs.r8.a == 0;
             },
             0x28 => {
                 if (self.regs.flags.z) {
-                    self.pc = @intCast(u16, @intCast(i32, self.pc) + arg.i8);
+                    self.pc = @as(u16, @intCast(@as(i32, @intCast(self.pc)) + arg.i8));
                 }
             },
             0x2A => {
@@ -516,7 +516,7 @@ pub const CPU = struct {
 
             0x30 => {
                 if (!self.regs.flags.c) {
-                    self.pc = @intCast(u16, @intCast(i32, self.pc) + arg.i8);
+                    self.pc = @as(u16, @intCast(@as(i32, @intCast(self.pc)) + arg.i8));
                 }
             },
             0x31 => {
@@ -536,7 +536,7 @@ pub const CPU = struct {
             },
             0x38 => {
                 if (self.regs.flags.c) {
-                    self.pc = @intCast(u16, @intCast(i32, self.pc) + arg.i8);
+                    self.pc = @as(u16, @intCast(@as(i32, @intCast(self.pc)) + arg.i8));
                 }
             },
             0x3A => {
@@ -613,7 +613,7 @@ pub const CPU = struct {
                     else => 0,
                 };
                 self.regs.flags.h = (self.regs.r16.hl & 0x0FFF) + (val16 & 0x0FFF) > 0x0FFF;
-                self.regs.flags.c = (@intCast(u32, self.regs.r16.hl) + @intCast(u32, val16)) > 0xFFFF;
+                self.regs.flags.c = (@as(u32, @intCast(self.regs.r16.hl)) + @as(u32, @intCast(val16))) > 0xFFFF;
                 self.regs.r16.hl = self.regs.r16.hl +% val16;
                 self.regs.flags.n = false;
             },
@@ -758,7 +758,7 @@ pub const CPU = struct {
             },
 
             0xE0 => {
-                self.ram.set(0xFF00 + @intCast(u16, arg.u8), self.regs.r8.a);
+                self.ram.set(0xFF00 + @as(u16, @intCast(arg.u8)), self.regs.r8.a);
                 if (arg.u8 == 0x01) {
                     _ = std.c.printf("%c", self.regs.r8.a);
                 }
@@ -767,7 +767,7 @@ pub const CPU = struct {
                 self.regs.r16.hl = self.pop();
             },
             0xE2 => {
-                self.ram.set(0xFF00 + @intCast(u16, self.regs.r8.c), self.regs.r8.a);
+                self.ram.set(0xFF00 + @as(u16, @intCast(self.regs.r8.c)), self.regs.r8.a);
                 if (self.regs.r8.c == 0x01) {
                     _ = std.c.printf("%c", self.regs.r8.a);
                 }
@@ -783,9 +783,9 @@ pub const CPU = struct {
                 self.pc = 0x20;
             },
             0xE8 => {
-                var val16: u16 = @intCast(u16, @intCast(i64, (@intCast(i32, self.sp) + arg.i8)) & 0xFFFF);
-                self.regs.flags.h = ((self.sp ^ @bitCast(u16, @intCast(i16, arg.i8)) ^ val16) & 0x10) != 0;
-                self.regs.flags.c = ((self.sp ^ @bitCast(u16, @intCast(i16, arg.i8)) ^ val16) & 0x100) != 0;
+                var val16: u16 = @as(u16, @intCast(@as(i64, @intCast((@as(i32, @intCast(self.sp)) + arg.i8))) & 0xFFFF));
+                self.regs.flags.h = ((self.sp ^ @as(u16, @bitCast(@as(i16, @intCast(arg.i8)))) ^ val16) & 0x10) != 0;
+                self.regs.flags.c = ((self.sp ^ @as(u16, @bitCast(@as(i16, @intCast(arg.i8)))) ^ val16) & 0x100) != 0;
                 self.sp = val16;
                 self.regs.flags.z = false;
                 self.regs.flags.n = false;
@@ -805,13 +805,13 @@ pub const CPU = struct {
             },
 
             0xF0 => {
-                self.regs.r8.a = self.ram.get(@intCast(u16, 0xFF00) + arg.u8);
+                self.regs.r8.a = self.ram.get(@as(u16, @intCast(0xFF00)) + arg.u8);
             },
             0xF1 => {
                 self.regs.r16.af = self.pop() & 0xFFF0;
             },
             0xF2 => {
-                self.regs.r8.a = self.ram.get(@intCast(u16, 0xFF00) + self.regs.r8.c);
+                self.regs.r8.a = self.ram.get(@as(u16, @intCast(0xFF00)) + self.regs.r8.c);
             },
             0xF3 => {
                 self.interrupts = false;
@@ -825,10 +825,10 @@ pub const CPU = struct {
                 self.pc = 0x30;
             },
             0xF8 => {
-                var new_hl = @intCast(u16, @intCast(i64, @intCast(i32, self.sp) + arg.i8) & 0xFFFF);
+                var new_hl = @as(u16, @intCast(@as(i64, @intCast(@as(i32, @intCast(self.sp)) + arg.i8)) & 0xFFFF));
                 if (arg.i8 >= 0) {
-                    self.regs.flags.c = (@intCast(i32, self.sp & 0xFF) + (arg.i8)) > 0xFF;
-                    self.regs.flags.h = (@intCast(i32, self.sp & 0x0F) + (arg.i8 & 0x0F)) > 0x0F;
+                    self.regs.flags.c = (@as(i32, @intCast(self.sp & 0xFF)) + (arg.i8)) > 0xFF;
+                    self.regs.flags.h = (@as(i32, @intCast(self.sp & 0x0F)) + (arg.i8 & 0x0F)) > 0x0F;
                 } else {
                     self.regs.flags.c = (new_hl & 0xFF) <= (self.sp & 0xFF);
                     self.regs.flags.h = (new_hl & 0x0F) <= (self.sp & 0x0F);
@@ -949,22 +949,22 @@ pub const CPU = struct {
 
             // BIT
             0x40...0x7F => {
-                var bit: u3 = @intCast(u3, (op & 0b00111000) >> 3);
-                self.regs.flags.z = (val & (@intCast(u8, 1) << bit)) == 0;
+                var bit: u3 = @as(u3, @intCast((op & 0b00111000) >> 3));
+                self.regs.flags.z = (val & (@as(u8, @intCast(1)) << bit)) == 0;
                 self.regs.flags.n = false;
                 self.regs.flags.h = true;
             },
 
             // RES
             0x80...0xBF => {
-                var bit: u3 = @intCast(u3, (op & 0b00111000) >> 3);
-                val &= (@intCast(u8, 1) << bit) ^ 0xFF;
+                var bit: u3 = @as(u3, @intCast((op & 0b00111000) >> 3));
+                val &= (@as(u8, @intCast(1)) << bit) ^ 0xFF;
             },
 
             // SET
             0xC0...0xFF => {
-                var bit: u3 = @intCast(u3, (op & 0b00111000) >> 3);
-                val |= @intCast(u8, 1) << bit;
+                var bit: u3 = @as(u3, @intCast((op & 0b00111000) >> 3));
+                val |= @as(u8, @intCast(1)) << bit;
             },
         }
         self.set_reg(op, val);
@@ -1005,7 +1005,7 @@ pub const CPU = struct {
     }
 
     fn _add(self: *CPU, val: u8) void {
-        self.regs.flags.c = @intCast(u16, self.regs.r8.a) + @intCast(u16, val) > 0xFF;
+        self.regs.flags.c = @as(u16, @intCast(self.regs.r8.a)) + @as(u16, @intCast(val)) > 0xFF;
         self.regs.flags.h = (self.regs.r8.a & 0x0F) + (val & 0x0F) > 0x0F;
         self.regs.flags.n = false;
         self.regs.r8.a = self.regs.r8.a +% val;
@@ -1014,7 +1014,7 @@ pub const CPU = struct {
 
     fn _adc(self: *CPU, val: u8) void {
         var carry: u8 = if (self.regs.flags.c) 1 else 0;
-        self.regs.flags.c = @intCast(u16, self.regs.r8.a) + @intCast(u16, val) + @intCast(u16, carry) > 0xFF;
+        self.regs.flags.c = @as(u16, @intCast(self.regs.r8.a)) + @as(u16, @intCast(val)) + @as(u16, @intCast(carry)) > 0xFF;
         self.regs.flags.h = (self.regs.r8.a & 0x0F) + (val & 0x0F) + carry > 0x0F;
         self.regs.flags.n = false;
         self.regs.r8.a = self
@@ -1034,7 +1034,7 @@ pub const CPU = struct {
 
     fn _sbc(self: *CPU, val: u8) void {
         var carry: u8 = if (self.regs.flags.c) 1 else 0;
-        var res: i16 = @intCast(i16, self.regs.r8.a) -% @intCast(i16, val) -% @intCast(i16, carry);
+        var res: i16 = @as(i16, @intCast(self.regs.r8.a)) -% @as(i16, @intCast(val)) -% @as(i16, @intCast(carry));
         self.regs.flags.h = ((self.regs.r8.a ^ val ^ (res & 0xff)) & (1 << 4)) != 0;
         self.regs.flags.c = res < 0;
         self.regs.r8.a = self
@@ -1046,19 +1046,19 @@ pub const CPU = struct {
     }
 
     fn push(self: *CPU, val: u16) void {
-        self.ram.set(self.sp - 1, @intCast(u8, ((val & 0xFF00) >> 8) & 0xFF));
-        self.ram.set(self.sp - 2, @intCast(u8, (val & 0xFF)));
+        self.ram.set(self.sp - 1, @as(u8, @intCast(((val & 0xFF00) >> 8) & 0xFF)));
+        self.ram.set(self.sp - 2, @as(u8, @intCast((val & 0xFF))));
         self.sp -= 2;
     }
 
     fn pop(self: *CPU) u16 {
-        var val = (@intCast(u16, self.ram.get(self.sp + 1)) << 8) | self.ram.get(self.sp);
+        var val = (@as(u16, @intCast(self.ram.get(self.sp + 1))) << 8) | self.ram.get(self.sp);
         self.sp += 2;
         return val;
     }
 
     fn get_reg(self: *CPU, n: u8) u8 {
-        return switch (@intCast(u3, n & 0x07)) {
+        return switch (@as(u3, @intCast(n & 0x07))) {
             0 => self.regs.r8.b,
             1 => self.regs.r8.c,
             2 => self.regs.r8.d,
@@ -1071,7 +1071,7 @@ pub const CPU = struct {
     }
 
     fn set_reg(self: *CPU, n: u8, val: u8) void {
-        switch (@intCast(u3, n & 0x07)) {
+        switch (@as(u3, @intCast(n & 0x07))) {
             0 => self.regs.r8.b = val,
             1 => self.regs.r8.c = val,
             2 => self.regs.r8.d = val,

@@ -41,12 +41,12 @@ pub const Clock = struct {
             }
 
             // Exit if we've hit the frame or time limit
-            var duration: f64 = @intToFloat(f64, self.start.read()) / 1_000_000_000.0;
-            if ((self.frames != 0 and self.frame >= self.frames) or (self.profile != 0 and duration >= @intToFloat(f64, self.profile))) {
+            var duration: f64 = @as(f64, @floatFromInt(self.start.read())) / 1_000_000_000.0;
+            if ((self.frames != 0 and self.frame >= self.frames) or (self.profile != 0 and duration >= @as(f64, @floatFromInt(self.profile)))) {
                 try std.io.getStdOut().writer().print("Emulated {d:5} frames in {d:5.2}s ({d:.0}fps)\n", .{
                     self.frame,
                     duration,
-                    @intToFloat(f64, self.frame) / duration,
+                    @as(f64, @floatFromInt(self.frame)) / duration,
                 });
                 return errors.ControlledExit.Timeout;
             }

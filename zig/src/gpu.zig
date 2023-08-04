@@ -71,20 +71,20 @@ pub const GPU = struct {
                 "RosettaBoy - ??",
                 .{ .centered = {} },
                 .{ .centered = {} },
-                @intCast(usize, w * SCALE),
-                @intCast(usize, h * SCALE),
+                @as(usize, @intCast(w * SCALE)),
+                @as(usize, @intCast(h * SCALE)),
                 .{ .vis = .shown, .resizable = true, .allow_high_dpi = true },
             );
             const _hw_renderer = try SDL.createRenderer(_hw_window, null, .{ .accelerated = true });
             // FIXME
             // SDL.setHint(SDL.HINT_RENDER_SCALE_QUALITY, "nearest"); // vs "linear"
             try _hw_renderer.setLogicalSize(w, h);
-            hw_buffer = try SDL.createTexture(_hw_renderer, SDL.PixelFormatEnum.abgr8888, SDL.Texture.Access.streaming, @intCast(usize, w), @intCast(usize, h));
+            hw_buffer = try SDL.createTexture(_hw_renderer, SDL.PixelFormatEnum.abgr8888, SDL.Texture.Access.streaming, @as(usize, @intCast(w)), @as(usize, @intCast(h)));
 
             hw_window = &_hw_window;
             hw_renderer = _hw_renderer;
         }
-        const buffer = try SDL.createRgbSurfaceWithFormat(@intCast(u31, w), @intCast(u31, h), SDL.PixelFormatEnum.abgr8888);
+        const buffer = try SDL.createRgbSurfaceWithFormat(@as(u31, @intCast(w)), @as(u31, @intCast(h)), SDL.PixelFormatEnum.abgr8888);
         const renderer = try SDL.createSoftwareRenderer(buffer);
 
         // Colors
@@ -132,8 +132,8 @@ pub const GPU = struct {
             }
         }
 
-        var lx: u8 = @intCast(u8, self.cycle % 114);
-        var ly: u8 = @intCast(u8, (self.cycle / 114) % 154);
+        var lx: u8 = @as(u8, @intCast(self.cycle % 114));
+        var ly: u8 = @as(u8, @intCast((self.cycle / 114) % 154));
         self.cpu.ram.set(consts.Mem.LY, ly);
 
         var stat = self.cpu.ram.get(consts.Mem.STAT);
@@ -177,7 +177,7 @@ pub const GPU = struct {
                                 hw_buffer.ptr,
                                 null,
                                 pixels,
-                                @intCast(c_int, self.buffer.ptr.*.pitch),
+                                @as(c_int, @intCast(self.buffer.ptr.*.pitch)),
                             ) != 0) return SDL.makeError();
                         }
                         try hw_renderer.copy(hw_buffer, null, null);
@@ -231,7 +231,7 @@ pub const GPU = struct {
                 .x = 160 + (tile_id % tile_display_width) * 8,
                 .y = (tile_id / tile_display_width) * 8,
             };
-            try self.paint_tile(@intCast(i16, tile_id), &xy, self.bgp, false, false);
+            try self.paint_tile(@as(i16, @intCast(tile_id)), &xy, self.bgp, false, false);
             tile_id += 1;
         }
 
@@ -263,14 +263,14 @@ pub const GPU = struct {
             var tile_map = if (lcdc & LCDC.BG_MAP != 0) consts.Mem.Map1 else consts.Mem.Map0;
 
             if (self.debug) {
-                var xy = SDL.Point{ .x = 256 - @intCast(i16, scroll_x), .y = @intCast(c_int, ly) };
+                var xy = SDL.Point{ .x = 256 - @as(i16, @intCast(scroll_x)), .y = @as(c_int, @intCast(ly)) };
                 try self.renderer.setColorRGB(255, 0, 0);
                 try self.renderer.drawPoint(xy.x, xy.y);
             }
 
             var y_in_bgmap = (ly + scroll_y) % 256;
             var tile_y = y_in_bgmap / 8;
-            var tile_sub_y: u3 = @intCast(u3, y_in_bgmap % 8);
+            var tile_sub_y: u3 = @as(u3, @intCast(y_in_bgmap % 8));
 
             var lx: u16 = 0;
             while (lx <= 160) {
@@ -283,8 +283,8 @@ pub const GPU = struct {
                     tile_id += 0x100;
                 }
                 var xy = SDL.Point{
-                    .x = @intCast(i32, lx) - @intCast(i32, tile_sub_x),
-                    .y = @intCast(i32, ly) - @intCast(i32, tile_sub_y),
+                    .x = @as(i32, @intCast(lx)) - @as(i32, @intCast(tile_sub_x)),
+                    .y = @as(i32, @intCast(ly)) - @as(i32, @intCast(tile_sub_y)),
                 };
                 try self.paint_tile_line(tile_id, &xy, self.bgp, false, false, tile_sub_y);
 
@@ -311,7 +311,7 @@ pub const GPU = struct {
 
             var y_in_bgmap = ly - wnd_y;
             var tile_y = y_in_bgmap / 8;
-            var tile_sub_y: u3 = @intCast(u3, y_in_bgmap % 8);
+            var tile_sub_y: u3 = @as(u3, @intCast(y_in_bgmap % 8));
 
             var tile_x: u8 = 0;
             while (tile_x < 20) {
@@ -320,8 +320,8 @@ pub const GPU = struct {
                     tile_id += 0x100;
                 }
                 var xy = SDL.Point{
-                    .x = @intCast(i32, tile_x) * 8 + @intCast(i32, wnd_x) - 7,
-                    .y = @intCast(i32, tile_y) * 8 + @intCast(i32, wnd_y),
+                    .x = @as(i32, @intCast(tile_x)) * 8 + @as(i32, @intCast(wnd_x)) - 7,
+                    .y = @as(i32, @intCast(tile_y)) * 8 + @as(i32, @intCast(wnd_y)),
                 };
                 try self.paint_tile_line(tile_id, &xy, self.bgp, false, false, tile_sub_y);
                 tile_x += 1;
@@ -342,7 +342,7 @@ pub const GPU = struct {
                     .y = self.cpu.ram.get(consts.Mem.OamBase + 4 * n + 0),
                     .x = self.cpu.ram.get(consts.Mem.OamBase + 4 * n + 1),
                     .tile_id = self.cpu.ram.get(consts.Mem.OamBase + 4 * n + 2),
-                    .flags = @bitCast(Sprite.Flags, self.cpu.ram.get(consts.Mem.OamBase + 4 * n + 3)),
+                    .flags = @as(Sprite.Flags, @bitCast(self.cpu.ram.get(consts.Mem.OamBase + 4 * n + 3))),
                 };
 
                 if (sprite.is_live()) {
@@ -380,7 +380,7 @@ pub const GPU = struct {
                 .width = 8,
                 .height = 8,
             };
-            try self.renderer.setColor(gen_hue(@intCast(u8, tile_id & 0xFF)));
+            try self.renderer.setColor(gen_hue(@as(u8, @intCast(tile_id & 0xFF))));
             try self.renderer.drawRect(rect);
         }
     }
@@ -394,7 +394,7 @@ pub const GPU = struct {
         flip_y: bool,
         y: u3,
     ) !void {
-        var addr: u16 = @intCast(u16, @intCast(i32, consts.Mem.TileData) + tile_id * 16 + @intCast(u8, y) * 2);
+        var addr: u16 = @as(u16, @intCast(@as(i32, @intCast(consts.Mem.TileData)) + tile_id * 16 + @as(u8, @intCast(y)) * 2));
         var low_byte = self.cpu.ram.get(addr);
         var high_byte = self.cpu.ram.get(addr + 1);
         var x: u3 = 0;

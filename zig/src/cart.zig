@@ -6,7 +6,7 @@ const errors = @import("errors.zig");
 const KB: u32 = 1024;
 
 fn parse_rom_size(val: u8) u32 {
-    return (32 * KB) << @intCast(u5, val);
+    return (32 * KB) << @as(u5, @intCast(val));
 }
 
 fn parse_ram_size(val: u8) u32 {
@@ -50,7 +50,7 @@ pub const Cart = struct {
         var name: *[15]u8 = data[0x134 .. 0x134 + 15];
 
         var is_gbc = data[0x143] == 0x80; // 0x80 = works on both, 0xC0 = colour only
-        var licensee: u16 = @intCast(u16, data[0x144]) << 8 | @intCast(u16, data[0x145]);
+        var licensee: u16 = @as(u16, @intCast(data[0x144])) << 8 | @as(u16, @intCast(data[0x145]));
         var is_sgb = data[0x146] == 0x03;
         var cart_type = data[0x147];
         var rom_size = parse_rom_size(data[0x148]);
@@ -59,7 +59,7 @@ pub const Cart = struct {
         var old_licensee = data[0x14B];
         var rom_version = data[0x14C];
         var complement_check = data[0x14D];
-        var checksum: u16 = @intCast(u16, data[0x14E]) << 8 | @intCast(u16, data[0x14F]);
+        var checksum: u16 = @as(u16, @intCast(data[0x14E])) << 8 | @as(u16, @intCast(data[0x14F]));
 
         var logo_checksum: u16 = 0;
         for (logo) |i| {
