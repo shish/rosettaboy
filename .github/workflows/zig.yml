@@ -21,5 +21,5 @@ jobs:
     uses: ./.github/workflows/common.yml
     with:
       workdir: zig
-      with-zig: 0.11.0-dev.3704+729a051e9
+      with-zig: 0.11.0
       build-pkgs: libsdl2-dev
