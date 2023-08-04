@@ -42,7 +42,7 @@ pub const Args = struct {
         };
         defer res.deinit();
 
-        if (res.args.help) {
+        if (res.args.help != 0) {
             try clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
             return errors.ControlledExit.Help;
         }
@@ -61,15 +61,15 @@ pub const Args = struct {
 
         return Args{
             .rom = rom,
-            .headless = res.args.headless,
-            .silent = res.args.silent,
-            .debug_cpu = res.args.@"debug-cpu",
-            .debug_gpu = res.args.@"debug-gpu",
-            .debug_apu = res.args.@"debug-apu",
-            .debug_ram = res.args.@"debug-ram",
+            .headless = res.args.headless != 0,
+            .silent = res.args.silent != 0,
+            .debug_cpu = res.args.@"debug-cpu" != 0,
+            .debug_gpu = res.args.@"debug-gpu" != 0,
+            .debug_apu = res.args.@"debug-apu" != 0,
+            .debug_ram = res.args.@"debug-ram" != 0,
             .frames = frames,
             .profile = profile,
-            .turbo = res.args.turbo,
+            .turbo = res.args.turbo != 0,
         };
     }
 };

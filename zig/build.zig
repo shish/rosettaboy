@@ -21,10 +21,10 @@ pub fn build(b: *std.build.Builder) void {
     });
     sdk.link(exe, .dynamic);
     exe.addModule("sdl2", sdk.getWrapperModule());
-    exe.install();
+    b.installArtifact(exe);
     exe.addAnonymousModule("clap", .{ .source_file = .{ .path = "lib/clap/clap.zig" } });
 
-    const run_cmd = exe.run();
+    const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
         run_cmd.addArgs(args);
