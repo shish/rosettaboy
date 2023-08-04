@@ -1,10 +1,29 @@
 RosettaBoy - Zig Edition
 ========================
 
-Make sure you fetch the GIT submodules if you didn't clone recursively:
+Ideally, clone recursively:
+
+```
+$ git clone https://github.com/shish/rosettaboy --recursive
+```
+
+Or retroactively:
 
 ```
 $ git submodule update --recursive
+```
+
+And to update submodules because the build.zig API changed again:
+
+```
+cd lib/sdl
+git pull
+git checkout master
+cd ../clap
+git pull
+git checkout master
+cd ../../
+git commit -a -m "bump dependencies"
 ```
 
 Usage
