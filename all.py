@@ -139,6 +139,22 @@ def trace(lang: str, rom: Path) -> bool:
         print(f"{lang:>5s}: {GREEN}Wrote {lang}.cpu{END}")
         return True
 
+def version(lang: str) -> bool:
+    proc = subprocess.run(
+        [f"./version.sh"],
+        cwd=lang,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    v = proc.stdout.strip()
+    if proc.returncode != 0:
+        print(f"{lang:>5s}: {RED}{v}{END}")
+        return False
+    else:
+        print(f"{lang:>5s}: {GREEN}{v}{END}")
+        return True
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -246,6 +262,9 @@ def main() -> int:
 
     if args.command == "trace":
         results = p.starmap(trace, [(l, args.test_rom) for l in args.langs])
+
+    if args.command == "version":
+        results = p.starmap(version, [(l, ) for l in args.langs])
 
     if all(results):
         return 0
