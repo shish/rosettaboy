@@ -12,8 +12,8 @@ var DUTY [][]uint8 = [][]uint8{
 	{0, 1, 1, 1, 1, 1, 1, 0},
 }
 
-////#[derive(Default, Debug, PackedStruct)]
-//#[packed_struct(bit_numbering = "msb0")]
+// //#[derive(Default, Debug, PackedStruct)]
+// #[packed_struct(bit_numbering = "msb0")]
 type Ch1Control struct {
 	// NR10
 	// The change of frequency (NR13,NR14) at each shift is calculated by the
@@ -55,7 +55,7 @@ type Ch1Control struct {
 	frequency_msb uint8 // 3
 }
 
-//#[derive(Default, Debug)]
+// #[derive(Default, Debug)]
 type Ch1State struct {
 	duty_pos       uint8
 	envelope_timer int
@@ -68,8 +68,8 @@ type Ch1State struct {
 	sweep_timer    int
 }
 
-//#[derive(Default, Debug, PackedStruct)]
-//#[packed_struct(bit_numbering = "msb0")]
+// #[derive(Default, Debug, PackedStruct)]
+// #[packed_struct(bit_numbering = "msb0")]
 type Ch2Control struct {
 	// NR20
 	//#[packed_field(bits = "0:7")]
@@ -103,7 +103,7 @@ type Ch2Control struct {
 	frequency_msb uint8 // 3
 }
 
-//#[derive(Default, Debug)]
+// #[derive(Default, Debug)]
 type Ch2State struct {
 	duty_pos       uint8
 	envelope_timer int
@@ -113,8 +113,8 @@ type Ch2State struct {
 	length_timer   int
 }
 
-//#[derive(Default, Debug, PackedStruct)]
-//#[packed_struct(bit_numbering = "msb0")]
+// #[derive(Default, Debug, PackedStruct)]
+// #[packed_struct(bit_numbering = "msb0")]
 type Ch3Control struct {
 	// NR30
 	//#[packed_field(bits = "0")]
@@ -145,7 +145,7 @@ type Ch3Control struct {
 	frequency_msb uint8 // 3
 }
 
-//#[derive(Default, Debug)]
+// #[derive(Default, Debug)]
 type Ch3State struct {
 	freq_timer   int
 	length       uint8
@@ -153,8 +153,8 @@ type Ch3State struct {
 	sample       uint8
 }
 
-//#[derive(Default, Debug, PackedStruct)]
-//#[packed_struct(bit_numbering = "msb0")]
+// #[derive(Default, Debug, PackedStruct)]
+// #[packed_struct(bit_numbering = "msb0")]
 type Ch4Control struct {
 	// NR40
 	// //#[packed_field(bits="0:7")]
@@ -188,7 +188,7 @@ type Ch4Control struct {
 	// //#[packed_field(bits="34:39")]
 }
 
-//#[derive(Default, Debug)]
+// #[derive(Default, Debug)]
 type Ch4State struct {
 	// Internal state
 	envelope_timer int
@@ -199,8 +199,8 @@ type Ch4State struct {
 	lfsr           uint16 // = 0xFFFF;
 }
 
-//#[derive(Default, Debug, PackedStruct)]
-//#[packed_struct(bit_numbering = "msb0")]
+// #[derive(Default, Debug, PackedStruct)]
+// #[packed_struct(bit_numbering = "msb0")]
 type Control struct {
 	// NR50
 	//#[packed_field(bits = "0")]
