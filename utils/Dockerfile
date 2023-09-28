@@ -1,6 +1,5 @@
-# TODO: nim 2.0.0
 ARG GO_VERSION=1.21.1
-ARG NIM_VERSION=1.6.6
+ARG NIM_VERSION=2.0.0
 ARG PHP_VERSION=8.2.10
 ARG PYTHON_VERSION=3.11.5
 ARG RUST_VERSION=1.72.0
@@ -15,14 +14,7 @@ FROM debian:unstable AS base-builder
 # and then install language-specific things on top
 USER root
 RUN apt update && apt install -y \
-    build-essential linux-perf valgrind vim git libsdl2-dev wget
-
-# To build python (could most of these live in the py-builder image?)
-RUN apt-get install -y --no-install-recommends \
-    make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev \
-    libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev \
-    libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
-RUN apt-get install -y mecab-ipadic-utf8
+    build-essential linux-perf valgrind vim git mercurial libsdl2-dev wget
 
 # Configure developer environment
 ARG USER_ID
@@ -77,6 +69,12 @@ RUN git clone https://github.com/Ponup/php-sdl ~/php-sdl && \
 
 FROM base-builder AS py-builder
 ARG PYTHON_VERSION
+USER root
+RUN apt-get install -y --no-install-recommends \
+    make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev \
+    libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev \
+    libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+RUN apt-get install -y mecab-ipadic-utf8
 USER dev
 RUN git clone --depth=1 https://github.com/yyuu/pyenv /home/dev/.pyenv
 ENV PYENV_ROOT="/home/dev/.pyenv"
@@ -117,7 +115,7 @@ USER root
 RUN apt update && apt install -y cmake clang clang-format-14 libfmt-dev
 
 # Install Go tools
-COPY --from=go-builder /home/dev/.go /home/dev/.go
+COPY --from=go-builder --chown=dev:dev /home/dev/.go /home/dev/.go
 ENV PATH="/home/dev/.go/bin:$PATH"
 
 # Install Nim tools
@@ -126,21 +124,21 @@ COPY --from=nim-builder --chown=dev:dev /home/dev/.nimble /home/dev/.nimble
 ENV PATH="/home/dev/.nimble/bin:$PATH"
 
 # Install PHP tools
-COPY --from=php-builder /home/dev/.php /home/dev/.php
+COPY --from=php-builder --chown=dev:dev /home/dev/.php /home/dev/.php
 ENV PATH="/home/dev/.php/bin:$PATH"
 
 # Install Python tools
-COPY --from=py-builder /home/dev/.pyenv /home/dev/.pyenv
+COPY --from=py-builder --chown=dev:dev /home/dev/.pyenv /home/dev/.pyenv
 ENV PYENV_ROOT="/home/dev/.pyenv"
 ENV PATH="/home/dev/.pyenv/shims:/home/dev/.pyenv/bin:$PATH"
 
 # Install Rust tools
-COPY --from=rs-builder /home/dev/.rustup /home/dev/.rustup
-COPY --from=rs-builder /home/dev/.cargo /home/dev/.cargo
+COPY --from=rs-builder --chown=dev:dev /home/dev/.rustup /home/dev/.rustup
+COPY --from=rs-builder --chown=dev:dev /home/dev/.cargo /home/dev/.cargo
 ENV PATH="/home/dev/.cargo/bin:$PATH"
 
 # Install Zig tools
-COPY --from=zig-builder /home/dev/.zig /home/dev/.zig
+COPY --from=zig-builder --chown=dev:dev /home/dev/.zig /home/dev/.zig
 ENV PATH="/home/dev/.zig:$PATH"
 
 # Get ready to go
