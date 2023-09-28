@@ -2,6 +2,9 @@ name: Go
 
 on:
   push:
+    branches:
+    - master
+    - main
     paths:
     - 'go/**'
     - '.github/workflows/go.yml'
