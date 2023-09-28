@@ -2,6 +2,9 @@ name: Zig
 
 on:
   push:
+    branches:
+    - master
+    - main
     paths:
     - 'zig/**'
     - '.github/workflows/zig.yml'
