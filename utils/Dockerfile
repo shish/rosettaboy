@@ -1,6 +1,5 @@
-# TODO: nim 2.0.0
 ARG GO_VERSION=1.21.1
-ARG NIM_VERSION=1.6.6
+ARG NIM_VERSION=2.0.0
 ARG PHP_VERSION=8.2.10
 ARG PYTHON_VERSION=3.11.5
 ARG RUST_VERSION=1.72.0
@@ -15,7 +14,7 @@ FROM debian:unstable AS base-builder
 # and then install language-specific things on top
 USER root
 RUN apt update && apt install -y \
-    build-essential linux-perf valgrind vim git libsdl2-dev wget
+    build-essential linux-perf valgrind vim git mercurial libsdl2-dev wget
 
 # Configure developer environment
 ARG USER_ID
