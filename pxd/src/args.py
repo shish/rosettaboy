@@ -1,5 +1,6 @@
 import typing as t
 import argparse
+import sys
 
 
 def parse_args(args: t.List[str]) -> argparse.Namespace:
@@ -14,6 +15,7 @@ def parse_args(args: t.List[str]) -> argparse.Namespace:
     parser.add_argument("-H", "--headless", action="store_true", default=False)
     parser.add_argument("-S", "--silent", action="store_true", default=False)
     parser.add_argument("-t", "--turbo", action="store_true", default=False)
+    parser.add_argument("-v", "--version", action='version', version=sys.version)
     parser.add_argument(
         "-f",
         "--frames",

@@ -20,10 +20,14 @@ proc parseArgs*(args: seq[string]): Args =
         flag("-t", "--turbo")
         option("-f", "--frames", default = some("0"), help = "Exit after N frames")
         option("-p", "--profile", default = some("0"), help = "Exit after N seconds")
+        flag("-v", "--version")
         arg("rom")
 
     try:
         var opts = p.parse(args)
+        if opts.version:
+            echo system.NimVersion
+            quit(0)
         return Args(
             rom: opts.rom,
             headless: opts.headless,
