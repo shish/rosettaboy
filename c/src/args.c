@@ -23,6 +23,7 @@ static void print_usage(void) {
         "  -f, --frames=FRAMES     Exit after N frames\n"
         "  -p, --profile=PROFILE   Exit after N seconds\n"
         "  -t, --turbo             No sleep between frames\n"
+        "  -v, --version           Print build information\n"
     );
     exit(0);
 }
@@ -38,6 +39,7 @@ static struct option long_options[] = {
     {"frames",    required_argument, 0, 'f'},
     {"profile",   required_argument, 0, 'p'},
     {"turbo",     no_argument,       0, 't'},
+    {"version",   no_argument,       0, 'v'},
     {0,           0,                 0, 0  }
 };
 
@@ -46,7 +48,7 @@ void parse_args(struct Args *args, int argc, char *argv[]) {
 
     while (1) {
         int option_index = 0;
-        int c = getopt_long(argc, argv, "hHScgarf:p:t", long_options, &option_index);
+        int c = getopt_long(argc, argv, "hHScgarf:p:tv", long_options, &option_index);
         if (c == -1) {
             break;
         }
@@ -88,6 +90,11 @@ void parse_args(struct Args *args, int argc, char *argv[]) {
 
             case 't':
                 args->turbo = true;
+                break;
+
+            case 'v':
+                printf("%s\n", __VERSION__);
+                exit(0);
                 break;
         }
     }
