@@ -14,6 +14,7 @@ Args::Args(int argc, char *argv[]) {
     args::ValueFlag<int> frames(parser, "frames", "Exit after N frames", {'f', "frames"});
     args::ValueFlag<int> profile(parser, "profile", "Exit after N seconds", {'p', "profile"});
     args::Flag turbo(parser, "turbo", "No sleep between frames", {'t', "turbo"});
+    args::Flag version(parser, "version", "Show build info", {'v', "version"});
     args::Positional<std::string> rom(parser, "rom", "Path to a .gb file");
     args::CompletionFlag completion(parser, {"complete"});
 
@@ -30,6 +31,12 @@ Args::Args(int argc, char *argv[]) {
     } catch(args::ParseError e) {
         std::cerr << e.what() << std::endl << parser;
         this->exit_code = 1;
+        return;
+    }
+
+    if(version) {
+        std::cout << __VERSION__ << std::endl;
+        this->exit_code = 0;
         return;
     }
 
