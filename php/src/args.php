@@ -13,6 +13,7 @@ final class Args
         't' => 'turbo',
         'f' => 'frames',
         'p' => 'profile',
+        'v' => 'version',
     ];
 
     private const USAGE = <<<EOF
@@ -30,13 +31,14 @@ Options:
   -f, --frames=FRAMES     Exit after N frames
   -p, --profile=PROFILE   Exit after N seconds
   -t, --turbo             No sleep between frames
+  -v, --version           Show build info
 EOF;
 
     public static function parse(array $argv): self
     {
         $rest_index = null;
         /** @var array<string, mixed> $opts */
-        $opts = getopt("cgraHStf:p:h", ["debug-cpu", "debug-gpu", "debug-ram", "debug-apu", "headless", "silent", "turbo", "frames:", "profile:", "help"], $rest_index) ?: [];
+        $opts = getopt("cgraHStf:p:hv", ["debug-cpu", "debug-gpu", "debug-ram", "debug-apu", "headless", "silent", "turbo", "frames:", "profile:", "help", "version"], $rest_index) ?: [];
         $pos_args = array_slice($argv, $rest_index);
 
         $opts = array_combine(
@@ -48,8 +50,12 @@ EOF;
             }, array_values($opts))
         );
 
+        if (isset($opts['version'])) {
+            echo phpversion() . "\n";
+            exit(0);
+        }
         if (isset($opts['help']) || count($pos_args) === 0) {
-            echo self::USAGE;
+            echo self::USAGE . "\n";
             exit(0);
         }
 
