@@ -139,6 +139,26 @@ def trace(lang: str, rom: Path) -> bool:
         print(f"{lang:>5s}: {GREEN}Wrote {lang}.cpu{END}")
         return True
 
+
+def version(lang: str, runner: str, sub: str) -> bool:
+    proc = subprocess.run(
+        [
+            f"./{runner}",
+            "--version",
+        ],
+        cwd=lang,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if proc.returncode != 0:
+        print(f"{lang:>5s} / {sub:7s}: {RED}{proc.stdout.strip()} / {proc.stderr.strip()}{END}")
+        return False
+    else:
+        print(f"{lang:>5s} / {sub:7s}: {GREEN}{proc.stdout.strip()}{END}")
+        return True
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -246,6 +266,21 @@ def main() -> int:
 
     if args.command == "trace":
         results = p.starmap(trace, [(l, args.test_rom) for l in args.langs])
+
+    if args.command == "version":
+        tests_to_run = []
+        for lang in args.langs:
+            for lang_runner in Path(lang).glob("rosettaboy*"):
+                runner = os.path.basename(lang_runner)
+                sub = "release"
+                if match := re.match("rosettaboy-(.*)", runner):
+                    sub = match.group(1)
+                if not os.access(lang_runner, os.X_OK):
+                    continue
+                if args.default and sub != "release":
+                    continue
+                tests_to_run.append((lang, runner, sub))
+        results = p.starmap(version, tests_to_run)
 
     if all(results):
         return 0
