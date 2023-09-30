@@ -11,6 +11,6 @@ else
 		python3 -m venv $BUILDDIR
 		$BUILDDIR/bin/pip install pysdl2 pysdl2-dll mypy black Cython==3.0.0a11
 	fi
-	echo "Using Python3 in $BUILDDIR"
+	#echo "Using Python3 in $BUILDDIR"
 	PATH="$BUILDDIR/bin:$PATH"
 fi
