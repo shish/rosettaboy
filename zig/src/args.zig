@@ -1,5 +1,6 @@
 const clap = @import("clap");
 const std = @import("std");
+const builtin = @import("builtin");
 
 const errors = @import("errors.zig");
 
@@ -29,6 +30,7 @@ pub const Args = struct {
             clap.parseParam("-f, --frames <u32>     Exit after N frames") catch unreachable,
             clap.parseParam("-p, --profile <u32>    Exit after N seconds") catch unreachable,
             clap.parseParam("-t, --turbo            No sleep()") catch unreachable,
+            clap.parseParam("-v, --version          Show build info") catch unreachable,
             clap.parseParam("<str>                  ROM filename") catch unreachable,
         };
 
@@ -42,6 +44,14 @@ pub const Args = struct {
         };
         defer res.deinit();
 
+        if (res.args.version != 0) {
+            try std.io.getStdOut().writer().print("{s} {s} {s}\n", .{
+                builtin.zig_version_string,
+                @tagName(builtin.mode),
+                @tagName(builtin.zig_backend),
+            });
+            return errors.ControlledExit.Help;
+        }
         if (res.args.help != 0) {
             try clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
             return errors.ControlledExit.Help;
