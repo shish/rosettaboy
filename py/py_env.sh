@@ -12,6 +12,6 @@ else
 		python3 -m venv $BUILDDIR
 		$BUILDDIR/bin/pip install pysdl2 pysdl2-dll 'mypy>=1.0.0' black
 	fi
-	echo "Using Python3 in $BUILDDIR"
+	# echo "Using Python3 in $BUILDDIR"
 	PATH="$BUILDDIR/bin:$PATH"
 fi

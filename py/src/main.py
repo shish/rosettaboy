@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
-import sdl2
+import warnings
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    import sdl2
+
 import sys
 from typing import List
 

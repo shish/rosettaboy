@@ -1,6 +1,9 @@
 package main
 
 import "flag"
+import "runtime"
+import "fmt"
+import "os"
 
 type Args struct {
 	DebugCpu bool
@@ -25,7 +28,12 @@ func NewArgs() *Args {
 	var turbo = flag.Bool("turbo", false, "No sleep()")
 	var frames = flag.Int("frames", 0, "Exit after N frames")
 	var profile = flag.Int("profile", 0, "Exit after N seconds")
+	var version = flag.Bool("version", false, "Show build info")
 	flag.Parse()
+	if *version {
+		fmt.Println(runtime.Version())
+		os.Exit(0)
+	}
 	var rom = flag.Arg(0)
 
 	return &Args{
