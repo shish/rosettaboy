@@ -11,6 +11,7 @@ import argparse
 from multiprocessing.pool import ThreadPool
 import itertools
 from pathlib import Path
+from time import time
 
 TEST_ROM_URL = "https://github.com/sjl/cl-gameboy/blob/master/roms/opus5.gb?raw=true"
 TEST_DIR = "gb-autotest-roms"
@@ -28,6 +29,7 @@ if not os.path.exists(TEST_DIR):
 def build(lang: str, builder: str, sub: str) -> bool:
     log = f"{lang}/{builder.replace('.sh', '.log')}"
     with open(log, "w") as fp:
+        t1 = time()
         proc = subprocess.run(
             [f"./{builder}"],
             cwd=lang,
@@ -35,11 +37,13 @@ def build(lang: str, builder: str, sub: str) -> bool:
             stderr=subprocess.STDOUT,
             text=True,
         )
+        t2 = time()
+        duration = t2 - t1
     if proc.returncode != 0:
-        print(f"{lang:>5s} / {sub:7s}: {RED}Failed - see {log}{END}")
+        print(f"{lang:>5s} / {sub:7s}: {RED}Failed in {duration:.2f}s - see {log}{END}")
         return False
     else:
-        print(f"{lang:>5s} / {sub:7s}: {GREEN}Built{END}")
+        print(f"{lang:>5s} / {sub:7s}: {GREEN}Built in {duration:.2f}s{END}")
         return True
 
 
