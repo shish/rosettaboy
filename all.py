@@ -48,33 +48,37 @@ def build(lang: str, builder: str, sub: str) -> bool:
 
 
 def bench(lang: str, runner: str, sub: str, frames: int, profile: int, rom: Path) -> bool:
-    proc = subprocess.run(
-        [
-            f"./{runner}",
-            "--frames",
-            str(frames),
-            "--profile",
-            str(profile),
-            "--silent",
-            "--headless",
-            "--turbo",
-            f"{rom}",
-        ],
-        cwd=lang,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-    )
-    if proc.returncode != 0:
-        print(f"{lang:>5s} / {sub:7s}: {RED}Failed{END}\n{proc.stdout}")
+    try:
+        proc = subprocess.run(
+            [
+                f"./{runner}",
+                "--frames",
+                str(frames),
+                "--profile",
+                str(profile),
+                "--silent",
+                "--headless",
+                "--turbo",
+                f"{rom}",
+            ],
+            cwd=lang,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if proc.returncode != 0:
+            print(f"{lang:>5s} / {sub:7s}: {RED}Failed{END}\n{proc.stdout}")
+            return False
+        else:
+            frames = ""
+            for line in proc.stdout.split("\n"):
+                if "frames" in line:
+                    frames = line
+            print(f"{lang:>5s} / {sub:7s}: {frames}")
+            return True
+    except Exception as e:
+        print(f"{lang:>5s} / {sub:7s}: {RED}Failed{END}\n{e}")
         return False
-    else:
-        frames = ""
-        for line in proc.stdout.split("\n"):
-            if "frames" in line:
-                frames = line
-        print(f"{lang:>5s} / {sub:7s}: {frames}")
-        return True
 
 
 def blargg(lang: str, rom: Path) -> bool:
@@ -227,7 +231,8 @@ def main() -> int:
     p = ThreadPool(args.threads)
 
     if args.command == "build":
-        args.threads = 1  # FIXME: nim explodes when doing parallel builds :(
+        if not args.default:
+            args.threads = 1  # FIXME: nim explodes when doing parallel builds :(
         builds_to_run = []
         for lang in args.langs:
             for lang_builder in Path(lang).glob("build*.sh"):
