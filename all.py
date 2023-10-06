@@ -227,7 +227,8 @@ def main() -> int:
     p = ThreadPool(args.threads)
 
     if args.command == "build":
-        args.threads = 1  # FIXME: nim explodes when doing parallel builds :(
+        if not args.default:
+            args.threads = 1  # FIXME: nim explodes when doing parallel builds :(
         builds_to_run = []
         for lang in args.langs:
             for lang_builder in Path(lang).glob("build*.sh"):
