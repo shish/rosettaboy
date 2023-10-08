@@ -1,6 +1,6 @@
 package main
 
-import "flag"
+import flag "github.com/spf13/pflag"
 import "runtime"
 import "fmt"
 import "os"
@@ -19,16 +19,16 @@ type Args struct {
 }
 
 func NewArgs() *Args {
-	var debug_cpu = flag.Bool("debug-cpu", false, "Debug CPU")
-	var debug_gpu = flag.Bool("debug-gpu", false, "Debug GPU")
-	var debug_apu = flag.Bool("debug-apu", false, "Debug APU")
-	var debug_ram = flag.Bool("debug-ram", false, "Debug RAM")
-	var headless = flag.Bool("headless", false, "No video")
-	var silent = flag.Bool("silent", false, "No audio")
-	var turbo = flag.Bool("turbo", false, "No sleep()")
-	var frames = flag.Int("frames", 0, "Exit after N frames")
-	var profile = flag.Int("profile", 0, "Exit after N seconds")
-	var version = flag.Bool("version", false, "Show build info")
+	var debug_cpu = flag.BoolP("debug-cpu", "c", false, "Debug CPU")
+	var debug_gpu = flag.BoolP("debug-gpu", "g", false, "Debug GPU")
+	var debug_apu = flag.BoolP("debug-apu", "a", false, "Debug APU")
+	var debug_ram = flag.BoolP("debug-ram", "r", false, "Debug RAM")
+	var headless = flag.BoolP("headless", "H", false, "No video")
+	var silent = flag.BoolP("silent", "S", false, "No audio")
+	var turbo = flag.BoolP("turbo", "t", false, "No sleep()")
+	var frames = flag.IntP("frames", "f", 0, "Exit after N frames")
+	var profile = flag.IntP("profile", "p", 0, "Exit after N seconds")
+	var version = flag.BoolP("version", "v", false, "Show build info")
 	flag.Parse()
 	if *version {
 		fmt.Println(runtime.Version())
