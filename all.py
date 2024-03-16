@@ -228,10 +228,13 @@ def parse_args():
 def main() -> int:
     args = parse_args()
 
+    # FIXME: nim explodes when doing parallel builds :(
+    if args.command == "build" and "nim" in args.langs and not args.default:
+        args.threads = 1
+
     p = ThreadPool(args.threads)
 
     if args.command == "build":
-        args.threads = 1  # FIXME: nim explodes when doing parallel builds :(
         builds_to_run = []
         for lang in args.langs:
             for lang_builder in Path(lang).glob("build*.sh"):
