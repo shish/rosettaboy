@@ -17,10 +17,14 @@ RUN apt update && apt install -y \
     build-essential linux-perf valgrind vim git mercurial libsdl2-dev wget curl
 
 # Configure developer environment
-ARG USER_ID
-ARG GROUP_ID
-RUN addgroup --gid $GROUP_ID dev || true && \
-    adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID dev
+ARG USER_ID=1000
+ARG GROUP_ID=$USER_ID
+RUN addgroup --gid $GROUP_ID dev || true \
+    && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID dev \
+    && apt-get update \
+    && apt-get install -y sudo \
+    && echo dev ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/dev \
+    && chmod 0440 /etc/sudoers.d/dev
 
 
 #######################################################################
