@@ -77,3 +77,14 @@ fn main() -> Result<()> {
         }
     }
 }
+
+
+#[divan::bench]
+fn ram_bench() -> u64 {
+    let ram = ram::RAM::new(cart::Cart::new("../gb-autotest-roms/blargg-cpu-instructions/01-special.gb").unwrap(), false).unwrap();
+    let mut sum = 0;
+    for i in 0..0xFFFF {
+        sum += ram.get(i as u16);
+    }
+    sum as u64
+}

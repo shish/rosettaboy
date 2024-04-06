@@ -14,7 +14,15 @@ anyhow = "1"
 clap = { version = "3.1.18", features = ["derive"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+divan = "0.1.0"
 
 [profile.release-lto]
 inherits = "release"
 lto = true
+
+[dev-dependencies]
+divan = "0.1.0"
+
+[[bench]]
+name = "scratch"
+harness = false
