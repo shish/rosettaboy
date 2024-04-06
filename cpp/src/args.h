@@ -15,6 +15,7 @@ public:
     bool debug_ram;
     int frames;
     int profile;
+    std::string screenshot;
     bool turbo;
     std::string rom;
 };
