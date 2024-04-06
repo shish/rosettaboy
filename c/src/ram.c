@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "ram.h"
 
 /**
