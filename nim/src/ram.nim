@@ -122,7 +122,7 @@ template get*(self: RAM, address: uint16): uint8 =
 
             let bank = self.ramBank.int * RAM_BANK_SIZE.int;
             let offset = address.int - 0xA000;
-            if bank + offset > self.cart.ram_size.int:
+            if bank + offset >= self.cart.ram_size.int:
                 # this should never happen because we die on ramBank being
                 # set to a too-large value
                 raise errors.InvalidRamRead.newException("FIXME brgbsd")

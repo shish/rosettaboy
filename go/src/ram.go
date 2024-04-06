@@ -105,7 +105,7 @@ func (ram *RAM) get(addr uint16) uint8 {
 		}
 		var bank = uint32(ram.ram_bank) * RAM_BANK_SIZE
 		var offset = uint32(addr) - 0xA000
-		if bank+offset > ram.cart.ram_size {
+		if bank+offset >= ram.cart.ram_size {
 			// this should never happen because we die on ram_bank being
 			// set to a too-large value
 			panic("Reading from external ram beyond limit: {:04x} ({:02x}:{:04x})")

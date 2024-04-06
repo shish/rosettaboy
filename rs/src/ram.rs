@@ -124,7 +124,7 @@ impl RAM {
                 }
                 let bank = self.ram_bank as usize * RAM_BANK_SIZE as usize;
                 let offset = addr as usize - 0xA000;
-                if bank + offset > self.cart.ram_size as usize {
+                if bank + offset >= self.cart.ram_size as usize {
                     // this should never happen because we die on ram_bank being
                     // set to a too-large value
                     panic!(
