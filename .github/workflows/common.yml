@@ -35,10 +35,10 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip format]')"
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set Up Cache
       if: inputs.cache-paths
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ inputs.cache-paths }}
         key: ${{ inputs.workdir }}-format-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
@@ -69,12 +69,12 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip build]')"
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Set Up Cache
       if: inputs.cache-paths
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ inputs.cache-paths }}
         key: ${{ inputs.workdir }}-build-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
