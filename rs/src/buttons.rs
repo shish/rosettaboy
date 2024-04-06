@@ -1,3 +1,5 @@
+use bitflags::bitflags;
+
 extern crate sdl2;
 use crate::consts::*;
 use crate::cpu;

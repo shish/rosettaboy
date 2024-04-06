@@ -1,3 +1,5 @@
+use bitflags::bitflags;
+
 use crate::consts::*;
 use crate::errors::*;
 use crate::ram;
