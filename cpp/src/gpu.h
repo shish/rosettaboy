@@ -51,6 +51,7 @@ struct Sprite {
 class GPU {
 private:
     bool debug;
+    std::string screenshot;
     SDL_Window *hw_window;
     SDL_Texture *hw_buffer;
     SDL_Renderer *hw_renderer;
@@ -62,7 +63,7 @@ private:
     CPU *cpu;
 
 public:
-    GPU(CPU *cpu, char *title, bool headless, bool debug);
+    GPU(CPU *cpu, char *title, std::string screenshot, bool headless, bool debug);
     ~GPU();
     void tick();
 
