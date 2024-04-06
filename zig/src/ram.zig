@@ -167,7 +167,7 @@ pub const RAM = struct {
                 }
                 var bank = self.ram_bank * RAM_BANK_SIZE;
                 var offset = addr - 0xA000;
-                if (bank + offset > self.cart.ram_size) {
+                if (bank + offset >= self.cart.ram_size) {
                     // this should never happen because we die on ram_bank being
                     // set to a too-large value
                     print("Reading from external ram beyond limit: {} ({}:{})\n", .{ bank + offset, self.ram_bank, (addr - 0xA000) });
