@@ -33,7 +33,7 @@ RUN addgroup --gid $GROUP_ID dev || true \
 FROM base-builder AS go-builder
 ARG GO_VERSION
 USER dev
-RUN wget https://go.dev/dl/go${GO_VERSION}.linux-$(dpkg --print-architecture).tar.gz -O - | tar -xz -C /tmp && \
+RUN wget -nv https://go.dev/dl/go${GO_VERSION}.linux-$(dpkg --print-architecture).tar.gz -O - | tar -xz -C /tmp && \
     mv /tmp/go /home/dev/.go
 ENV PATH="/home/dev/.go/bin:$PATH"
 
@@ -49,7 +49,7 @@ ENV PATH="/home/dev/.nim/bin:$PATH"
 #ENV CHOOSENIM_CHOOSE_VERSION=${NIM_VERSION}
 #RUN curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y && \
 #    nimble refresh
-RUN wget https://nim-lang.org/download/nim-${NIM_VERSION}.tar.xz -O - | tar -xJ -C /tmp && \
+RUN wget -nv https://nim-lang.org/download/nim-${NIM_VERSION}.tar.xz -O - | tar -xJ -C /tmp && \
     cd /tmp/nim-${NIM_VERSION} && \
     ./build.sh && \
     bin/nim c koch && \
@@ -67,7 +67,7 @@ FROM base-builder AS php-builder
 ARG PHP_VERSION
 RUN apt-get install -y libxml2-dev libsqlite3-dev libssl-dev autoconf
 USER dev
-RUN wget https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz -O - | tar -xz -C /tmp && \
+RUN wget -nv https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz -O - | tar -xz -C /tmp && \
     cd /tmp/php-${PHP_VERSION} && ./configure --prefix=/home/dev/.php --with-openssl && make -j install
 ENV PATH="/home/dev/.php/bin:$PATH"
 RUN curl https://getcomposer.org/installer | php -- --quiet --install-dir=/home/dev/.php/bin/ --filename=composer
@@ -102,7 +102,7 @@ FROM base-builder AS rs-builder
 ARG RUST_VERSION
 USER dev
 ENV PATH="/home/dev/.cargo/bin:$PATH"
-RUN wget -qO - https://sh.rustup.rs | sh -s -- --default-toolchain ${RUST_VERSION} -y && \
+RUN wget -nv -qO - https://sh.rustup.rs | sh -s -- --default-toolchain ${RUST_VERSION} -y && \
     cargo search foo
 # Cranelift is only in nightly
 RUN rustup toolchain install nightly \
@@ -115,7 +115,7 @@ RUN rustup toolchain install nightly \
 FROM base-builder AS zig-builder
 ARG ZIG_VERSION
 USER dev
-RUN wget https://ziglang.org/builds/zig-linux-$(uname -m)-${ZIG_VERSION}.tar.xz -O /tmp/zig.tar.xz && \
+RUN wget -nv https://ziglang.org/builds/zig-linux-$(uname -m)-${ZIG_VERSION}.tar.xz -O /tmp/zig.tar.xz && \
     mkdir ~/.zig && tar --strip-components=1 -C ~/.zig -xf /tmp/zig.tar.xz && rm -f /tmp/zig.tar.gz
 
 
