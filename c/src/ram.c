@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "ram.h"
 
 /**
@@ -54,7 +56,8 @@ void ram_ctor(struct RAM *self, struct Cart *cart, bool debug) {
     // Load a real bootloader if available
     FILE *fp = fopen("boot.gb", "rb");
     if(fp) {
-        fread(&BOOT, 1, 0x100, fp);
+        int bytes_read = fread(&BOOT, 1, 0x100, fp);
+        assert(bytes_read == 0x100);
         fclose(fp);
 
         // NOP the DRM
