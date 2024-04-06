@@ -1,5 +1,5 @@
 ARG GO_VERSION=1.21.1
-ARG NIM_VERSION=2.0.0
+ARG NIM_VERSION=2.0.2
 ARG PHP_VERSION=8.2.10
 ARG PYTHON_VERSION=3.11.5
 ARG RUST_VERSION=1.72.0
@@ -44,11 +44,21 @@ ENV PATH="/home/dev/.go/bin:$PATH"
 FROM base-builder AS nim-builder
 ARG NIM_VERSION
 USER dev
-ENV CHOOSENIM_CHOOSE_VERSION=${NIM_VERSION}
-ENV PATH="/home/dev/.nimble/bin:$PATH"
-RUN curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y && \
+ENV PATH="/home/dev/.nim/bin:$PATH"
+# choosenim doesn't work on arm64 D:
+#ENV CHOOSENIM_CHOOSE_VERSION=${NIM_VERSION}
+#RUN curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y && \
+#    nimble refresh
+RUN wget https://nim-lang.org/download/nim-${NIM_VERSION}.tar.xz -O - | tar -xJ -C /tmp && \
+    cd /tmp/nim-${NIM_VERSION} && \
+    ./build.sh && \
+    bin/nim c koch && \
+    ./koch boot -d:release && \
+    ./koch tools && \
+    ./install.sh /tmp/install-nim && \
+    mv /tmp/install-nim/nim /home/dev/.nim && \
+    cp ./bin/nimble /home/dev/.nim/bin/ && \
     nimble refresh
-
 
 #######################################################################
 # PHP
@@ -126,9 +136,8 @@ COPY --from=go-builder --chown=${USER_ID}:${GROUP_ID} /home/dev/.go /home/dev/.g
 ENV PATH="/home/dev/.go/bin:$PATH"
 
 # Install Nim tools
-COPY --from=nim-builder --chown=${USER_ID}:${GROUP_ID} /home/dev/.choosenim /home/dev/.choosenim
-COPY --from=nim-builder --chown=${USER_ID}:${GROUP_ID} /home/dev/.nimble /home/dev/.nimble
-ENV PATH="/home/dev/.nimble/bin:$PATH"
+COPY --from=nim-builder --chown=${USER_ID}:${GROUP_ID} /home/dev/.nim /home/dev/.nim
+ENV PATH="/home/dev/.nim/bin:$PATH"
 
 # Install PHP tools
 COPY --from=php-builder --chown=${USER_ID}:${GROUP_ID} /home/dev/.php /home/dev/.php
