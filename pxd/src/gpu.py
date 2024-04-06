@@ -147,9 +147,11 @@ class GPU:
             sdl2.SDL_RenderSetLogicalSize(self.hw_renderer, size[0], size[1])
             self.hw_buffer = sdl2.SDL_CreateTexture(
                 self.hw_renderer,
-                sdl2.SDL_PixelFormatEnum.SDL_PIXELFORMAT_ABGR8888
-                if cython.compiled
-                else sdl2.SDL_PIXELFORMAT_ABGR8888,
+                (
+                    sdl2.SDL_PixelFormatEnum.SDL_PIXELFORMAT_ABGR8888
+                    if cython.compiled
+                    else sdl2.SDL_PIXELFORMAT_ABGR8888
+                ),
                 sdl2.SDL_TEXTUREACCESS_STREAMING,
                 size[0],
                 size[1],
@@ -234,12 +236,16 @@ class GPU:
                     sdl2.SDL_UpdateTexture(
                         self.hw_buffer,
                         cython.NULL if cython.compiled else None,
-                        self.buffer.pixels
-                        if cython.compiled
-                        else self.buffer.contents.pixels,
-                        self.buffer.pitch
-                        if cython.compiled
-                        else self.buffer.contents.pitch,
+                        (
+                            self.buffer.pixels
+                            if cython.compiled
+                            else self.buffer.contents.pixels
+                        ),
+                        (
+                            self.buffer.pitch
+                            if cython.compiled
+                            else self.buffer.contents.pitch
+                        ),
                     )
                     sdl2.SDL_RenderCopy(
                         self.hw_renderer,
