@@ -1,6 +1,6 @@
 # Instead of being run, this gets `source`d by `build.sh` and `format.sh`.
 
-BUILDDIR=$(dirname $0)/venv/$(uname)-$(uname -m)
+BUILDDIR=${BUILD_ROOT:-build}/$(basename $(pwd))-$(echo $(basename $0) | sed 's/build_*\(.*\).sh/\1/')-$(uname)-$(uname -m)-venv
 
 # Use existing libraries (E.G. from system, or from Nix) if found.
 if python3 -c 'import sdl2, black, mypy' 2>/dev/null ; then
