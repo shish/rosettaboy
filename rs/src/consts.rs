@@ -1,3 +1,5 @@
+use bitflags::bitflags;
+
 pub enum Mem {
     VBlankHandler = 0x40,
     LcdHandler = 0x48,
