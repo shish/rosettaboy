@@ -32,7 +32,16 @@ jobs:
       continue-on-error: true
     - name: Build Container
       working-directory: utils
-      run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy .
+      # building in stages to keep the logs navigable
+      run: |
+        docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-base --target base-builder .
+        docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-go --target go-builder .
+        docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-nim --target nim-builder .
+        docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-php --target php-builder .
+        docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-py --target py-builder .
+        docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-rs --target rs-builder .
+        docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-zig --target zig-builder .
+        docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy .
     - name: Build Rosettaboys
       run: ./utils/shell-docker.sh ./all.py build --default --threads 16
     - name: Run
