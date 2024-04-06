@@ -10,9 +10,6 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::errors::ControlledExit;
 
-#[macro_use]
-extern crate bitflags;
-
 mod apu;
 mod args;
 mod buttons;
