@@ -94,6 +94,9 @@ USER dev
 ENV PATH="/home/dev/.cargo/bin:$PATH"
 RUN wget -qO - https://sh.rustup.rs | sh -s -- --default-toolchain ${RUST_VERSION} -y && \
     cargo search foo
+# Cranelift is only in nightly
+RUN rustup toolchain install nightly \
+    && rustup component add rustc-codegen-cranelift-preview --toolchain nightly
 
 
 #######################################################################
