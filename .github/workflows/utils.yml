@@ -27,31 +27,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: recursive
-    - name: Initialise docker cache
-      uses: jpribyl/action-docker-layer-caching@v0.1.1
-      continue-on-error: true
-    # Building in stages to keep the logs navigable
-    - name: Build Container (Base)
-      working-directory: utils
-      run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-base --target base-builder .
-    - name: Build Container (Go)
-      working-directory: utils
-      run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-go --target go-builder .
-    - name: Build Container (Nim)
-      working-directory: utils
-      run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-nim --target nim-builder .
-    - name: Build Container (PHP)
-      working-directory: utils
-      run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-php --target php-builder .
-    - name: Build Container (Python)
-      working-directory: utils
-      run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-py --target py-builder .
-    - name: Build Container (Rust)
-      working-directory: utils
-      run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-rs --target rs-builder .
-    - name: Build Container (Zig)
-      working-directory: utils
-      run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy-zig --target zig-builder .
     - name: Build Container
       working-directory: utils
       run: docker build --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t rosettaboy .
