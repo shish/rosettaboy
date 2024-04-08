@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/common.yml
     with:
       workdir: pxd
-      format-pkgs: python3.11-venv
+      format-pkgs: python3.11-venv black
       build-pkgs: python3.11-venv libsdl2-dev
       cache-paths: |
         pxd/venv
