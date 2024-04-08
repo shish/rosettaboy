@@ -9,6 +9,13 @@ Usage
 ./rosettaboy-release game.gb
 ```
 
+Benchmarks
+----------
+To benchmark a couple of internal bits:
+```
+cargo bench
+```
+
 Requirements
 ------------
 - SDL2
