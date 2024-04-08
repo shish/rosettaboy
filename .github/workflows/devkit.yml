@@ -1,0 +1,23 @@
+name: Devkit
+
+on:
+  workflow_call:
+    inputs:
+      lang:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build Container
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Publish
+      uses: elgohr/Publish-Docker-Github-Action@main
+      with:
+        name: shish2k/rosettaboy-devkit-${{ inputs.lang }}
+        dockerfile: .docker/${{ inputs.lang }}.dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
