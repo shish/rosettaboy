@@ -141,6 +141,7 @@ pub const OP_CB_NAMES: [&str; 0x100] = [
 ];
 
 bitflags! {
+    #[derive(Copy, Clone, Debug)]
     pub struct Flag: u8 {
         const Z = 1<<7;
         const N = 1<<6;
