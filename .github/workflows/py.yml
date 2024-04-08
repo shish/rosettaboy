@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/common.yml
     with:
       workdir: py
-      format-pkgs: python3.11-venv black
+      format-pkgs: python3.11-venv
       build-pkgs: python3.11-venv
       cache-paths: |
         py/venv
