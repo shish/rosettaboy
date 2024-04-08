@@ -18,9 +18,10 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-22.04
-    matrix:
-      lang: ["php"]
-      version: ["8.3.4"]
+    strategy:
+      matrix:
+        lang: ["php"]
+        version: ["8.3.4"]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
