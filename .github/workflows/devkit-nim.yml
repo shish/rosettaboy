@@ -1,0 +1,36 @@
+name: Devkit (nim)
+
+on:
+  push:
+    branches:
+    - master
+    - main
+    paths:
+    - '.docker/nim.dockerfile'
+  pull_request:
+    paths:
+    - '.docker/nim.dockerfile'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    # uses: ./.github/workflows/devkit.yml
+    # with:
+    #   lang: nim
+    #   version: 2.0.2
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Publish
+      uses: elgohr/Publish-Docker-Github-Action@main
+      with:
+        name: shish2k/rosettaboy-devkit-nim
+        dockerfile: .docker/nim.dockerfile
+        buildoptions: "--build-arg VERSION=2.0.2"
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        tags: 2.0.2
+        platforms: linux/amd64,linux/arm64
