@@ -18,9 +18,10 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-22.04
-    matrix:
-      lang: ["zig"]
-      version: ["0.11.0"]
+    strategy:
+      matrix:
+        lang: ["zig"]
+        version: ["0.11.0"]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
