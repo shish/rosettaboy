@@ -1,6 +1,6 @@
 FROM debian:unstable AS build
 ARG VERSION
-RUN apt update && apt install -y wget
+RUN apt update && apt install -y wget adduser
 RUN adduser --disabled-password dev
 USER dev
 RUN mkdir /home/dev/.go \
