@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::errors::UserException;
 use anyhow::{anyhow, Result};
 use num_enum::TryFromPrimitive;
