@@ -1,0 +1,21 @@
+name: Devkit (nim)
+
+on:
+  push:
+    branches:
+    - master
+    - main
+    paths:
+    - '.docker/nim.dockerfile'
+  pull_request:
+    paths:
+    - '.docker/nim.dockerfile'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/devkit.yml
+    with:
+      lang: nim
+      version: 2.0.2
