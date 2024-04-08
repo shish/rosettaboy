@@ -76,6 +76,7 @@ impl From<Mem> for u16 {
 }
 
 bitflags! {
+    #[derive(Copy, Clone)]
     pub struct Interrupt: u8 {
         const VBLANK = 1<<0;
         const STAT = 1<<1;
