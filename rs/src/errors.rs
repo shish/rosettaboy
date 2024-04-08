@@ -49,8 +49,13 @@ impl std::fmt::Display for UserException {
         match self {
             UserException::UnsupportedCart(cart_type) => {
                 write!(f, "Unsupported cart type: {:?}", cart_type)
-            }
-            _ => write!(f, "Unspecified user error: {:?}", self),
+            },
+            UserException::LogoChecksumFailed(bad_sum) => {
+                write!(f, "Logo checksum failed: {:?}", bad_sum)
+            },
+            UserException::HeaderChecksumFailed(bad_sum) => {
+                write!(f, "Header checksum failed: {:?}", bad_sum)
+            },
         }
     }
 }
