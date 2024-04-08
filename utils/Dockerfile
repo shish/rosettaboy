@@ -10,22 +10,18 @@ ARG ZIG_VERSION=0.11.0
 #######################################################################
 # Foundations
 
-FROM debian:unstable AS base-builder
-# Install foundations-which-rarely-change up-front so we can cache them,
-# and then install language-specific things on top
+FROM debian:unstable AS base-pkgs
+# Install foundations-which-rarely-change up-front so we can cache
+# them, and then install language-specific things on top
 USER root
 RUN apt update && apt install -y \
-    build-essential linux-perf valgrind vim git mercurial libsdl2-dev wget curl
+    build-essential linux-perf valgrind vim git mercurial libsdl2-dev wget curl sudo
 
-# Configure developer environment
-ARG USER_ID=1000
-ARG GROUP_ID=$USER_ID
-RUN addgroup --gid $GROUP_ID dev || true \
-    && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID dev \
-    && apt-get update \
-    && apt-get install -y sudo \
-    && echo dev ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/dev \
-    && chmod 0440 /etc/sudoers.d/dev
+FROM base-pkgs AS base-builder
+# build in /home/dev using a static user ID so that we don't
+# need to rebuild the world when USER_ID / GROUP_ID changes,
+# then copy to /home/dev using a dynamic user ID later
+RUN adduser --disabled-password dev
 
 
 #######################################################################
@@ -34,8 +30,9 @@ RUN addgroup --gid $GROUP_ID dev || true \
 FROM base-builder AS go-builder
 ARG GO_VERSION
 USER dev
-RUN wget -nv https://go.dev/dl/go${GO_VERSION}.linux-$(dpkg --print-architecture).tar.gz -O - | tar -xz -C /tmp && \
-    mv /tmp/go /home/dev/.go
+RUN mkdir /home/dev/.go \
+    && wget -nv https://go.dev/dl/go${GO_VERSION}.linux-$(dpkg --print-architecture).tar.gz -O - \
+    | tar --strip-components=1 -xz -C /home/dev/.go
 ENV PATH="/home/dev/.go/bin:$PATH"
 
 
@@ -50,16 +47,17 @@ ENV PATH="/home/dev/.nim/bin:$PATH"
 #ENV CHOOSENIM_CHOOSE_VERSION=${NIM_VERSION}
 #RUN curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y && \
 #    nimble refresh
-RUN wget -nv https://nim-lang.org/download/nim-${NIM_VERSION}.tar.xz -O - | tar -xJ -C /tmp && \
-    cd /tmp/nim-${NIM_VERSION} && \
-    ./build.sh && \
-    bin/nim c koch && \
-    ./koch boot -d:release && \
-    ./koch tools && \
-    ./install.sh /tmp/install-nim && \
-    mv /tmp/install-nim/nim /home/dev/.nim && \
-    cp ./bin/nimble /home/dev/.nim/bin/ && \
-    nimble refresh
+RUN wget -nv https://nim-lang.org/download/nim-${NIM_VERSION}.tar.xz -O - \
+    | tar -xJ -C /tmp
+RUN cd /tmp/nim-${NIM_VERSION} \
+    && ./build.sh \
+    && bin/nim c koch \
+    && ./koch boot -d:release \
+    && ./koch tools \
+    && ./install.sh /tmp/install-nim \
+    && mv /tmp/install-nim/nim /home/dev/.nim \
+    && cp ./bin/nimble /home/dev/.nim/bin/ \
+    && nimble refresh
 
 #######################################################################
 # PHP
@@ -68,12 +66,13 @@ FROM base-builder AS php-builder
 ARG PHP_VERSION
 RUN apt-get install -y libxml2-dev libsqlite3-dev libssl-dev autoconf
 USER dev
-RUN wget -nv https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz -O - | tar -xz -C /tmp && \
-    cd /tmp/php-${PHP_VERSION} && ./configure --prefix=/home/dev/.php --with-openssl && make -j install
+RUN wget -nv https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz -O - \
+    | tar -xz -C /tmp
+RUN cd /tmp/php-${PHP_VERSION} && ./configure --prefix=/home/dev/.php --with-openssl && make -j install
 ENV PATH="/home/dev/.php/bin:$PATH"
 RUN curl https://getcomposer.org/installer | php -- --quiet --install-dir=/home/dev/.php/bin/ --filename=composer
-RUN git clone https://github.com/Ponup/php-sdl ~/php-sdl && \
-    cd ~/php-sdl && phpize && ./configure && make -j
+RUN git clone https://github.com/Ponup/php-sdl ~/php-sdl \
+    && cd ~/php-sdl && phpize && ./configure && make -j
 
 
 #######################################################################
@@ -85,15 +84,15 @@ USER root
 RUN apt-get install -y --no-install-recommends \
     make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev \
     libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev \
-    libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev && \
-    apt-get install -y mecab-ipadic-utf8
+    libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
+    && apt-get install -y mecab-ipadic-utf8
 USER dev
 ENV PYENV_ROOT="/home/dev/.pyenv"
 ENV PATH="/home/dev/.pyenv/shims:/home/dev/.pyenv/bin:$PATH"
-RUN git clone --depth=1 https://github.com/yyuu/pyenv /home/dev/.pyenv && \
-    pyenv install ${PYTHON_VERSION} && \
-    pyenv global ${PYTHON_VERSION} && \
-    pyenv rehash
+RUN git clone --depth=1 https://github.com/yyuu/pyenv /home/dev/.pyenv \
+    && pyenv install ${PYTHON_VERSION} \
+	&& pyenv global ${PYTHON_VERSION} \
+	&& pyenv rehash
 
 
 #######################################################################
@@ -103,8 +102,8 @@ FROM base-builder AS rs-builder
 ARG RUST_VERSION
 USER dev
 ENV PATH="/home/dev/.cargo/bin:$PATH"
-RUN wget -nv -qO - https://sh.rustup.rs | sh -s -- --default-toolchain ${RUST_VERSION} -y && \
-    cargo search foo
+RUN wget -nv -qO - https://sh.rustup.rs | sh -s -- --default-toolchain ${RUST_VERSION} -y \
+    && cargo search foo
 # Cranelift is only in nightly
 RUN rustup toolchain install nightly \
     && rustup component add rustc-codegen-cranelift-preview --toolchain nightly
@@ -116,17 +115,24 @@ RUN rustup toolchain install nightly \
 FROM base-builder AS zig-builder
 ARG ZIG_VERSION
 USER dev
-RUN wget -nv https://ziglang.org/builds/zig-linux-$(uname -m)-${ZIG_VERSION}.tar.xz -O /tmp/zig.tar.xz && \
-    mkdir ~/.zig && tar --strip-components=1 -C ~/.zig -xf /tmp/zig.tar.xz && rm -f /tmp/zig.tar.gz
+RUN mkdir /home/dev/.zig \
+    && wget -nv https://ziglang.org/builds/zig-linux-$(uname -m)-${ZIG_VERSION}.tar.xz -O - \
+    | tar --strip-components=1 -C ~/.zig -xJ
 
 
 #######################################################################
 # Final image
 
-FROM base-builder AS final
+FROM base-pkgs AS final
 
-ARG USER_ID
-ARG GROUP_ID
+# Configure developer environment
+ARG USER_ID=1000
+ARG GROUP_ID=$USER_ID
+RUN addgroup devgrp --gid $GROUP_ID \
+    && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID dev \
+    && echo dev ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/dev \
+    && chmod 0440 /etc/sudoers.d/dev
+
 
 # Install C/C++ tools
 USER root
