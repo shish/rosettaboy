@@ -259,6 +259,8 @@ def main() -> int:
                 sub = "release"
                 if match := re.match("rosettaboy-(.*)", runner):
                     sub = match.group(1)
+                if lang_runner.suffix == ".nimble":
+                    continue  # rosettaboy.nimble is detected as executable??
                 if not os.access(lang_runner, os.X_OK):
                     continue
                 if args.default and sub != "release":
@@ -286,6 +288,8 @@ def main() -> int:
                 sub = "release"
                 if match := re.match("rosettaboy-(.*)", runner):
                     sub = match.group(1)
+                if lang_runner.suffix == ".nimble":
+                    continue  # rosettaboy.nimble is detected as executable??
                 if not os.access(lang_runner, os.X_OK):
                     continue
                 if args.default and sub != "release":

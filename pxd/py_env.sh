@@ -1,6 +1,6 @@
 # Instead of being run, this gets `source`d by `build.sh` and `format.sh`.
 
-BUILDDIR=venv/$(uname)-$(uname -m)
+BUILDDIR=${BUILD_ROOT:-build}/$(basename $(pwd))-$(echo $(basename $0) | sed 's/build_*\(.*\).sh/\1/')-$(uname)-$(uname -m)-venv
 PYIMPORT_EXIT=$(python3 -c 'import sdl2, black, mypy, cython' 1>&2; echo $?) # Use existing libraries (E.G. from system, or from Nix) if found.
 if [ $PYIMPORT_EXIT -eq 0 ] ; then
 	echo "Python packages found:"

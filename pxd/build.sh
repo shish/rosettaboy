@@ -3,24 +3,27 @@ set -eu
 
 cd $(dirname $0)
 
-source py_env.sh
+BUILDDIR=${BUILD_ROOT:-build}/$(basename $(pwd))-$(echo $(basename $0) | sed 's/build_*\(.*\).sh/\1/')-$(uname)-$(uname -m)-build
+VENVDIR=${BUILD_ROOT:-build}/$(basename $(pwd))-$(echo $(basename $0) | sed 's/build_*\(.*\).sh/\1/')-$(uname)-$(uname -m)-venv
 
-BUILD_DIR=build
-CORES=$(python3 -c 'import os; print(os.cpu_count() or 0)')
-
-if [ -t "$CORES" ]; then
-	echo "Failed to find core count." 1>&2
-	CORES=1
-else
-	echo "Found $CORES cores." 1>&2
+if [ ! -d $VENVDIR ]; then
+	python3 -m venv $VENVDIR
+	$VENVDIR/bin/pip install pysdl2 pysdl2-dll mypy black Cython==3.0.0a11
 fi
+source $VENVDIR/bin/activate
 
-python3 setup.py build "$@" --build-base "$BUILD_DIR" --build-purelib "$BUILD_DIR" --build-lib "$BUILD_DIR" --build-scripts "$BUILD_DIR" --build-temp build_temp --parallel $CORES
+python3 setup.py build "$@" \
+	--build-base "$BUILDDIR/base" \
+	--build-purelib "$BUILDDIR/purelib" \
+	--build-lib "$BUILDDIR/lib" \
+	--build-scripts "$BUILDDIR/scripts" \
+	--build-temp "$BUILDDIR/temp" \
+	--parallel 4
 
 cat >rosettaboy-release <<EOD
 #!/usr/bin/env bash
 set -eu
-source "\$(dirname \$0)/py_env.sh"
-PYTHONPATH="\$(dirname \$0)/build/" exec python3 "\$(dirname \$0)/build/main.py" \$*
+source $VENVDIR/bin/activate
+PYTHONPATH="$BUILDDIR/lib/" exec python3 "$BUILDDIR/scripts/main.py" \$*
 EOD
 chmod +x rosettaboy-release
