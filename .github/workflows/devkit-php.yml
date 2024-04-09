@@ -1,17 +1,6 @@
 name: Devkit (php)
 
 on:
-  push:
-    branches:
-    - master
-    - main
-    paths:
-    - '.docker/php.dockerfile'
-    - '.github/workflows/devkit-php.yml'
-  pull_request:
-    paths:
-    - '.docker/php.dockerfile'
-    - '.github/workflows/devkit-php.yml'
   workflow_dispatch:
 
 jobs:

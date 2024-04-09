@@ -1,17 +1,6 @@
 name: Devkit (rust)
 
 on:
-  push:
-    branches:
-    - master
-    - main
-    paths:
-    - '.docker/rust.dockerfile'
-    - '.github/workflows/devkit-rust.yml'
-  pull_request:
-    paths:
-    - '.docker/rust.dockerfile'
-    - '.github/workflows/devkit-rust.yml'
   workflow_dispatch:
 
 jobs:

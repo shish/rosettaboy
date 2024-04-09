@@ -1,17 +1,6 @@
 name: Devkit (go)
 
 on:
-  push:
-    branches:
-    - master
-    - main
-    paths:
-    - '.docker/go.dockerfile'
-    - '.github/workflows/devkit-go.yml'
-  pull_request:
-    paths:
-    - '.docker/go.dockerfile'
-    - '.github/workflows/devkit-go.yml'
   workflow_dispatch:
 
 jobs:

@@ -1,17 +1,6 @@
 name: Devkit (python)
 
 on:
-  push:
-    branches:
-    - master
-    - main
-    paths:
-    - '.docker/python.dockerfile'
-    - '.github/workflows/devkit-python.yml'
-  pull_request:
-    paths:
-    - '.docker/python.dockerfile'
-    - '.github/workflows/devkit-python.yml'
   workflow_dispatch:
 
 jobs:

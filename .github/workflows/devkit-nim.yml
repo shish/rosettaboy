@@ -1,15 +1,6 @@
 name: Devkit (nim)
 
 on:
-  push:
-    branches:
-    - master
-    - main
-    paths:
-    - '.docker/nim.dockerfile'
-  pull_request:
-    paths:
-    - '.docker/nim.dockerfile'
   workflow_dispatch:
 
 jobs:

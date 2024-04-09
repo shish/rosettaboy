@@ -1,17 +1,6 @@
 name: Devkit (zig)
 
 on:
-  push:
-    branches:
-    - master
-    - main
-    paths:
-    - '.docker/zig.dockerfile'
-    - '.github/workflows/devkit-zig.yml'
-  pull_request:
-    paths:
-    - '.docker/zig.dockerfile'
-    - '.github/workflows/devkit-zig.yml'
   workflow_dispatch:
 
 jobs:
