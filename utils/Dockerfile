@@ -29,7 +29,7 @@ COPY --from=shish2k/rosettaboy-devkit-php:8.3.4 --chown=${USER_ID}:${GROUP_ID} /
 ENV PATH="/home/dev/.php/bin:$PATH"
 
 # Install Python tools
-COPY --from=shish2k/rosettaboy-devkit-python:3.11.5 --chown=${USER_ID}:${GROUP_ID} /home/dev/.pyenv /home/dev/.pyenv
+COPY --from=shish2k/rosettaboy-devkit-python:3.12.2 --chown=${USER_ID}:${GROUP_ID} /home/dev/.pyenv /home/dev/.pyenv
 ENV PYENV_ROOT="/home/dev/.pyenv"
 ENV PATH="/home/dev/.pyenv/shims:/home/dev/.pyenv/bin:$PATH"
 
