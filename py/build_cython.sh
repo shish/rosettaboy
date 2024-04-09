@@ -8,9 +8,16 @@ VENVDIR=${BUILD_ROOT:-$(realpath $(dirname $0))/build}/$(basename $(pwd))-$(echo
 
 if [ ! -d $VENVDIR ]; then
 	python3 -m venv $VENVDIR
-	$VENVDIR/bin/pip install pysdl2 pysdl2-dll Cython setuptools
+	$VENVDIR/bin/pip install pysdl2 pysdl2-dll mypy Cython setuptools
 fi
 source $VENVDIR/bin/activate
+
+rm -rf rbcy
+cp -r src rbcy
+cp pxd/*.pxd rbcy
+mv rbcy/cpu-cython.py rbcy/cpu.py
+sed -i.bak 's/from src./from rbcy./' rbcy/*.py
+rm -f rbcy/*.bak
 
 python3 setup.py build "$@" \
 	--build-base "$BUILDDIR/base" \
@@ -26,4 +33,4 @@ set -eu
 source $VENVDIR/bin/activate
 PYTHONPATH="$BUILDDIR/lib/" exec python3 "$BUILDDIR/scripts/main.py" \$*
 EOD
-chmod +x rosettaboy-release
+chmod +x rosettaboy-cython
