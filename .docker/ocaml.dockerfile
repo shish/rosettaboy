@@ -1,6 +1,6 @@
 FROM debian:unstable AS build
 ARG VERSION
-RUN apt update && apt install -y gcc build-essential curl unzip bubblewrap
+RUN apt update && apt install -y gcc build-essential curl unzip bubblewrap libsdl2-dev pkg-config
 RUN adduser --disabled-password dev
 RUN echo | bash -c "sh <(curl -fsSL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)" && mkdir -p /home/dev/.opam/bin && mv /usr/local/bin/opam /home/dev/.opam/bin && chown -R dev /home/dev/.opam
 USER dev
