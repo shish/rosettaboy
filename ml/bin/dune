@@ -1,0 +1,4 @@
+(executable
+ (public_name rosettaboy)
+ (name main)
+ (libraries rosettaboy))

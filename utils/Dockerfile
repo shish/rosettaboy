@@ -24,6 +24,10 @@ ENV PATH="/home/dev/.go/bin:$PATH"
 COPY --from=shish2k/rosettaboy-devkit-nim:2.0.2 --chown=${USER_ID}:${GROUP_ID} /home/dev/.nim /home/dev/.nim
 ENV PATH="/home/dev/.nim/bin:$PATH"
 
+# Install Ocaml tools
+COPY --from=shish2k/rosettaboy-devkit-ocaml:5.1.1 --chown=${USER_ID}:${GROUP_ID} /home/dev/.opam /home/dev/.opam
+ENV PATH="/home/dev/.opam/bin:$PATH"
+
 # Install PHP tools
 COPY --from=shish2k/rosettaboy-devkit-php:8.3.4 --chown=${USER_ID}:${GROUP_ID} /home/dev/.php /home/dev/.php
 ENV PATH="/home/dev/.php/bin:$PATH"
