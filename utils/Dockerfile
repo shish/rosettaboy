@@ -39,7 +39,7 @@ COPY --from=shish2k/rosettaboy-devkit-rust:1.77.1 --chown=${USER_ID}:${GROUP_ID}
 ENV PATH="/home/dev/.cargo/bin:$PATH"
 
 # Install Zig tools
-COPY --from=shish2k/rosettaboy-devkit-zig:0.11.0 --chown=${USER_ID}:${GROUP_ID} /home/dev/.zig /home/dev/.zig
+COPY --from=shish2k/rosettaboy-devkit-zig:0.12.0 --chown=${USER_ID}:${GROUP_ID} /home/dev/.zig /home/dev/.zig
 ENV PATH="/home/dev/.zig:$PATH"
 
 # Get ready to go
