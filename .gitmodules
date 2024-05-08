@@ -5,4 +5,4 @@
 [submodule "zig/lib/sdl"]
 	path = zig/lib/sdl
 	url = https://github.com/MasterQ32/SDL.zig
-	branch = 6b33f1f4299ec8814e9fb3b206cda37791ced574
+	branch = 55caabfff7c03e42a4c6563e0f6d16cc8fa26dd6
