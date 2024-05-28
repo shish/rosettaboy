@@ -315,17 +315,12 @@ class CPU:
         else:
             base = OP_NAMES[op]
             arg = OpArg(self.ram, self.PC + 1, OP_TYPES[op])
-            match OP_TYPES[op]:
-                case 0:
-                    op_str = base
-                case 1:
-                    op_str = base.replace("u8", f"{arg.u8:02X}")
-                case 2:
-                    op_str = base.replace("u16", f"{arg.u16:04X}")
-                case 3:
-                    op_str = base.replace("i8", f"{arg.i8:+d}")
-                case _:
-                    raise Exception("Unreachable")
+            op_str = [
+                base,
+                base.replace("u8", f"{arg.u8:02X}"),
+                base.replace("u16", f"{arg.u16:04X}"),
+                base.replace("i8", f"{arg.i8:+d}"),
+            ][OP_TYPES[op]]
 
         # print
         print(
@@ -656,17 +651,12 @@ class CPU:
 
             # ADD HL,rr
             case 0x09 | 0x19 | 0x29 | 0x39:
-                match op:
-                    case 0x09:
-                        val16 = self.BC
-                    case 0x19:
-                        val16 = self.DE
-                    case 0x29:
-                        val16 = self.HL
-                    case 0x39:
-                        val16 = self.SP
-                    case _:
-                        raise Exception("Unreachable")
+                val16 = {
+                    0x09: self.BC,
+                    0x19: self.DE,
+                    0x29: self.HL,
+                    0x39: self.SP,
+                }[op]
 
                 self.FLAG_H = (self.HL & 0x0FFF) + (val16 & 0x0FFF) > 0x0FFF
                 self.FLAG_C = (self.HL + val16) > 0xFFFF
@@ -1085,40 +1075,32 @@ class CPU:
         return val
 
     def get_reg(self, n: u8) -> u8:
-        match n & 0x07:
-            case 0:
-                return self.B
-            case 1:
-                return self.C
-            case 2:
-                return self.D
-            case 3:
-                return self.E
-            case 4:
-                return self.H
-            case 5:
-                return self.L
-            case 6:
-                return self.ram[self.HL]
-            case 7:
-                return self.A
-        raise Exception("This should never happen")
+        return [
+            self.B,
+            self.C,
+            self.D,
+            self.E,
+            self.H,
+            self.L,
+            self.ram[self.HL],
+            self.A,
+        ][n & 0x07]
 
     def set_reg(self, n: u8, val: u8) -> None:
-        match n & 0x07:
-            case 0:
-                self.B = val
-            case 1:
-                self.C = val
-            case 2:
-                self.D = val
-            case 3:
-                self.E = val
-            case 4:
-                self.H = val
-            case 5:
-                self.L = val
-            case 6:
-                self.ram[self.HL] = val
-            case 7:
-                self.A = val
+        r = n & 0x07
+        if r == 0:
+            self.B = val
+        if r == 1:
+            self.C = val
+        if r == 2:
+            self.D = val
+        if r == 3:
+            self.E = val
+        if r == 4:
+            self.H = val
+        if r == 5:
+            self.L = val
+        if r == 6:
+            self.ram[self.HL] = val
+        if r == 7:
+            self.A = val

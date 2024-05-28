@@ -5,6 +5,7 @@ __pycache__
 .pyre
 build
 rbmp
+rbcy
 
 Makefile
 *.gb
