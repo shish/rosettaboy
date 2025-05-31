@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // Stubs until somebody makes a working SDL-PHP binding
 
 const SDL_INIT_VIDEO = 1;

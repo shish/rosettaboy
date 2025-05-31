@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 require "apu.php";
 require "cart.php";
 require "cpu.php";

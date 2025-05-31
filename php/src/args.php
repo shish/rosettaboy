@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 final class Args
 {
     private const SHORT_LONG_MAP = [
