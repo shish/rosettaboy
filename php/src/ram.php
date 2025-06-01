@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 define("ROM_BANK_SIZE", 0x4000);
 define("RAM_BANK_SIZE", 0x2000);
 
@@ -170,7 +172,7 @@ class RAM
             }
         } elseif ($addr < 0x8000) {
             $this->ram_bank_mode = ($val != 0);
-        // printf("ram_bank_mode set to %d\n", $this->ram_bank_mode);
+            // printf("ram_bank_mode set to %d\n", $this->ram_bank_mode);
         } elseif ($addr < 0xA000) {
             // VRAM
             // TODO: if writing to tile RAM, update tiles in GPU class?
