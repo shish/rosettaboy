@@ -208,7 +208,7 @@ void CPU::tick_main(u8 op, oparg arg) {
     u8 val = 0, carry = 0;
     u16 val16 = 0;
     switch(op) {
-        // clang-format off
+            // clang-format off
         case 0x00: /* NOP */; break;
         case 0x01: this->BC = arg.as_u16; break;
         case 0x02: this->ram->set(this->BC, this->A); break;
