@@ -291,7 +291,7 @@ static inline void gpu_update_palettes(struct GPU *self) {
 }
 
 void gpu_ctor(struct GPU *self, struct CPU *cpu, struct RAM *ram, char *title, bool headless, bool debug) {
-    *self = (struct GPU) {
+    *self = (struct GPU){
         .cpu = cpu,
         .ram = ram,
         .debug = debug,
