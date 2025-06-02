@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 const SCALE = 2;
 
 class LCDC

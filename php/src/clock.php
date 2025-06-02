@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 function ticks(): int
 {
     return (int)(microtime(true) * 1000);
