@@ -36,10 +36,12 @@ Options:
   -v, --version           Show build info
 EOF;
 
+    /**
+     * @param string[] $argv The command line arguments.
+     */
     public static function parse(array $argv): self
     {
         $rest_index = null;
-        /** @var array<string, mixed> $opts */
         $opts = getopt("cgraHStf:p:hv", ["debug-cpu", "debug-gpu", "debug-ram", "debug-apu", "headless", "silent", "turbo", "frames:", "profile:", "help", "version"], $rest_index) ?: [];
         $pos_args = array_slice($argv, $rest_index);
 
@@ -61,6 +63,7 @@ EOF;
             exit(0);
         }
 
+        // @phpstan-ignore-next-line
         return new self($pos_args[0], ...$opts);
     }
 
