@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 final class Args
 {
     private const SHORT_LONG_MAP = [
@@ -43,15 +45,6 @@ EOF;
         $opts = getopt("cgraHStf:p:hv", ["debug-cpu", "debug-gpu", "debug-ram", "debug-apu", "headless", "silent", "turbo", "frames:", "profile:", "help", "version"], $rest_index) ?: [];
         $pos_args = array_slice($argv, $rest_index);
 
-        $opts = array_combine(
-            array_map(function (string $k) {
-                return str_replace('-', '_', self::SHORT_LONG_MAP[$k] ?? $k);
-            }, array_keys($opts)),
-            array_map(function (mixed $v) {
-                return $v === false ? true : $v;
-            }, array_values($opts))
-        );
-
         if (isset($opts['version'])) {
             echo phpversion() . "\n";
             exit(0);
@@ -62,7 +55,18 @@ EOF;
         }
 
         // @phpstan-ignore-next-line
-        return new self($pos_args[0], ...$opts);
+        return new self(
+            rom: $pos_args[0],
+            profile: (int)($opts['profile'] ?? $opts["p"] ?? 0),
+            frames: (int)($opts['frames'] ?? $opts["f"] ?? 0),
+            turbo: isset($opts['turbo']) || isset($opts["t"]),
+            silent: isset($opts['silent']) || isset($opts["S"]),
+            headless: isset($opts['headless']) || isset($opts["H"]),
+            debug_apu: isset($opts['debug-apu']) || isset($opts["a"]),
+            debug_ram: isset($opts['debug-ram']) || isset($opts["r"]),
+            debug_gpu: isset($opts['debug-gpu']) || isset($opts["g"]),
+            debug_cpu: isset($opts['debug-cpu']) || isset($opts["c"])
+        );
     }
 
     public function __construct(
