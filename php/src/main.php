@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+declare(strict_types=1);
+
 // FFS PHP
 function exception_error_handler($errno, $errstr, $errfile, $errline)
 {

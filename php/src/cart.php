@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 define("KB", 1024);
 
 function CartType(int $val): int
