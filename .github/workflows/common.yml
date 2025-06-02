@@ -34,75 +34,75 @@ jobs:
     runs-on: ubuntu-22.04
     if: "!contains(github.event.head_commit.message, '[skip format]')"
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Set Up Cache
-      if: inputs.cache-paths
-      uses: actions/cache@v4
-      with:
-        path: ${{ inputs.cache-paths }}
-        key: ${{ inputs.workdir }}-format-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
-        restore-keys: ${{ inputs.workdir }}-format-
-    - name: Install Pkgs
-      uses: awalsh128/cache-apt-pkgs-action@v1.2.3
-      with:
-        packages: ${{ inputs.build-pkgs }}
-        version: format-${{ inputs.workdir }}
-    - name: Install Nim
-      if: inputs.with-nim
-      uses: jiro4989/setup-nim-action@v1
-      with:
-        nim-version: ${{ inputs.with-nim }}
-    - name: Install Zig
-      if: inputs.with-zig
-      uses: goto-bus-stop/setup-zig@v2
-      with:
-        version: ${{ inputs.with-zig }}
-    - name: Check
-      working-directory: ${{ inputs.workdir }}
-      shell: bash
-      run: ./format.sh && git diff --exit-code
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set Up Cache
+        if: inputs.cache-paths
+        uses: actions/cache@v4
+        with:
+          path: ${{ inputs.cache-paths }}
+          key: ${{ inputs.workdir }}-format-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
+          restore-keys: ${{ inputs.workdir }}-format-
+      - name: Install Pkgs
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.0
+        with:
+          packages: ${{ inputs.build-pkgs }}
+          version: format-${{ inputs.workdir }}
+      - name: Install Nim
+        if: inputs.with-nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: ${{ inputs.with-nim }}
+      - name: Install Zig
+        if: inputs.with-zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ inputs.with-zig }}
+      - name: Check
+        working-directory: ${{ inputs.workdir }}
+        shell: bash
+        run: ./format.sh && git diff --exit-code
 
   build:
     name: Build
     runs-on: ubuntu-22.04
     if: "!contains(github.event.head_commit.message, '[skip build]')"
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-    - name: Set Up Cache
-      if: inputs.cache-paths
-      uses: actions/cache@v4
-      with:
-        path: ${{ inputs.cache-paths }}
-        key: ${{ inputs.workdir }}-build-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
-        restore-keys: ${{ inputs.workdir }}-build-
-    - name: Install Pkgs
-      uses: awalsh128/cache-apt-pkgs-action@v1.2.3
-      with:
-        packages: ${{ inputs.build-pkgs }}
-        version: build-${{ inputs.workdir }}
-    - name: Install Nim
-      if: inputs.with-nim
-      uses: jiro4989/setup-nim-action@v1
-      with:
-        nim-version: ${{ inputs.with-nim }}
-    - name: Install Zig
-      if: inputs.with-zig
-      uses: goto-bus-stop/setup-zig@v2
-      with:
-        version: ${{ inputs.with-zig }}
-    - name: Build
-      shell: bash
-      run: ./${{ inputs.workdir }}/build.sh
-    - name: Smoke Test
-      shell: bash
-      run: ./${{ inputs.workdir }}/rosettaboy-release --help
-    - name: CPU Integration Tests
-      shell: bash
-      run: ./all.py blargg ${{ inputs.workdir }}
-    - name: Benchmark Test
-      shell: bash
-      run: ./all.py bench ${{ inputs.workdir }} --default --frames 10
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set Up Cache
+        if: inputs.cache-paths
+        uses: actions/cache@v4
+        with:
+          path: ${{ inputs.cache-paths }}
+          key: ${{ inputs.workdir }}-build-${{ inputs.cache-key }}${{ hashFiles(inputs.cache-file) }}
+          restore-keys: ${{ inputs.workdir }}-build-
+      - name: Install Pkgs
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.0
+        with:
+          packages: ${{ inputs.build-pkgs }}
+          version: build-${{ inputs.workdir }}
+      - name: Install Nim
+        if: inputs.with-nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: ${{ inputs.with-nim }}
+      - name: Install Zig
+        if: inputs.with-zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ inputs.with-zig }}
+      - name: Build
+        shell: bash
+        run: ./${{ inputs.workdir }}/build.sh
+      - name: Smoke Test
+        shell: bash
+        run: ./${{ inputs.workdir }}/rosettaboy-release --help
+      - name: CPU Integration Tests
+        shell: bash
+        run: ./all.py blargg ${{ inputs.workdir }}
+      - name: Benchmark Test
+        shell: bash
+        run: ./all.py bench ${{ inputs.workdir }} --default --frames 10
