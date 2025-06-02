@@ -3,19 +3,19 @@ name: PHP
 on:
   push:
     branches:
-    - master
-    - main
+      - master
+      - main
     paths:
-    - 'php/**'
-    - '.github/workflows/php.yml'
-    - '.github/workflows/common.yml'
-    - 'flake.*'
+      - "php/**"
+      - ".github/workflows/php.yml"
+      - ".github/workflows/common.yml"
+      - "flake.*"
   pull_request:
     paths:
-    - 'php/**'
-    - '.github/workflows/php.yml'
-    - '.github/workflows/common.yml'
-    - 'flake.*'
+      - "php/**"
+      - ".github/workflows/php.yml"
+      - ".github/workflows/common.yml"
+      - "flake.*"
   workflow_dispatch:
 
 jobs:
