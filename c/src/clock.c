@@ -7,7 +7,7 @@
 #include "errors.h"
 
 void clock_ctor(struct Clock *self, struct Buttons *buttons, int frames, int profile, bool turbo) {
-    *self = (struct Clock) {
+    *self = (struct Clock){
         .buttons = buttons,
         .frames = frames,
         .profile = profile,
