@@ -846,7 +846,7 @@ static inline void cpu_tick_dma(struct CPU *self) {
  * code into the RAM address space.
  */
 void cpu_ctor(struct CPU *self, struct RAM *ram, bool debug) {
-    *self = (struct CPU) {
+    *self = (struct CPU){
         .ram = ram,
         .debug = debug,
         .interrupts = false,
