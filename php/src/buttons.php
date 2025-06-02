@@ -114,7 +114,7 @@ class Buttons
                 }
 
                 $need_interrupt = true;
-                switch($event->key->keysym->sym) {
+                switch ($event->key->keysym->sym) {
                     case SDLK_UP:
                         $this->up = true;
                         break;
@@ -149,7 +149,7 @@ class Buttons
                     $this->turbo = false;
                 }
 
-                switch($event->key->keysym->sym) {
+                switch ($event->key->keysym->sym) {
                     case SDLK_UP:
                         $this->up = false;
                         break;

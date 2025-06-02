@@ -393,8 +393,8 @@ class CPU
 
         $op = $this->ram->get($this->PC);
         if ($op == 0xCB) {
-            $op = $this->ram->get($this->PC+1);
-            $this->PC+=2;
+            $op = $this->ram->get($this->PC + 1);
+            $this->PC += 2;
             $this->tick_cb($op);
             $this->owed_cycles = $OP_CB_CYCLES[$op] - 1;
         } else {
@@ -402,12 +402,12 @@ class CPU
             $arg = new oparg();
             $arg_len = $OP_ARG_BYTES[$OP_ARG_TYPES[$op]];
             if ($arg_len == 1) {
-                $arg->as_u8 = $this->ram->get($this->PC+1);
+                $arg->as_u8 = $this->ram->get($this->PC + 1);
                 $arg->as_i8 = int8($arg->as_u8);
             }
             if ($arg_len == 2) {
-                $low = $this->ram->get($this->PC+1);
-                $high = $this->ram->get($this->PC+2);
+                $low = $this->ram->get($this->PC + 1);
+                $high = $this->ram->get($this->PC + 2);
                 $arg->as_u16 = uint16($low) | uint16($high) << 8;
             }
             $this->PC += 1 + $arg_len;
@@ -496,10 +496,10 @@ class CPU
                 break;
             case 0x22:
                 $this->ram->set($this->HL, $this->A);
-                $this->HL = ($this->HL+1) & 0xFFFF;
+                $this->HL = ($this->HL + 1) & 0xFFFF;
                 break;
             case 0x23:
-                $this->HL = ($this->HL+1) & 0xFFFF;
+                $this->HL = ($this->HL + 1) & 0xFFFF;
                 break;
             case 0x27:
                 $val16 = uint16($this->A);
@@ -535,10 +535,10 @@ class CPU
                 break;
             case 0x2A:
                 $this->A = $this->ram->get($this->HL);
-                $this->HL = ($this->HL+1) & 0xFFFF;
+                $this->HL = ($this->HL + 1) & 0xFFFF;
                 break;
             case 0x2B:
-                $this->HL = ($this->HL-1) & 0xFFFF;
+                $this->HL = ($this->HL - 1) & 0xFFFF;
                 break;
             case 0x2F:
                 $this->A ^= 0xFF;
@@ -555,10 +555,10 @@ class CPU
                 break;
             case 0x32:
                 $this->ram->set($this->HL, $this->A);
-                $this->HL = ($this->HL-1) & 0xFFFF;
+                $this->HL = ($this->HL - 1) & 0xFFFF;
                 break;
             case 0x33:
-                $this->SP = ($this->SP+1) & 0xFFFF;
+                $this->SP = ($this->SP + 1) & 0xFFFF;
                 break;
             case 0x37:
                 $this->FLAG_N = false;
@@ -572,10 +572,10 @@ class CPU
                 break;
             case 0x3A:
                 $this->A = $this->ram->get($this->HL);
-                $this->HL = ($this->HL-1) & 0xFFFF;
+                $this->HL = ($this->HL - 1) & 0xFFFF;
                 break;
             case 0x3B:
-                $this->SP = ($this->SP-1) & 0xFFFF;
+                $this->SP = ($this->SP - 1) & 0xFFFF;
                 break;
             case 0x3F:
                 $this->FLAG_C = !$this->FLAG_C;
@@ -594,7 +594,7 @@ class CPU
             case 0x3C:
                 $val = $this->get_reg(($op - 0x04) / 8);
                 $this->FLAG_H = ($val & 0x0F) == 0x0F;
-                $val = ($val+1) & 0xFF;
+                $val = ($val + 1) & 0xFF;
                 $this->FLAG_Z = $val == 0;
                 $this->FLAG_N = false;
                 $this->set_reg(($op - 0x04) / 8, $val);
@@ -610,7 +610,7 @@ class CPU
             case 0x35:
             case 0x3D:
                 $val = $this->get_reg(($op - 0x05) / 8);
-                $val = ($val-1) & 0xFF;
+                $val = ($val - 1) & 0xFF;
                 $this->FLAG_H = ($val & 0x0F) == 0x0F;
                 $this->FLAG_Z = $val == 0;
                 $this->FLAG_N = true;
@@ -687,8 +687,7 @@ class CPU
             case 0x45:
             case 0x46:
             case 0x47:
-            case
-            0x48:
+            case 0x48:
             case 0x49:
             case 0x4A:
             case 0x4B:
@@ -696,8 +695,7 @@ class CPU
             case 0x4D:
             case 0x4E:
             case 0x4F:
-            case
-            0x50:
+            case 0x50:
             case 0x51:
             case 0x52:
             case 0x53:
@@ -705,8 +703,7 @@ class CPU
             case 0x55:
             case 0x56:
             case 0x57:
-            case
-            0x58:
+            case 0x58:
             case 0x59:
             case 0x5A:
             case 0x5B:
@@ -714,8 +711,7 @@ class CPU
             case 0x5D:
             case 0x5E:
             case 0x5F:
-            case
-            0x60:
+            case 0x60:
             case 0x61:
             case 0x62:
             case 0x63:
@@ -723,8 +719,7 @@ class CPU
             case 0x65:
             case 0x66:
             case 0x67:
-            case
-            0x68:
+            case 0x68:
             case 0x69:
             case 0x6A:
             case 0x6B:
@@ -732,8 +727,7 @@ class CPU
             case 0x6D:
             case 0x6E:
             case 0x6F:
-            case
-            0x70:
+            case 0x70:
             case 0x71:
             case 0x72:
             case 0x73:
@@ -741,8 +735,7 @@ class CPU
             case 0x75:
             case 0x76:
             case 0x77:
-            case
-            0x78:
+            case 0x78:
             case 0x79:
             case 0x7A:
             case 0x7B:
