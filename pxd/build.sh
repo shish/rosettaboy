@@ -8,17 +8,10 @@ VENVDIR=${BUILD_ROOT:-$(realpath $(dirname $0))/build}/$(basename $(pwd))-$(echo
 
 if [ ! -d $VENVDIR ]; then
 	python3 -m venv $VENVDIR
-	$VENVDIR/bin/pip install pysdl2 pysdl2-dll Cython setuptools
 fi
 source $VENVDIR/bin/activate
 
-python3 setup.py build "$@" \
-	--build-base "$BUILDDIR/base" \
-	--build-purelib "$BUILDDIR/purelib" \
-	--build-lib "$BUILDDIR/lib" \
-	--build-scripts "$BUILDDIR/scripts" \
-	--build-temp "$BUILDDIR/temp" \
-	--parallel 4
+pip install -e .
 
 cat >rosettaboy-release <<EOD
 #!/usr/bin/env bash
