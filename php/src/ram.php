@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 define("ROM_BANK_SIZE", 0x4000);
 define("RAM_BANK_SIZE", 0x2000);
 
