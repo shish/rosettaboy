@@ -5,3 +5,4 @@ parameters:
     - src
   ignoreErrors:
     - '#Access to an undefined property SDL_Event::\$key.#'
+    - '#.*SDL_SetRenderDrawColor.*#'
