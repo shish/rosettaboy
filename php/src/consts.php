@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 class Mem
 {
     public static int $VBLANK_HANDLER = 0x40;
