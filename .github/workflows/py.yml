@@ -3,19 +3,19 @@ name: Python
 on:
   push:
     branches:
-    - master
-    - main
+      - master
+      - main
     paths:
-    - 'py/**'
-    - '.github/workflows/py.yml'
-    - '.github/workflows/common.yml'
-    - 'flake.*'
+      - "py/**"
+      - ".github/workflows/py.yml"
+      - ".github/workflows/common.yml"
+      - "flake.*"
   pull_request:
     paths:
-    - 'py/**'
-    - '.github/workflows/py.yml'
-    - '.github/workflows/common.yml'
-    - 'flake.*'
+      - "py/**"
+      - ".github/workflows/py.yml"
+      - ".github/workflows/common.yml"
+      - "flake.*"
   workflow_dispatch:
 
 jobs:
@@ -24,8 +24,8 @@ jobs:
     uses: ./.github/workflows/common.yml
     with:
       workdir: py
-      format-pkgs: python3.11-venv
-      build-pkgs: python3.11-venv
+      format-pkgs: python3-venv
+      build-pkgs: python3-venv
       cache-paths: |
         py/venv
         ~/.cache/pip

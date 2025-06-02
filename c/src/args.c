@@ -44,7 +44,7 @@ static struct option long_options[] = {
 };
 
 void parse_args(struct Args *args, int argc, char *argv[]) {
-    *args = (struct Args){0};
+    *args = (struct Args) {0};
 
     while (1) {
         int option_index = 0;

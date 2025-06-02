@@ -219,7 +219,8 @@ static inline void gpu_draw_line(struct GPU *self, i32 ly) {
                 .y = ram_get(self->ram, MEM_OAM_BASE + 4 * n + 0),
                 .x = ram_get(self->ram, MEM_OAM_BASE + 4 * n + 1),
                 .tile_id = ram_get(self->ram, MEM_OAM_BASE + 4 * n + 2),
-                .flags = ram_get(self->ram, MEM_OAM_BASE + 4 * n + 3)};
+                .flags = ram_get(self->ram, MEM_OAM_BASE + 4 * n + 3)
+            };
 
             if (sprite_is_live(&sprite)) {
                 SDL_Color *palette = sprite.palette ? self->obp1 : self->obp0;
@@ -290,16 +291,17 @@ static inline void gpu_update_palettes(struct GPU *self) {
 }
 
 void gpu_ctor(struct GPU *self, struct CPU *cpu, struct RAM *ram, char *title, bool headless, bool debug) {
-    *self = (struct GPU){
+    *self = (struct GPU) {
         .cpu = cpu,
         .ram = ram,
         .debug = debug,
-        .colors = {
-                   {.r = 0x9B, .g = 0xBC, .b = 0x0F, .a = 0xFF},
-                   {.r = 0x8B, .g = 0xAC, .b = 0x0F, .a = 0xFF},
-                   {.r = 0x30, .g = 0x62, .b = 0x30, .a = 0xFF},
-                   {.r = 0x0F, .g = 0x38, .b = 0x0F, .a = 0xFF},
-                   }
+        .colors =
+            {
+                     {.r = 0x9B, .g = 0xBC, .b = 0x0F, .a = 0xFF},
+                     {.r = 0x8B, .g = 0xAC, .b = 0x0F, .a = 0xFF},
+                     {.r = 0x30, .g = 0x62, .b = 0x30, .a = 0xFF},
+                     {.r = 0x0F, .g = 0x38, .b = 0x0F, .a = 0xFF},
+                     }
     };
 
     // Window

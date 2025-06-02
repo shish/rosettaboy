@@ -110,7 +110,8 @@ const char *const OP_NAMES[] = {
     "LD [$%04X],A",  "ERR EB",      "ERR EC",        "ERR ED",      "XOR $%02X",     "RST 28",
     "LDH A,[$%02X]", "POP AF",      "LDH A,[C]",     "DI",          "ERR F4",        "PUSH AF",
     "OR $%02X",      "RST 30",      "LD HL,SP%+d",   "LD SP,HL",    "LD A,[$%04X]",  "EI",
-    "ERR FC",        "ERR FD",      "CP $%02X",      "RST 38"};
+    "ERR FC",        "ERR FD",      "CP $%02X",      "RST 38"
+};
 
 const char *const CB_OP_NAMES[] = {
     "RLC B",   "RLC C",   "RLC D",   "RLC E",   "RLC H",   "RLC L",   "RLC [HL]",   "RLC A",
@@ -144,7 +145,8 @@ const char *const CB_OP_NAMES[] = {
     "SET 4,B", "SET 4,C", "SET 4,D", "SET 4,E", "SET 4,H", "SET 4,L", "SET 4,[HL]", "SET 4,A",
     "SET 5,B", "SET 5,C", "SET 5,D", "SET 5,E", "SET 5,H", "SET 5,L", "SET 5,[HL]", "SET 5,A",
     "SET 6,B", "SET 6,C", "SET 6,D", "SET 6,E", "SET 6,H", "SET 6,L", "SET 6,[HL]", "SET 6,A",
-    "SET 7,B", "SET 7,C", "SET 7,D", "SET 7,E", "SET 7,H", "SET 7,L", "SET 7,[HL]", "SET 7,A"};
+    "SET 7,B", "SET 7,C", "SET 7,D", "SET 7,E", "SET 7,H", "SET 7,L", "SET 7,[HL]", "SET 7,A"
+};
 
 static inline void cpu_set_reg(struct CPU *self, u8 n, u8 val) {
     switch (n & 0x07) {
@@ -431,7 +433,7 @@ static inline void cpu_tick_main(struct CPU *self, u8 op, union oparg arg) {
     u8 val = 0, carry = 0;
     u16 val16 = 0;
     switch (op) {
-        // clang-format off
+            // clang-format off
         case 0x00: /* NOP */; break;
         case 0x01: self->BC = arg.as_u16; break;
         case 0x02: ram_set(self->ram, self->BC, self->A); break;
@@ -844,7 +846,7 @@ static inline void cpu_tick_dma(struct CPU *self) {
  * code into the RAM address space.
  */
 void cpu_ctor(struct CPU *self, struct RAM *ram, bool debug) {
-    *self = (struct CPU){
+    *self = (struct CPU) {
         .ram = ram,
         .debug = debug,
         .interrupts = false,
