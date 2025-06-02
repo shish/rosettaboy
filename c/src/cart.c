@@ -36,7 +36,7 @@ u32 parse_ram_size(u8 val) {
 }
 
 void cart_ctor(struct Cart *self, const char *filename, bool debug) {
-    *self = (struct Cart) {.debug = debug};
+    *self = (struct Cart){.debug = debug};
 
     struct stat statbuf = {0};
     int statok = stat(filename, &statbuf);
