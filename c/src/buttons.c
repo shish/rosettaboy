@@ -22,7 +22,7 @@ void buttons_ctor(struct Buttons *self, struct CPU *cpu, struct RAM *ram, bool h
         SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
     }
 
-    *self = (struct Buttons){
+    *self = (struct Buttons) {
         .cpu = cpu,
         .ram = ram,
         .cycle = 0,
