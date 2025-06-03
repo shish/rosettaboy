@@ -1,31 +1,6 @@
 RosettaBoy - Zig Edition
 ========================
 
-Ideally, clone recursively:
-
-```
-$ git clone https://github.com/shish/rosettaboy --recursive
-```
-
-Or retroactively:
-
-```
-$ git submodule update --recursive
-```
-
-And to update submodules because the build.zig API changed again:
-
-```
-cd lib/sdl
-git pull
-git checkout master
-cd ../clap
-git pull
-git checkout master
-cd ../../
-git commit -a -m "bump dependencies"
-```
-
 Usage
 -----
 ```
@@ -42,6 +17,9 @@ Thoughts on Zig
   couple of years ago are syntactically invalid now :( On the plus side,
   the new syntax does seem to be better, and I can't blame them too much
   for making breaking changes for good reasons pre-1.0.
+  - Update after changing from 0.10 to 0.14 -- everything that can break
+    did break, again, so it was easiest to delete the build script and
+    start from scratch -- but the new script is much shorter and nicer :3
 
 - Also the compiler itself has issues - I managed to crash the stable
   compiler with some seemingly-simple code, so I switched to nightly, and
@@ -57,11 +35,11 @@ Thoughts on Zig
 - No string library? I'm making a character uppercase by fiddling with
   the binary ASCII value... T_T
 
-- No package manager? T_T (It seems there are multiple different
-  third-party package managers, and the packages that I wanted to use
-  aren't available in either of them?)
-  - Looks like a first-party package manager is on the roadmap for
-    "after the core language is more stable"
+- 0.14 has a package manager, and it is sufficiently powerful to
+  install SDL and an argparser libary, which is plenty for me \o/
+  - <del>No package manager? T_T (It seems there are multiple different
+    third-party package managers, and the packages that I wanted to use
+    aren't available in either of them?)</del>
 
 - If you want to get details from an error situation, the idiomatic thing
   is to pass in a "Diagnostics" object into the function, then if there's

@@ -3,19 +3,19 @@ name: Zig
 on:
   push:
     branches:
-    - master
-    - main
+      - master
+      - main
     paths:
-    - 'zig/**'
-    - '.github/workflows/zig.yml'
-    - '.github/workflows/common.yml'
-    - 'flake.*'
+      - "zig/**"
+      - ".github/workflows/zig.yml"
+      - ".github/workflows/common.yml"
+      - "flake.*"
   pull_request:
     paths:
-    - 'zig/**'
-    - '.github/workflows/zig.yml'
-    - '.github/workflows/common.yml'
-    - 'flake.*'
+      - "zig/**"
+      - ".github/workflows/zig.yml"
+      - ".github/workflows/common.yml"
+      - "flake.*"
   workflow_dispatch:
 
 jobs:
@@ -24,5 +24,5 @@ jobs:
     uses: ./.github/workflows/common.yml
     with:
       workdir: zig
-      with-zig: 0.11.0
+      with-zig: 0.14.0
       build-pkgs: libsdl2-dev
