@@ -4,7 +4,7 @@ cd $(dirname $0)
 
 BUILDDIR=${BUILD_ROOT:-$(realpath $(dirname $0))/build}/$(basename $(pwd))-$(echo $(basename $0) | sed 's/build_*\(.*\).sh/\1/')-$(uname)-$(uname -m)-venv
 if [ ! -d $BUILDDIR ] ; then
-	~/.pypy/bin/pypy3 -m venv $BUILDDIR
+	pypy3 -m venv $BUILDDIR
 	$BUILDDIR/bin/pip install pysdl2 pysdl2-dll
 fi
 source $BUILDDIR/bin/activate
