@@ -4,7 +4,7 @@ import sys
 import re
 
 def getkey(line):
-    matches = re.search("(\d+)fps", line)
+    matches = re.search("([0-9]+)fps", line)
     if matches:
         return int(matches.group(1))
     return 0
