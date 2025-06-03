@@ -1,8 +1,0 @@
-[submodule "zig/lib/clap"]
-	path = zig/lib/clap
-	url = https://github.com/Hejsil/zig-clap
-	branch = 272d8e2088b2cae037349fb260dc05ec46bba422
-[submodule "zig/lib/sdl"]
-	path = zig/lib/sdl
-	url = https://github.com/MasterQ32/SDL.zig
-	branch = 6b33f1f4299ec8814e9fb3b206cda37791ced574
