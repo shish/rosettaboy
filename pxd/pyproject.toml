@@ -1,0 +1,37 @@
+[project]
+name = "rosettaboy"
+version = "0.0.0"
+readme = "README.md"
+dependencies = [
+	"pysdl2",
+	"pysdl2-dll",
+	"Cython",
+	"setuptools"
+]
+
+[project.scripts]
+rosettaboy-pxd = "src.main:cli_main"
+
+[project.optional-dependencies]
+test = [
+	"mypy ~= 1.9",
+]
+
+[build-system]
+requires = ["setuptools", "cython"]
+
+[tool.setuptools]
+ext-modules = [
+  {name = "src", sources = ["src/*.py"], libraries=["SDL2"]} # You can also specify all the usual options like language or include_dirs
+#    ext_modules=cythonize(
+#        module_list=[Extension(name="*", sources=["src/*.py"], libraries=["SDL2"])],
+#        annotate=True,
+#        compiler_directives={
+#            "language_level": 3,
+#            "profile": True,
+#            "annotation_typing": True,
+#        },
+#        include_path=["src", "include"],
+#   )
+]
+
