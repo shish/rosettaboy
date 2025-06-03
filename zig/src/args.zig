@@ -19,6 +19,9 @@ pub const Args = struct {
     turbo: bool,
 
     pub fn parse_args() !Args {
+        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+        defer _ = gpa.deinit();
+
         const params = comptime [_]clap.Param(clap.Help){
             clap.parseParam("-h, --help             Display this help and exit.") catch unreachable,
             clap.parseParam("-H, --headless         Disable GUI") catch unreachable,
@@ -37,6 +40,7 @@ pub const Args = struct {
         var diag = clap.Diagnostic{};
         var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
             .diagnostic = &diag,
+            .allocator = gpa.allocator(),
         }) catch |err| {
             // Report useful error and exit
             diag.report(io.getStdErr().writer(), err) catch {};
@@ -65,9 +69,7 @@ pub const Args = struct {
         if (res.args.profile) |n|
             profile = n;
 
-        var rom: []const u8 = "";
-        for (res.positionals) |pos|
-            rom = pos;
+        const rom = res.positionals[0] orelse return error.MissingCommand;
 
         return Args{
             .rom = rom,

@@ -33,15 +33,15 @@ pub const Clock = struct {
         // Do a whole frame's worth of sleeping at the start of each frame
         if (self.cycle % 17556 == 20) {
             // Sleep if we have time left over
-            var time_spent = self.timer.lap();
+            const time_spent = self.timer.lap();
             const time_per_frame = 1_000_000_000 / 60;
             if (!self.turbo and !self.buttons.turbo and time_spent < time_per_frame) {
-                var sleep_time = time_per_frame - time_spent;
+                const sleep_time = time_per_frame - time_spent;
                 std.time.sleep(sleep_time);
             }
 
             // Exit if we've hit the frame or time limit
-            var duration: f64 = @as(f64, @floatFromInt(self.start.read())) / 1_000_000_000.0;
+            const duration: f64 = @as(f64, @floatFromInt(self.start.read())) / 1_000_000_000.0;
             if ((self.frames != 0 and self.frame >= self.frames) or (self.profile != 0 and duration >= @as(f64, @floatFromInt(self.profile)))) {
                 try std.io.getStdOut().writer().print("Emulated {d:5} frames in {d:5.2}s ({d:.0}fps)\n", .{
                     self.frame,

@@ -46,20 +46,20 @@ pub const Cart = struct {
         var data = try allocator.alloc(u8, (try f.stat()).size);
         _ = try f.read(data[0..]);
 
-        var logo: *[48]u8 = data[0x104 .. 0x104 + 48];
-        var name: *[15]u8 = data[0x134 .. 0x134 + 15];
+        const logo: *[48]u8 = data[0x104 .. 0x104 + 48];
+        const name: *[15]u8 = data[0x134 .. 0x134 + 15];
 
-        var is_gbc = data[0x143] == 0x80; // 0x80 = works on both, 0xC0 = colour only
-        var licensee: u16 = @as(u16, @intCast(data[0x144])) << 8 | @as(u16, @intCast(data[0x145]));
-        var is_sgb = data[0x146] == 0x03;
-        var cart_type = data[0x147];
-        var rom_size = parse_rom_size(data[0x148]);
-        var ram_size = parse_ram_size(data[0x149]);
-        var destination = data[0x14A];
-        var old_licensee = data[0x14B];
-        var rom_version = data[0x14C];
-        var complement_check = data[0x14D];
-        var checksum: u16 = @as(u16, @intCast(data[0x14E])) << 8 | @as(u16, @intCast(data[0x14F]));
+        const is_gbc = data[0x143] == 0x80; // 0x80 = works on both, 0xC0 = colour only
+        const licensee: u16 = @as(u16, @intCast(data[0x144])) << 8 | @as(u16, @intCast(data[0x145]));
+        const is_sgb = data[0x146] == 0x03;
+        const cart_type = data[0x147];
+        const rom_size = parse_rom_size(data[0x148]);
+        const ram_size = parse_ram_size(data[0x149]);
+        const destination = data[0x14A];
+        const old_licensee = data[0x14B];
+        const rom_version = data[0x14C];
+        const complement_check = data[0x14D];
+        const checksum: u16 = @as(u16, @intCast(data[0x14E])) << 8 | @as(u16, @intCast(data[0x14F]));
 
         var logo_checksum: u16 = 0;
         for (logo) |i| {
@@ -83,7 +83,7 @@ pub const Cart = struct {
         //}
 
         // FIXME: ram should be synced with .sav file
-        var ram = try allocator.alloc(u8, ram_size);
+        const ram = try allocator.alloc(u8, ram_size);
 
         return Cart{
             .data = data,
