@@ -40,10 +40,10 @@ def build(lang: str, builder: str, sub: str) -> bool:
         t2 = time()
         duration = t2 - t1
     if proc.returncode != 0:
-        print(f"{lang:>5s} / {sub:7s}: {RED}Failed in {duration:.2f}s - see {log}{END}")
+        print(f"{lang:>5s} / {sub:10s}: {RED}Failed in {duration:.2f}s - see {log}{END}")
         return False
     else:
-        print(f"{lang:>5s} / {sub:7s}: {GREEN}Built in {duration:.2f}s{END}")
+        print(f"{lang:>5s} / {sub:10s}: {GREEN}Built in {duration:.2f}s{END}")
         return True
 
 
@@ -67,17 +67,17 @@ def bench(lang: str, runner: str, sub: str, frames: int, profile: int, rom: Path
             text=True,
         )
         if proc.returncode != 0:
-            print(f"{lang:>5s} / {sub:7s}: {RED}Failed{END}\n{proc.stdout}")
+            print(f"{lang:>5s} / {sub:10s}: {RED}Failed{END}\n{proc.stdout}")
             return False
         else:
             frames = ""
             for line in proc.stdout.split("\n"):
                 if "frames" in line:
                     frames = line
-            print(f"{lang:>5s} / {sub:7s}: {frames}")
+            print(f"{lang:>5s} / {sub:10s}: {frames}")
             return True
     except Exception as e:
-        print(f"{lang:>5s} / {sub:7s}: {RED}Failed{END}\n{e}")
+        print(f"{lang:>5s} / {sub:10s}: {RED}Failed{END}\n{e}")
         return False
 
 
@@ -160,10 +160,10 @@ def version(lang: str, runner: str, sub: str) -> bool:
         text=True,
     )
     if proc.returncode != 0:
-        print(f"{lang:>5s} / {sub:7s}: {RED}{proc.stdout.strip()} / {proc.stderr.strip()}{END}")
+        print(f"{lang:>5s} / {sub:10s}: {RED}{proc.stdout.strip()} / {proc.stderr.strip()}{END}")
         return False
     else:
-        print(f"{lang:>5s} / {sub:7s}: {GREEN}{proc.stdout.strip()}{END}")
+        print(f"{lang:>5s} / {sub:10s}: {GREEN}{proc.stdout.strip()}{END}")
         return True
 
 
