@@ -109,7 +109,7 @@ const RAM_BANK_SIZE: u16 = 0x2000;
 
 fn panic(s: []const u8) void {
     print("{s}\n", .{s});
-    std.os.abort();
+    std.process.abort();
 }
 
 pub const RAM = struct {
@@ -153,8 +153,8 @@ pub const RAM = struct {
             0x4000...0x7FFF => {
                 // Switchable ROM bank
                 // TODO: array bounds check
-                var bank = self.rom_bank * ROM_BANK_SIZE;
-                var offset = addr - 0x4000;
+                const bank = self.rom_bank * ROM_BANK_SIZE;
+                const offset = addr - 0x4000;
                 val = self.cart.data[offset + bank];
             },
             0x8000...0x9FFF => {
@@ -165,8 +165,8 @@ pub const RAM = struct {
                 if (!self.ram_enable) {
                     panic("Reading from external ram while disabled: {:04X}"); //, addr);
                 }
-                var bank = self.ram_bank * RAM_BANK_SIZE;
-                var offset = addr - 0xA000;
+                const bank = self.ram_bank * RAM_BANK_SIZE;
+                const offset = addr - 0xA000;
                 if (bank + offset >= self.cart.ram_size) {
                     // this should never happen because we die on ram_bank being
                     // set to a too-large value
@@ -273,8 +273,8 @@ pub const RAM = struct {
                         //    addr, val
                     );
                 }
-                var bank = self.ram_bank * RAM_BANK_SIZE;
-                var offset = addr - 0xA000;
+                const bank = self.ram_bank * RAM_BANK_SIZE;
+                const offset = addr - 0xA000;
                 //tracing::debug!(
                 //    "Writing external RAM: {:04x}={:02x} ({:02x}:{:04x})",
                 //    bank + offset,

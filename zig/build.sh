@@ -2,5 +2,5 @@
 set -eu
 
 cd $(dirname $0)
-zig build -Doptimize=ReleaseFast
+zig build --release=fast
 mv ./zig-out/bin/rosettaboy ./rosettaboy-release

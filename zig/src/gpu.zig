@@ -88,7 +88,7 @@ pub const GPU = struct {
         const renderer = try SDL.createSoftwareRenderer(buffer);
 
         // Colors
-        var colors: [4]SDL.Color = .{
+        const colors: [4]SDL.Color = .{
             SDL.Color{ .r = 0x9B, .g = 0xBC, .b = 0x0F, .a = 0xFF },
             SDL.Color{ .r = 0x8B, .g = 0xAC, .b = 0x0F, .a = 0xFF },
             SDL.Color{ .r = 0x30, .g = 0x62, .b = 0x30, .a = 0xFF },
@@ -122,7 +122,7 @@ pub const GPU = struct {
         }
 
         // Check if LCD enabled at all
-        var lcdc = self.cpu.ram.get(consts.Mem.LCDC);
+        const lcdc = self.cpu.ram.get(consts.Mem.LCDC);
         if ((lcdc & LCDC.ENABLED) == 0) {
             // When LCD is re-enabled, LY is 0
             // Does it become 0 as soon as disabled??
@@ -132,8 +132,8 @@ pub const GPU = struct {
             }
         }
 
-        var lx: u8 = @as(u8, @intCast(self.cycle % 114));
-        var ly: u8 = @as(u8, @intCast((self.cycle / 114) % 154));
+        const lx: u8 = @as(u8, @intCast(self.cycle % 114));
+        const ly: u8 = @as(u8, @intCast((self.cycle / 114) % 154));
         self.cpu.ram.set(consts.Mem.LY, ly);
 
         var stat = self.cpu.ram.get(consts.Mem.STAT);
@@ -201,19 +201,19 @@ pub const GPU = struct {
     }
 
     fn update_palettes(self: *GPU) void {
-        var raw_bgp = self.cpu.ram.get(consts.Mem.BGP);
+        const raw_bgp = self.cpu.ram.get(consts.Mem.BGP);
         self.bgp[0] = self.colors[(raw_bgp >> 0) & 0x3];
         self.bgp[1] = self.colors[(raw_bgp >> 2) & 0x3];
         self.bgp[2] = self.colors[(raw_bgp >> 4) & 0x3];
         self.bgp[3] = self.colors[(raw_bgp >> 6) & 0x3];
 
-        var raw_obp0 = self.cpu.ram.get(consts.Mem.OBP0);
+        const raw_obp0 = self.cpu.ram.get(consts.Mem.OBP0);
         self.obp0[0] = self.colors[(raw_obp0 >> 0) & 0x3];
         self.obp0[1] = self.colors[(raw_obp0 >> 2) & 0x3];
         self.obp0[2] = self.colors[(raw_obp0 >> 4) & 0x3];
         self.obp0[3] = self.colors[(raw_obp0 >> 6) & 0x3];
 
-        var raw_obp1 = self.cpu.ram.get(consts.Mem.OBP1);
+        const raw_obp1 = self.cpu.ram.get(consts.Mem.OBP1);
         self.obp1[0] = self.colors[(raw_obp1 >> 0) & 0x3];
         self.obp1[1] = self.colors[(raw_obp1 >> 2) & 0x3];
         self.obp1[2] = self.colors[(raw_obp1 >> 4) & 0x3];
@@ -221,10 +221,10 @@ pub const GPU = struct {
     }
 
     fn draw_debug(self: *GPU) !void {
-        var lcdc = self.cpu.ram.get(consts.Mem.LCDC);
+        const lcdc = self.cpu.ram.get(consts.Mem.LCDC);
 
         // Tile data - FIXME
-        var tile_display_width: u8 = 32;
+        const tile_display_width: u8 = 32;
         var tile_id: u15 = 0;
         while (tile_id < 384) {
             var xy = SDL.Point{
@@ -237,46 +237,46 @@ pub const GPU = struct {
 
         // Background scroll border
         if (lcdc & LCDC.BG_WIN_ENABLED != 0) {
-            var rect = SDL.Rectangle{ .x = 0, .y = 0, .width = 160, .height = 144 };
+            const rect = SDL.Rectangle{ .x = 0, .y = 0, .width = 160, .height = 144 };
             try self.renderer.setColorRGB(255, 0, 0);
             try self.renderer.drawRect(rect);
         }
 
         // Window tiles
         if (lcdc & LCDC.WINDOW_ENABLED != 0) {
-            var wnd_y = self.cpu.ram.get(consts.Mem.WY);
-            var wnd_x = self.cpu.ram.get(consts.Mem.WX);
-            var rect = SDL.Rectangle{ .x = wnd_x - 7, .y = wnd_y, .width = 160, .height = 144 };
+            const wnd_y = self.cpu.ram.get(consts.Mem.WY);
+            const wnd_x = self.cpu.ram.get(consts.Mem.WX);
+            const rect = SDL.Rectangle{ .x = wnd_x - 7, .y = wnd_y, .width = 160, .height = 144 };
             try self.renderer.setColorRGB(0, 0, 255);
             try self.renderer.drawRect(rect);
         }
     }
 
     fn draw_line(self: *GPU, ly: u16) !void {
-        var lcdc = self.cpu.ram.get(consts.Mem.LCDC);
+        const lcdc = self.cpu.ram.get(consts.Mem.LCDC);
 
         // Background tiles
         if (lcdc & LCDC.BG_WIN_ENABLED != 0) {
-            var scroll_y = self.cpu.ram.get(consts.Mem.SCY);
-            var scroll_x = self.cpu.ram.get(consts.Mem.SCX);
-            var tile_offset = !(lcdc & LCDC.DATA_SRC != 0);
-            var tile_map = if (lcdc & LCDC.BG_MAP != 0) consts.Mem.Map1 else consts.Mem.Map0;
+            const scroll_y = self.cpu.ram.get(consts.Mem.SCY);
+            const scroll_x = self.cpu.ram.get(consts.Mem.SCX);
+            const tile_offset = !(lcdc & LCDC.DATA_SRC != 0);
+            const tile_map = if (lcdc & LCDC.BG_MAP != 0) consts.Mem.Map1 else consts.Mem.Map0;
 
             if (self.debug) {
-                var xy = SDL.Point{ .x = 256 - @as(i16, @intCast(scroll_x)), .y = @as(c_int, @intCast(ly)) };
+                const xy = SDL.Point{ .x = 256 - @as(i16, @intCast(scroll_x)), .y = @as(c_int, @intCast(ly)) };
                 try self.renderer.setColorRGB(255, 0, 0);
                 try self.renderer.drawPoint(xy.x, xy.y);
             }
 
-            var y_in_bgmap = (ly + scroll_y) % 256;
-            var tile_y = y_in_bgmap / 8;
-            var tile_sub_y: u3 = @as(u3, @intCast(y_in_bgmap % 8));
+            const y_in_bgmap = (ly + scroll_y) % 256;
+            const tile_y = y_in_bgmap / 8;
+            const tile_sub_y: u3 = @as(u3, @intCast(y_in_bgmap % 8));
 
             var lx: u16 = 0;
             while (lx <= 160) {
-                var x_in_bgmap = (lx + scroll_x) % 256;
-                var tile_x = x_in_bgmap / 8;
-                var tile_sub_x = x_in_bgmap % 8;
+                const x_in_bgmap = (lx + scroll_x) % 256;
+                const tile_x = x_in_bgmap / 8;
+                const tile_sub_x = x_in_bgmap % 8;
 
                 var tile_id: i16 = self.cpu.ram.get(tile_map + tile_y * 32 + tile_x);
                 if (tile_offset and tile_id < 0x80) {
@@ -294,13 +294,13 @@ pub const GPU = struct {
 
         // Window tiles
         if (lcdc & LCDC.WINDOW_ENABLED != 0) {
-            var wnd_y = self.cpu.ram.get(consts.Mem.WY);
-            var wnd_x = self.cpu.ram.get(consts.Mem.WX);
-            var tile_offset = !(lcdc & LCDC.DATA_SRC != 0);
-            var tile_map = if (lcdc & LCDC.WINDOW_MAP != 0) consts.Mem.Map1 else consts.Mem.Map0;
+            const wnd_y = self.cpu.ram.get(consts.Mem.WY);
+            const wnd_x = self.cpu.ram.get(consts.Mem.WX);
+            const tile_offset = !(lcdc & LCDC.DATA_SRC != 0);
+            const tile_map = if (lcdc & LCDC.WINDOW_MAP != 0) consts.Mem.Map1 else consts.Mem.Map0;
 
             // blank out the background
-            var rect = SDL.Rectangle{
+            const rect = SDL.Rectangle{
                 .x = wnd_x - 7,
                 .y = wnd_y,
                 .width = 160,
@@ -309,9 +309,9 @@ pub const GPU = struct {
             try self.renderer.setColor(self.bgp[0]);
             try self.renderer.fillRect(rect);
 
-            var y_in_bgmap = ly - wnd_y;
-            var tile_y = y_in_bgmap / 8;
-            var tile_sub_y: u3 = @as(u3, @intCast(y_in_bgmap % 8));
+            const y_in_bgmap = ly - wnd_y;
+            const tile_y = y_in_bgmap / 8;
+            const tile_sub_y: u3 = @as(u3, @intCast(y_in_bgmap % 8));
 
             var tile_x: u8 = 0;
             while (tile_x < 20) {
@@ -330,7 +330,7 @@ pub const GPU = struct {
 
         // Sprites
         if (lcdc & LCDC.OBJ_ENABLED != 0) {
-            var dbl = lcdc & LCDC.OBJ_SIZE != 0;
+            const dbl = lcdc & LCDC.OBJ_SIZE != 0;
 
             // TODO: sorted by x
             // var sprites: [Sprite; 40] = [];
@@ -346,7 +346,7 @@ pub const GPU = struct {
                 };
 
                 if (sprite.is_live()) {
-                    var palette = if (sprite.flags.palette) self.obp1 else self.obp0;
+                    const palette = if (sprite.flags.palette) self.obp1 else self.obp0;
                     // printf("Drawing sprite %d (from %04X) at %d,%d\n", tile_id, OamBase + (sprite_id * 4) + 0, x, y);
                     var xy = SDL.Point{
                         .x = sprite.x - 8,
@@ -374,7 +374,7 @@ pub const GPU = struct {
         }
 
         if (self.debug) {
-            var rect = SDL.Rectangle{
+            const rect = SDL.Rectangle{
                 .x = offset.x,
                 .y = offset.y,
                 .width = 8,
@@ -394,17 +394,17 @@ pub const GPU = struct {
         flip_y: bool,
         y: u3,
     ) !void {
-        var addr: u16 = @as(u16, @intCast(@as(i32, @intCast(consts.Mem.TileData)) + tile_id * 16 + @as(u8, @intCast(y)) * 2));
-        var low_byte = self.cpu.ram.get(addr);
-        var high_byte = self.cpu.ram.get(addr + 1);
+        const addr: u16 = @as(u16, @intCast(@as(i32, @intCast(consts.Mem.TileData)) + tile_id * 16 + @as(u8, @intCast(y)) * 2));
+        const low_byte = self.cpu.ram.get(addr);
+        const high_byte = self.cpu.ram.get(addr + 1);
         var x: u3 = 0;
         while (true) {
-            var low_bit = (low_byte >> (7 - x)) & 0x01;
-            var high_bit = (high_byte >> (7 - x)) & 0x01;
-            var px = (high_bit << 1) | low_bit;
+            const low_bit = (low_byte >> (7 - x)) & 0x01;
+            const high_bit = (high_byte >> (7 - x)) & 0x01;
+            const px = (high_bit << 1) | low_bit;
             // pallette #0 = transparent, so don't draw anything
             if (px > 0) {
-                var xy = SDL.Point{
+                const xy = SDL.Point{
                     .x = offset.x + (if (flip_x) 7 - x else x),
                     .y = offset.y + (if (flip_y) 7 - y else y),
                 };
@@ -437,11 +437,11 @@ pub const Sprite = packed struct {
 };
 
 pub fn gen_hue(n: u8) SDL.Color {
-    var region: u8 = n / 43;
-    var remainder: u8 = (n - (region * 43)) * 6;
+    const region: u8 = n / 43;
+    const remainder: u8 = (n - (region * 43)) * 6;
 
-    var q: u8 = 255 - remainder;
-    var t: u8 = remainder;
+    const q: u8 = 255 - remainder;
+    const t: u8 = remainder;
 
     return switch (region) {
         0 => SDL.Color{ .r = 255, .g = t, .b = 0, .a = 0xFF },
