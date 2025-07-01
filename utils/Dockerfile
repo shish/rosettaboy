@@ -11,38 +11,24 @@ RUN addgroup devgrp --gid $GROUP_ID \
     && echo dev ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/dev \
     && chmod 0440 /etc/sudoers.d/dev
 
-
-# Install C/C++ tools
+# If debian unstable has recent-enough versions, use them
 USER root
-RUN apt update && apt install -y cmake clang clang-format-14 libfmt-dev
+RUN apt update && apt install -y \
+    cmake clang clang-format-14 libfmt-dev \
+    golang golang-1.24 \
+    php8.4-cli \
+    python3.13 python3.13-venv python3.13-dev \
+    pypy3 pypy3-venv \
+    cargo
 
-# Install Go tools
-COPY --from=shish2k/rosettaboy-devkit-go:1.22.2 --chown=${USER_ID}:${GROUP_ID} /home/dev/.go /home/dev/.go
-ENV PATH="/home/dev/.go/bin:$PATH"
-
-# Install Nim tools
-COPY --from=shish2k/rosettaboy-devkit-nim:2.0.2 --chown=${USER_ID}:${GROUP_ID} /home/dev/.nim /home/dev/.nim
-ENV PATH="/home/dev/.nim/bin:$PATH"
-
-# Install PHP tools
-COPY --from=shish2k/rosettaboy-devkit-php:8.3.4 --chown=${USER_ID}:${GROUP_ID} /home/dev/.php /home/dev/.php
-ENV PATH="/home/dev/.php/bin:$PATH"
-
-# Install Python tools
-COPY --from=shish2k/rosettaboy-devkit-python:3.12.2 --chown=${USER_ID}:${GROUP_ID} /home/dev/.pyenv /home/dev/.pyenv
-ENV PYENV_ROOT="/home/dev/.pyenv"
-ENV PATH="/home/dev/.pyenv/shims:/home/dev/.pyenv/bin:$PATH"
-
-# Install Rust tools
-COPY --from=shish2k/rosettaboy-devkit-rust:1.77.1 --chown=${USER_ID}:${GROUP_ID} /home/dev/.rustup /home/dev/.rustup
-COPY --from=shish2k/rosettaboy-devkit-rust:1.77.1 --chown=${USER_ID}:${GROUP_ID} /home/dev/.cargo /home/dev/.cargo
-ENV PATH="/home/dev/.cargo/bin:$PATH"
-
-# Install Zig tools
-COPY --from=shish2k/rosettaboy-devkit-zig:0.11.0 --chown=${USER_ID}:${GROUP_ID} /home/dev/.zig /home/dev/.zig
-ENV PATH="/home/dev/.zig:$PATH"
+# For places where debian unstable is lacking, use DIY devkits
+ENV DEVKITS_BASE=https://github.com/shish/rosettaboy-devkits/releases/download/nightly
+ENV PATH="/opt/nim/bin:$PATH"
+RUN wget -q ${DEVKITS_BASE}/rosettaboy-zig-dev_0.14.1_$(dpkg-architecture -q DEB_BUILD_ARCH).deb
+RUN wget -q ${DEVKITS_BASE}/rosettaboy-nim-dev_2.2.4_$(dpkg-architecture -q DEB_BUILD_ARCH).deb
+RUN apt install -y ./*.deb
 
 # Get ready to go
 USER dev
 WORKDIR /home/dev/rosettaboy
-CMD /bin/bash
+CMD ["/bin/bash"]
