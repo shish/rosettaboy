@@ -16,7 +16,7 @@ USER root
 RUN apt update && apt install -y \
     cmake clang clang-format-14 libfmt-dev \
     golang golang-1.24 \
-    php8.4-cli \
+    php8.4-cli php8.4-zip \
     python3.13 python3.13-venv python3.13-dev \
     pypy3 pypy3-venv \
     cargo
@@ -27,6 +27,8 @@ ENV PATH="/opt/nim/bin:$PATH"
 RUN wget -q ${DEVKITS_BASE}/rosettaboy-zig-dev_0.14.1_$(dpkg-architecture -q DEB_BUILD_ARCH).deb
 RUN wget -q ${DEVKITS_BASE}/rosettaboy-nim-dev_2.2.4_$(dpkg-architecture -q DEB_BUILD_ARCH).deb
 RUN apt install -y ./*.deb
+
+COPY --from=composer/composer:2-bin /composer /usr/bin/composer
 
 # Get ready to go
 USER dev
