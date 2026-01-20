@@ -1,0 +1,26 @@
+name: Javascript
+
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'js/**'
+    - '.github/workflows/js.yml'
+  pull_request:
+    paths:
+    - 'js/**'
+    - '.github/workflows/js.yml'
+  workflow_dispatch:
+
+jobs:
+  common:
+    name: Common
+    uses: ./.github/workflows/common.yml
+    with:
+      workdir: js
+      format-pkgs: nodejs libsdl2-dev
+      build-pkgs: nodejs libsdl2-dev libc-bin
+      cache-paths: |
+        js/node_modules
+      cache-file: '**/package-lock.json'
